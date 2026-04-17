@@ -4,56 +4,59 @@ Instantiated from `.github/generic/process/project-instructions.md`.
 
 ## 1. Project Profile
 
-- Project name: `<pending>`
+- Project name: `Crystord Web`
 - Goal: Build a new frontend project from scratch against the existing backend contract.
-- Primary users: `<pending decision A2>`
-- Constraints: Must honor the backend contract and domain guide while remaining independent from the current frontend implementation.
+- Primary users: Data managers and domain operators who require transparent data and relationship visibility.
+- Constraints: Must honor the backend contract and domain guide while remaining independent from the current frontend implementation, and must apply branding policy defined in `.github/project/branding.md` for all UI/design-facing changes.
 
 ## 2. Architecture Instantiation
 
-- Major modules and responsibilities: `<pending decision G4>`
-- Module ownership map: `<pending>`
-- Allowed dependency directions: `<pending>`
+- Major modules and responsibilities: `auth-entry` (demo sign-in and entry guard), `workspace-graph` (canvas interactions and graph rendering), `workspace-search` (bootstrap and label-driven scoping), `workspace-details` (side-panel edit flows), `api-contract` (GraphQL bindings/adapters/compatibility checks), `ui-shell` (routing/layout/navigation shell).
+- Module ownership map: Repository owner owns all modules in MVP; ownership split can be introduced Post-MVP by module boundary.
+- Allowed dependency directions: `ui-shell` composes feature modules; feature modules may depend on shared utilities and `api-contract`; feature modules must not import other feature internals.
 - Boundary contract catalog: Backend API/schema contract, internal module APIs, configuration contracts.
-- Behavior-oriented slicing plan: `<pending — after MVP scope is defined>`
+- Behavior-oriented slicing plan: Vertical slices by capability: entry/auth, graph interaction, search/discovery, details editing, API-contract integration.
 
 ## 3. Interface Governance Instantiation
 
 - Project-specific approval authority: Repository owner.
-- Required approval SLA: `<pending>`
+- Required approval SLA: Target response within 48 hours for ICR decisions.
 - Contract versioning strategy: Backend-facing contract pinned to an approved version; internal interfaces require explicit approval when broken.
 - ICR storage location: `.github/project/evolution/adr/`
 
 ## 4. Verification Instantiation
 
-- Critical end-to-end flows: `<pending decision I1>`
+- Critical end-to-end flows: Demo sign-in entry, bootstrap search graph load, atom create/edit persistence, bond create/name persistence, delete safety behavior (confirm/undo), and error-path resilience without app crash.
 - Required boundary contracts to test: Backend contract integration, internal module boundaries.
-- Integration points with highest failure risk: `<pending>`
-- Component/service checks: `<after module decomposition>`
-- Optional unit-test focus areas: `<pending>`
+- Integration points with highest failure risk: `schemaInfo` startup compatibility handshake, mutation persistence and adapter mapping, route guard/auth entry behavior, graph interaction state synchronization.
+- Component/service checks: api-contract adapters and schema policy checks, graph canvas action handlers, search-to-graph scoping integration, detail panel mutation orchestration.
+- Optional unit-test focus areas: Adapter mappers, validation logic, and pure state transitions with non-trivial branching.
+- Branding compliance checks: UI copy, color semantics, and interaction states align with `.github/project/branding.md`.
 
 ## 5. Delivery Instantiation
 
-- Branching constraints: `<pending>`
-- CI gates and blocking checks: `<pending>`
-- Rollback strategy: `<pending>`
-- Observability minimum: `<pending decision I3>`
+- Branching constraints: Direct-to-main workflow with small, reversible commits.
+- CI gates and blocking checks: ESLint, strict TypeScript type checks, Vitest suite, contract/integration checks for backend compatibility boundaries, and smoke-level E2E checks for critical flows.
+- Rollback strategy: Redeploy last-known-good artifact, run immediate smoke verification, and preserve diagnostics from failed release attempt.
+- Observability minimum: Structured client logs, contextual error events (route/action/API), and baseline metrics for workspace load, bootstrap search latency, mutation outcomes, schema-compatibility failures, and demo sign-in failures.
+- Commit behavior guidance: commit to `main` whenever needed; for higher-risk changes, run selected quality checks before commit.
 
 ## 6. Quality Gate Instantiation
 
 - Requirement taxonomy: `FR` (functional), `QR` (quality), `OR` (operational), `CR` (constraints).
-- Portability acceptance checks: `<pending>`
+- Portability acceptance checks: MVP runs in modern desktop browsers and uses environment-driven backend endpoint/configuration without hardcoded environment values.
 - Maintainability acceptance checks: File <= 200 lines, function <= 30 lines.
-- Observability acceptance checks: `<pending>`
+- Observability acceptance checks: Required logs/events/metrics are emitted for critical flows and compatibility/auth failures with actionable diagnostic context.
 - Contract-stability checks: Backend contract compatibility validated before release.
 - Readability and documentation checks: No dead code, no unused imports, meaningful naming.
+- Branding acceptance checks: UI and design changes map to brand tokens/semantics and do not violate branding constraints in `.github/project/branding.md`.
 
 ## 7. Stack Addendum
 
-- Language and runtime: `<pending>`
-- Frameworks and platform: `<pending — determined after section H decisions>`
-- Data/storage: `<pending>`
-- Infrastructure/deployment: `<pending>`
+- Language and runtime: TypeScript with browser CSR runtime; Node.js LTS toolchain for build/test workflows.
+- Frameworks and platform: React, React Router, Apollo Client, React Flow (or equivalent editor-grade graph library), React Hook Form with schema validation, and utility/headless UI primitives.
+- Data/storage: GraphQL backend via Apollo client/cache plus lightweight local workspace state store; no client-side persistent database in MVP.
+- Infrastructure/deployment: Single frontend application artifact with environment-based configuration and versioned deploy/rollback process.
 
 ## 8. Evolution Tracking
 
@@ -67,10 +70,13 @@ Instantiated from `.github/generic/process/project-instructions.md`.
 Always-on:
 - `.github/copilot-instructions.md`
 - `.github/project/project-instructions.md`
+- `.github/project/branding.md`
 
 Usually referenced:
 - `.github/generic/process/llm-software-execution.md`
-- `.github/project/decision-checklist.md`
+- `.github/project/evolution/requirements-index.md`
+- `.github/project/evolution/backlog-status.md`
+- `.github/project/evolution/implementation-execution-runbook.md`
 
 On-demand:
 - `.github/project/evolution/requirements/*`

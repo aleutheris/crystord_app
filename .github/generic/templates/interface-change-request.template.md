@@ -66,6 +66,6 @@ Select all that apply:
 
 ## 10. Implementation Record
 
-- Linked PR/changeset: `<link or id>`
+- Linked changeset: `<link or id>`
 - Release target: `<version/milestone>`
 - Post-release review date: `<yyyy-mm-dd or n/a>`

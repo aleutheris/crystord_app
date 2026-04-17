@@ -1,0 +1,21 @@
+{
+  "backendService": "crystord_api",
+  "contractSource": ".github/project/evolution/schema-compatibility-contract.md",
+  "supportedSchemaRange": ">=1.0.0,<2.0.0",
+  "copiedFrom": {
+    "schemaVersion": "1.0.0",
+    "schemaHash": "<fill-from-schemaInfo>",
+    "releasedAt": "2026-04-13T00:00:00Z",
+    "lastSyncedAt": "2026-04-16T00:00:00Z"
+  },
+  "startupValidation": {
+    "required": true,
+    "query": "schemaInfo",
+    "failFastOnIncompatible": true
+  },
+  "diagnostics": {
+    "logSchemaVersion": true,
+    "logSchemaHash": true,
+    "logClientBuildId": true
+  }
+}

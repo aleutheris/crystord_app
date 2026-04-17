@@ -1,0 +1,112 @@
+# Schema snapshot for client integration.
+# Informational metadata only; runtime compatibility authority is Query.schemaInfo.
+# Snapshot copied date: 2026-04-16
+# Snapshot schemaVersion target: 1.0.0
+
+schema {
+    query: Query
+    mutation: Mutation
+}
+
+scalar JSON
+
+type Query {
+    retrieve(labels: [String], uuid: String): [AtomOutput!]
+    getGoogleClientID: String!
+    signin(email: String!, password: String!): String!
+    signinGoogle(idToken: String!): String!
+    list_labels(labels_prefix: String!): [String!]!
+    schemaInfo: SchemaInfo!
+}
+
+type SchemaInfo {
+    schemaVersion: String!
+    schemaHash: String!
+    releasedAt: String!
+}
+
+type Mutation {
+    signup(email: String!, password: String!, username: String): String!
+    change(selector: Selector, inputs: [AtomInput]!): [String]!
+    destroy(selector: Selector!): [String]!
+}
+
+input Selector {
+    labels: [String]
+    uuid: String
+    title: String
+    content: String
+    description: String
+    operation: String
+    constants: JSON
+    uuids: [String]
+}
+
+input AtomInput {
+    labels: [String!]!
+    bonds: [BondInput]
+    properties: PropertiesInput
+}
+
+input BondInput {
+    uuid: ID!
+    name: String!
+    direction: String!
+}
+
+input PropertiesInput {
+    shellies: ShelliesInput
+    nuclearies: NucleariesInput
+}
+
+input ShelliesInput {
+    uuid: ID
+}
+
+input ChangeInput {
+    date: String
+    description: String
+}
+
+input NucleariesInput {
+    title: String
+    content: String
+    description: String
+    operation: String
+    constants: JSON
+}
+
+type AtomOutput {
+    labels: [String]
+    bonds: [BondOutput]
+    properties: PropertiesOutput
+}
+
+type BondOutput {
+    uuid: ID!
+    name: String!
+    direction: String!
+}
+
+type PropertiesOutput {
+    shellies: ShelliesOutput
+    nuclearies: NucleariesOutput
+}
+
+type ShelliesOutput {
+    uuid: ID!
+    changes: [ChangeOutput!]
+}
+
+type ChangeOutput {
+    date: String
+    description: String!
+}
+
+type NucleariesOutput {
+    title: String!
+    content: String
+    description: String
+    operation: String
+    constants: JSON
+}

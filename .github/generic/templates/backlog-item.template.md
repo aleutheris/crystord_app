@@ -26,4 +26,4 @@ Status is tracked in the project's backlog status index file, not in backlog ite
   - Requirement entry: `<REQ-FR-YYNNNN.md | REQ-QR-YYNNNN.md | REQ-OR-YYNNNN.md | REQ-CR-YYNNNN.md | n/a>`
   - ADR: `<adr reference or n/a>`
   - ICR: `<icr reference or n/a>`
-  - PR/changeset: `<reference or n/a>`
+  - Changeset: `<reference or n/a>`
