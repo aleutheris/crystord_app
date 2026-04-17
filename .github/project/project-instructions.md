@@ -76,7 +76,6 @@ Usually referenced:
 - `.github/generic/process/llm-software-execution.md`
 - `.github/project/evolution/requirements-index.md`
 - `.github/project/evolution/backlog-status.md`
-- `.github/project/evolution/implementation-execution-runbook.md`
 
 On-demand:
 - `.github/project/evolution/requirements/*`

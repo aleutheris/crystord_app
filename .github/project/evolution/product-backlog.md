@@ -23,3 +23,23 @@ User-outcome-oriented backlog for Crystord Web.
 ## Workflow States
 
 - **Idea** → **Refined** → **Ready** → **In Progress** → **Done** → **Observed**
+
+## Execution Policy (Ported)
+
+- Delivery model: direct-to-main with small, reversible slices.
+- Execution model: one backlog slice per run.
+- Pre-start gate:
+	- target item status is Ready and traceable to ADR/REQ artifacts
+	- selected quality checks are explicit for the slice
+- Default quality checks per implementation slice:
+	- `npm run lint`
+	- `npm run typecheck`
+	- `npm run test`
+	- `npm run test:e2e` when critical flows are affected
+- Slice completion evidence:
+	- changed files
+	- test evidence (commands + pass/fail)
+	- residual risks and follow-up actions
+- Canonical policy note:
+	- Stable delivery/quality policy is defined in `.github/project/project-instructions.md` and backlog item templates.
+	- Backlog order/priority is maintained in this file; item state is maintained in `.github/project/evolution/backlog-status.md`.
