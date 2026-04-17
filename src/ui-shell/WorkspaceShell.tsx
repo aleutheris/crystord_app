@@ -1,7 +1,17 @@
+import { useState } from 'react'
+import { ReactFlowProvider } from '@xyflow/react'
 import { useAuth } from '../features/auth-entry'
+import { GraphCanvas, useGraphData } from '../features/workspace-graph'
+import { DetailPanel } from '../features/workspace-details'
 
 export function WorkspaceShell() {
   const { signOut } = useAuth()
+  const graphData = useGraphData()
+  const [selectedAtomId, setSelectedAtomId] = useState<string | null>(null)
+
+  const selectedAtom = graphData.atoms.find(
+    (a) => a.properties.shellies.uuid === selectedAtomId,
+  ) ?? null
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
@@ -11,9 +21,32 @@ export function WorkspaceShell() {
           Sign Out
         </button>
       </header>
-      <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p>Workspace ready — graph canvas will be added in BI-260012.</p>
-      </main>
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+        <div style={{ flex: 1, position: 'relative' }}>
+          <ReactFlowProvider>
+            <GraphCanvas
+              data={graphData}
+              selectedAtomId={selectedAtomId}
+              onSelectAtom={setSelectedAtomId}
+            />
+          </ReactFlowProvider>
+        </div>
+        {selectedAtom && (
+          <DetailPanel
+            key={selectedAtom.properties.shellies.uuid}
+            atom={selectedAtom}
+            onUpdate={graphData.updateAtom}
+            onDelete={(id) => {
+              const atom = graphData.atoms.find((a) => a.properties.shellies.uuid === id)
+              if (atom) {
+                setSelectedAtomId(null)
+                void graphData.deleteAtom(id)
+              }
+            }}
+            onClose={() => setSelectedAtomId(null)}
+          />
+        )}
+      </div>
     </div>
   )
 }

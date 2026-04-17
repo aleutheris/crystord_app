@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useCallback, useMemo } from 'react'
+import { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react'
 import type { ReactNode } from 'react'
+import { setAuthToken } from '../../api-contract/auth-token'
 
 interface AuthState {
   token: string | null
@@ -20,6 +21,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(() => {
     setToken(null)
   }, [])
+
+  useEffect(() => {
+    setAuthToken(token)
+  }, [token])
 
   const value = useMemo<AuthState>(() => ({
     token,
