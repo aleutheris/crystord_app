@@ -43,7 +43,7 @@ describe('App', () => {
     expect(screen.getByText(/starting crystord/i)).toBeInTheDocument()
   })
 
-  it('shows workspace ready on compatible schema', async () => {
+  it('shows sign-in page on compatible schema', async () => {
     mockStartupCheck.mockResolvedValue({
       compatible: true,
       schemaVersion: '1.2.0',
@@ -52,7 +52,7 @@ describe('App', () => {
     })
 
     render(<App />)
-    expect(await screen.findByText(/workspace ready/i)).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /sign in/i })).toBeInTheDocument()
   })
 
   it('shows error screen on incompatible schema', async () => {

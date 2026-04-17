@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react'
 import { ApolloProvider } from '@apollo/client/react'
 import type { ApolloClient } from '@apollo/client'
+import { BrowserRouter, Routes, Route } from 'react-router'
 import { createApolloClient } from './api-contract'
 import type { CompatibilityResult } from './api-contract'
 import { runStartupCompatibilityCheck } from './bootstrap'
 import { getConfig } from './config'
+import { AuthProvider, AuthGuard, SignInPage } from './features/auth-entry'
 import { LoadingScreen } from './ui-shell/LoadingScreen'
 import { SchemaErrorScreen } from './ui-shell/SchemaErrorScreen'
 import { StartupErrorScreen } from './ui-shell/StartupErrorScreen'
+import { WorkspaceShell } from './ui-shell/WorkspaceShell'
 
 type StartupState =
   | { phase: 'loading' }
@@ -61,10 +64,16 @@ export default function App() {
     case 'compatible':
       return (
         <ApolloProvider client={state.client}>
-          <div style={{ padding: '2rem' }}>
-            <h1>Crystord</h1>
-            <p>Schema compatible — workspace ready.</p>
-          </div>
+          <AuthProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/sign-in" element={<SignInPage client={state.client} />} />
+                <Route element={<AuthGuard />}>
+                  <Route path="/*" element={<WorkspaceShell />} />
+                </Route>
+              </Routes>
+            </BrowserRouter>
+          </AuthProvider>
         </ApolloProvider>
       )
   }

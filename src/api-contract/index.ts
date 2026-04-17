@@ -1,5 +1,7 @@
 export { createApolloClient } from './apollo-client'
 export { SCHEMA_INFO_QUERY } from './schema-info-query'
 export type { SchemaInfo, SchemaInfoResponse } from './schema-info-query'
+export { SIGN_IN_QUERY } from './sign-in-query'
+export type { SignInResponse } from './sign-in-query'
 export { checkSchemaCompatibility } from './schema-compatibility'
 export type { CompatibilityResult } from './schema-compatibility'
