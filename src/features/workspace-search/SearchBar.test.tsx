@@ -1,0 +1,66 @@
+import { describe, it, expect, vi } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { SearchBar } from './SearchBar'
+import type { SearchState } from './use-search'
+
+function makeSearch(overrides: Partial<SearchState> = {}): SearchState {
+  return {
+    filters: { labelQuery: '', selectedLabels: [] },
+    setLabelQuery: vi.fn(),
+    toggleLabel: vi.fn(),
+    clearFilters: vi.fn(),
+    filteredAtoms: [],
+    availableLabels: ['Project', 'Task'],
+    querySummary: '',
+    isActive: false,
+    ...overrides,
+  }
+}
+
+describe('SearchBar', () => {
+  it('renders search input and label chips', () => {
+    render(<SearchBar search={makeSearch()} />)
+    expect(screen.getByLabelText(/search labels/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Project' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Task' })).toBeInTheDocument()
+  })
+
+  it('calls setLabelQuery on input change', async () => {
+    const setLabelQuery = vi.fn()
+    const user = userEvent.setup()
+    render(<SearchBar search={makeSearch({ setLabelQuery })} />)
+
+    await user.type(screen.getByLabelText(/search labels/i), 'pro')
+    expect(setLabelQuery).toHaveBeenCalled()
+  })
+
+  it('calls toggleLabel when label chip is clicked', async () => {
+    const toggleLabel = vi.fn()
+    const user = userEvent.setup()
+    render(<SearchBar search={makeSearch({ toggleLabel })} />)
+
+    await user.click(screen.getByRole('button', { name: 'Project' }))
+    expect(toggleLabel).toHaveBeenCalledWith('Project')
+  })
+
+  it('shows clear button when search is active', () => {
+    render(<SearchBar search={makeSearch({ isActive: true })} />)
+    expect(screen.getByLabelText(/clear search/i)).toBeInTheDocument()
+  })
+
+  it('calls clearFilters when clear button is clicked', async () => {
+    const clearFilters = vi.fn()
+    const user = userEvent.setup()
+    render(<SearchBar search={makeSearch({ isActive: true, clearFilters })} />)
+
+    await user.click(screen.getByLabelText(/clear search/i))
+    expect(clearFilters).toHaveBeenCalledOnce()
+  })
+
+  it('marks active label chips with aria-pressed', () => {
+    render(<SearchBar search={makeSearch({ filters: { labelQuery: '', selectedLabels: ['Project'] } })} />)
+    expect(screen.getByRole('button', { name: 'Project' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'Task' })).toHaveAttribute('aria-pressed', 'false')
+  })
+})

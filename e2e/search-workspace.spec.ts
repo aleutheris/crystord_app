@@ -18,6 +18,14 @@ function mockGraphQL(page: import('@playwright/test').Page) {
         nuclearies: { title: 'Beta', description: 'Second', content: 'Pending', operation: '', constants: {} },
       },
     },
+    {
+      labels: ['Project', 'Active'],
+      bonds: [],
+      properties: {
+        shellies: { uuid: 'atom-3' },
+        nuclearies: { title: 'Gamma', description: 'Third', content: 'Done', operation: '', constants: {} },
+      },
+    },
   ]
 
   return page.route('**/graphql', (route) => {
@@ -49,7 +57,7 @@ function mockGraphQL(page: import('@playwright/test').Page) {
       return route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ data: { list_labels: ['Project', 'Task'] } }),
+        body: JSON.stringify({ data: { list_labels: ['Active', 'Project', 'Task'] } }),
       })
     }
 
@@ -91,48 +99,67 @@ async function signIn(page: import('@playwright/test').Page) {
   await responsePromise
 }
 
-test.describe('Graph workspace', () => {
-  test('shows graph canvas with atom nodes after sign-in', async ({ page }) => {
+test.describe('Search and discoverability', () => {
+  test('search bar and label chips are visible in workspace', async ({ page }) => {
     await mockGraphQL(page)
     await signIn(page)
 
-    await expect(page.getByText('Alpha')).toBeVisible()
-    await expect(page.getByText('Beta')).toBeVisible()
+    await expect(page.getByLabel(/search labels/i)).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Project' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Task' })).toBeVisible()
   })
 
-  test('opens detail panel when clicking an atom node', async ({ page }) => {
+  test('label query filters graph and shows result panel', async ({ page }) => {
     await mockGraphQL(page)
     await signIn(page)
 
-    await page.getByText('Alpha').click()
+    await page.getByLabel(/search labels/i).fill('proj')
+
+    // Query summary appears
+    await expect(page.getByRole('status', { name: /active query/i })).toBeVisible()
+    await expect(page.getByText('2 results')).toBeVisible()
+
+    // Result panel appears with matching atoms
+    await expect(page.getByRole('complementary', { name: /search results/i })).toBeVisible()
+    await expect(page.getByRole('complementary', { name: /search results/i }).getByText('Alpha')).toBeVisible()
+    await expect(page.getByRole('complementary', { name: /search results/i }).getByText('Gamma')).toBeVisible()
+  })
+
+  test('label chip filter scopes results', async ({ page }) => {
+    await mockGraphQL(page)
+    await signIn(page)
+
+    await page.getByRole('button', { name: 'Task' }).click()
+
+    await expect(page.getByText('1 result')).toBeVisible()
+    await expect(page.getByRole('complementary', { name: /search results/i }).getByText('Beta')).toBeVisible()
+  })
+
+  test('clicking a search result selects the atom', async ({ page }) => {
+    await mockGraphQL(page)
+    await signIn(page)
+
+    await page.getByRole('button', { name: 'Task' }).click()
+
+    const resultPanel = page.getByRole('complementary', { name: /search results/i })
+    await resultPanel.getByText('Beta').click()
+
+    // Detail panel opens for the clicked atom
     const detailPanel = page.getByRole('complementary', { name: /atom details/i })
     await expect(detailPanel).toBeVisible()
-    await expect(detailPanel.getByLabel(/title/i)).toHaveValue('Alpha')
-    await expect(detailPanel.getByLabel(/labels.*comma/i)).toHaveValue('Project')
-    await expect(detailPanel.getByLabel(/description/i)).toHaveValue('First')
-  })
-
-  test('closes detail panel', async ({ page }) => {
-    await mockGraphQL(page)
-    await signIn(page)
-
-    await page.getByText('Alpha').click()
-    await expect(page.getByRole('complementary', { name: /atom details/i })).toBeVisible()
-
-    await page.getByRole('button', { name: /close panel/i }).click()
-    await expect(page.getByRole('complementary', { name: /atom details/i })).not.toBeVisible()
-  })
-
-  test('switches detail panel between atoms', async ({ page }) => {
-    await mockGraphQL(page)
-    await signIn(page)
-
-    await page.getByText('Alpha').click()
-    await expect(page.getByLabel(/title/i)).toHaveValue('Alpha')
-
-    await page.getByText('Beta').click()
-    const detailPanel = page.getByRole('complementary', { name: /atom details/i })
     await expect(detailPanel.getByLabel(/title/i)).toHaveValue('Beta')
-    await expect(detailPanel.getByLabel(/labels.*comma/i)).toHaveValue('Task')
+  })
+
+  test('clear button removes search and hides result panel', async ({ page }) => {
+    await mockGraphQL(page)
+    await signIn(page)
+
+    await page.getByLabel(/search labels/i).fill('proj')
+    await expect(page.getByRole('complementary', { name: /search results/i })).toBeVisible()
+
+    await page.getByLabel(/clear search/i).click()
+
+    await expect(page.getByRole('complementary', { name: /search results/i })).not.toBeVisible()
+    await expect(page.getByRole('status', { name: /active query/i })).not.toBeVisible()
   })
 })

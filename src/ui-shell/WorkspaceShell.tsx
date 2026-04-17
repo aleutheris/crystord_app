@@ -3,11 +3,16 @@ import { ReactFlowProvider } from '@xyflow/react'
 import { useAuth } from '../features/auth-entry'
 import { GraphCanvas, useGraphData } from '../features/workspace-graph'
 import { DetailPanel } from '../features/workspace-details'
+import { SearchBar, QuerySummary, SearchResultPanel, useSearch } from '../features/workspace-search'
 
 export function WorkspaceShell() {
   const { signOut } = useAuth()
   const graphData = useGraphData()
+  const search = useSearch(graphData.atoms)
   const [selectedAtomId, setSelectedAtomId] = useState<string | null>(null)
+
+  const displayAtoms = search.isActive ? search.filteredAtoms : graphData.atoms
+  const displayData = { ...graphData, atoms: displayAtoms }
 
   const selectedAtom = graphData.atoms.find(
     (a) => a.properties.shellies.uuid === selectedAtomId,
@@ -15,38 +20,47 @@ export function WorkspaceShell() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <header style={{ padding: '0.5rem 1rem', borderBottom: '1px solid #ddd', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1 style={{ margin: 0, fontSize: '1.25rem' }}>Crystord</h1>
-        <button type="button" onClick={signOut} style={{ padding: '0.25rem 0.75rem' }}>
+      <header style={{ padding: '0.5rem 1rem', borderBottom: '1px solid #ddd', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
+        <h1 style={{ margin: 0, fontSize: '1.25rem', flexShrink: 0 }}>Crystord</h1>
+        <SearchBar search={search} />
+        <button type="button" onClick={signOut} style={{ padding: '0.25rem 0.75rem', flexShrink: 0 }}>
           Sign Out
         </button>
       </header>
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-        <div style={{ flex: 1, position: 'relative' }}>
-          <ReactFlowProvider>
-            <GraphCanvas
-              data={graphData}
+      <QuerySummary summary={search.querySummary} resultCount={search.filteredAtoms.length} />
+      <ReactFlowProvider>
+        <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+          {search.isActive && (
+            <SearchResultPanel
+              atoms={search.filteredAtoms}
               selectedAtomId={selectedAtomId}
               onSelectAtom={setSelectedAtomId}
             />
-          </ReactFlowProvider>
+          )}
+          <div style={{ flex: 1, position: 'relative' }}>
+            <GraphCanvas
+              data={displayData}
+              selectedAtomId={selectedAtomId}
+              onSelectAtom={setSelectedAtomId}
+            />
+          </div>
+          {selectedAtom && (
+            <DetailPanel
+              key={selectedAtom.properties.shellies.uuid}
+              atom={selectedAtom}
+              onUpdate={graphData.updateAtom}
+              onDelete={(id) => {
+                const atom = graphData.atoms.find((a) => a.properties.shellies.uuid === id)
+                if (atom) {
+                  setSelectedAtomId(null)
+                  void graphData.deleteAtom(id)
+                }
+              }}
+              onClose={() => setSelectedAtomId(null)}
+            />
+          )}
         </div>
-        {selectedAtom && (
-          <DetailPanel
-            key={selectedAtom.properties.shellies.uuid}
-            atom={selectedAtom}
-            onUpdate={graphData.updateAtom}
-            onDelete={(id) => {
-              const atom = graphData.atoms.find((a) => a.properties.shellies.uuid === id)
-              if (atom) {
-                setSelectedAtomId(null)
-                void graphData.deleteAtom(id)
-              }
-            }}
-            onClose={() => setSelectedAtomId(null)}
-          />
-        )}
-      </div>
+      </ReactFlowProvider>
     </div>
   )
 }
