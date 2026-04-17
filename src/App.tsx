@@ -7,6 +7,7 @@ import type { CompatibilityResult } from './api-contract'
 import { runStartupCompatibilityCheck } from './bootstrap'
 import { getConfig } from './config'
 import { AuthProvider, AuthGuard, SignInPage } from './features/auth-entry'
+import { AdminPlaceholder } from './features/admin'
 import { LoadingScreen } from './ui-shell/LoadingScreen'
 import { SchemaErrorScreen } from './ui-shell/SchemaErrorScreen'
 import { StartupErrorScreen } from './ui-shell/StartupErrorScreen'
@@ -68,6 +69,7 @@ export default function App() {
             <BrowserRouter>
               <Routes>
                 <Route path="/sign-in" element={<SignInPage client={state.client} />} />
+                <Route path="/admin" element={<AdminPlaceholder />} />
                 <Route element={<AuthGuard />}>
                   <Route path="/*" element={<WorkspaceShell />} />
                 </Route>
