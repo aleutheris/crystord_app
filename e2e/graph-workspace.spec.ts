@@ -135,4 +135,162 @@ test.describe('Graph workspace', () => {
     await expect(detailPanel.getByLabel(/title/i)).toHaveValue('Beta')
     await expect(detailPanel.getByLabel(/labels.*comma/i)).toHaveValue('Task')
   })
+
+  test('creates a new atom via double-click on canvas', async ({ page }) => {
+    await mockGraphQL(page)
+    await signIn(page)
+
+    await expect(page.getByText('Alpha')).toBeVisible()
+
+    // Double-click on the React Flow pane to create a new atom
+    const canvas = page.locator('.react-flow__pane')
+    const createResponse = page.waitForResponse((r) =>
+      r.url().includes('/graphql') && r.request().postData()?.includes('change') === true,
+    )
+    await canvas.dblclick({ position: { x: 300, y: 300 } })
+    await createResponse
+
+    // After creation the graph refetches — verify no crash
+    await expect(page.getByText('Alpha')).toBeVisible()
+  })
+
+  test('edits atom properties via detail panel save', async ({ page }) => {
+    await mockGraphQL(page)
+    await signIn(page)
+
+    await page.getByText('Alpha').click()
+    const detailPanel = page.getByRole('complementary', { name: /atom details/i })
+    await expect(detailPanel).toBeVisible()
+
+    // Edit the title field
+    await detailPanel.getByLabel(/title/i).fill('AlphaUpdated')
+
+    // Submit the form
+    const saveResponse = page.waitForResponse((r) =>
+      r.url().includes('/graphql') && r.request().postData()?.includes('change') === true,
+    )
+    await detailPanel.getByRole('button', { name: /save/i }).click()
+    await saveResponse
+
+    // Workspace remains functional after save
+    await expect(page.getByRole('button', { name: /sign out/i })).toBeVisible()
+  })
+
+  test('shows delete confirmation dialog and cancellation preserves atom', async ({ page }) => {
+    await mockGraphQL(page)
+    await signIn(page)
+
+    await page.getByText('Alpha').click()
+    const detailPanel = page.getByRole('complementary', { name: /atom details/i })
+    await expect(detailPanel).toBeVisible()
+
+    // Click delete in detail panel
+    await detailPanel.getByRole('button', { name: /delete/i }).click()
+
+    // Confirm dialog appears
+    const dialog = page.getByRole('dialog', { name: /confirm deletion/i })
+    await expect(dialog).toBeVisible()
+    await expect(dialog.getByText('Alpha')).toBeVisible()
+
+    // Cancel preserves the atom
+    await dialog.getByRole('button', { name: /cancel/i }).click()
+    await expect(dialog).not.toBeVisible()
+    await expect(page.getByText('Alpha')).toBeVisible()
+  })
+
+  test('delete confirmation dispatches destroy mutation', async ({ page }) => {
+    await mockGraphQL(page)
+    await signIn(page)
+
+    await page.getByText('Alpha').click()
+    const detailPanel = page.getByRole('complementary', { name: /atom details/i })
+    await detailPanel.getByRole('button', { name: /delete/i }).click()
+
+    const dialog = page.getByRole('dialog', { name: /confirm deletion/i })
+    await expect(dialog).toBeVisible()
+
+    // Confirm deletion
+    const destroyResponse = page.waitForResponse((r) =>
+      r.url().includes('/graphql') && r.request().postData()?.includes('destroy') === true,
+    )
+    await dialog.getByRole('button', { name: /^delete$/i }).click()
+    await destroyResponse
+
+    // Workspace remains functional after deletion
+    await expect(page.getByRole('button', { name: /sign out/i })).toBeVisible()
+  })
+
+  test('workspace remains functional after mutation error', async ({ page }) => {
+    // Override mock to fail on mutations
+    await page.route('**/graphql', (route) => {
+      const postData = route.request().postData()
+      if (!postData) return route.continue()
+      const body = JSON.parse(postData)
+      const query: string = body.query ?? ''
+
+      if (query.includes('schemaInfo')) {
+        return route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            data: { schemaInfo: { schemaVersion: '1.0.0', schemaHash: 'abc', releasedAt: '2025-01-01T00:00:00Z' } },
+          }),
+        })
+      }
+      if (query.includes('signin')) {
+        return route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ data: { signin: 'mock-token' } }),
+        })
+      }
+      if (query.includes('list_labels')) {
+        return route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ data: { list_labels: ['Project', 'Task'] } }),
+        })
+      }
+      if (query.includes('retrieve')) {
+        return route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            data: {
+              retrieve: [
+                {
+                  labels: ['Project'],
+                  bonds: [],
+                  properties: {
+                    shellies: { uuid: 'atom-1' },
+                    nuclearies: { title: 'Alpha', description: '', content: '', operation: '', constants: {} },
+                  },
+                },
+              ],
+            },
+          }),
+        })
+      }
+      // All mutations fail
+      if (query.includes('change') || query.includes('destroy')) {
+        return route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ data: null, errors: [{ message: 'Server error' }] }),
+        })
+      }
+      return route.continue()
+    })
+
+    await signIn(page)
+    await expect(page.getByText('Alpha')).toBeVisible()
+
+    // Double-click to attempt create — should fail but not crash
+    const canvas = page.locator('.react-flow__pane')
+    await canvas.dblclick({ position: { x: 300, y: 300 } })
+
+    // Workspace still shows existing data and navigation
+    await expect(page.getByText('Alpha')).toBeVisible()
+    await expect(page.getByRole('button', { name: /sign out/i })).toBeVisible()
+  })
 })
