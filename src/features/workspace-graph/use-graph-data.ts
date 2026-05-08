@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useApolloClient } from '@apollo/client/react'
 import {
-  LIST_LABELS_QUERY,
   RETRIEVE_QUERY,
   CREATE_ATOMS_MUTATION,
   UPDATE_ATOM_MUTATION,
@@ -10,7 +9,6 @@ import {
 import type {
   Atom,
   RetrieveResponse,
-  ListLabelsResponse,
 } from '../../api-contract/graph-queries'
 
 export interface GraphData {
@@ -35,22 +33,8 @@ export function useGraphData(): GraphData {
     setLoading(true)
     setError(null)
     try {
-      const { data: labelsData } = await client.query<ListLabelsResponse>({
-        query: LIST_LABELS_QUERY,
-        variables: { prefix: '' },
-        fetchPolicy: 'network-only',
-      })
-
-      const labels = labelsData?.list_labels ?? []
-      if (labels.length === 0) {
-        setAtoms([])
-        setLoading(false)
-        return
-      }
-
       const { data } = await client.query<RetrieveResponse>({
         query: RETRIEVE_QUERY,
-        variables: { labels },
         fetchPolicy: 'network-only',
       })
 

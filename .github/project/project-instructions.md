@@ -76,6 +76,7 @@ Usually referenced:
 - `.github/generic/process/llm-software-execution.md`
 - `.github/project/evolution/requirements-index.md`
 - `.github/project/evolution/backlog-status.md`
+- `.github/project/evolution/adr-index.md`
 
 On-demand:
 - `.github/project/evolution/requirements/*`

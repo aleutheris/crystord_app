@@ -2,6 +2,9 @@
 
 Canonical index of all Crystord Web requirements.
 
+Status lifecycle used here: Accepted | Deprecated | Removed.
+When a requirement is deprecated, keep its row in this file and set `Status` to `Deprecated` instead of deleting it.
+
 | Requirement ID | Title | Class | Status | Related ADRs | Related BIs |
 | --- | --- | --- | --- | --- | --- |
 | REQ-FR-260001 | Graph-First Control Surface for Backend-Supported Operations | FR | Accepted | ADR-260001 | BI-260001 |
