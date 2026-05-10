@@ -14,22 +14,41 @@ beforeEach(() => {
 })
 
 describe('useRecommendedLabels', () => {
-  it('returns labels fetched from list_labels on mount', async () => {
+  it('uses list_labels query with empty prefix on mount', async () => {
     mockQuery.mockResolvedValue({ data: { list_labels: ['Project', 'Task', 'Active'] } })
 
-    const { result } = renderHook(() => useRecommendedLabels())
+    renderHook(() => useRecommendedLabels())
 
-    await waitFor(() => expect(result.current).toEqual(['Project', 'Task', 'Active']))
-
-    expect(mockQuery).toHaveBeenCalledWith({
+    await waitFor(() => expect(mockQuery).toHaveBeenCalledWith({
       query: LIST_LABELS_QUERY,
       variables: { prefix: '' },
       fetchPolicy: 'cache-first',
-    })
+    }))
   })
 
-  it('returns empty array when fetch fails', async () => {
-    mockQuery.mockRejectedValue(new Error('network error'))
+  it('caps returned labels to exactly three when more are available', async () => {
+    const many = ['A', 'B', 'C', 'D', 'E', 'F']
+    mockQuery.mockResolvedValue({ data: { list_labels: many } })
+
+    const { result } = renderHook(() => useRecommendedLabels())
+
+    await waitFor(() => expect(result.current).toHaveLength(3))
+    for (const label of result.current) {
+      expect(many).toContain(label)
+    }
+  })
+
+  it('returns all labels when fewer than three are available', async () => {
+    mockQuery.mockResolvedValue({ data: { list_labels: ['Only', 'Two'] } })
+
+    const { result } = renderHook(() => useRecommendedLabels())
+
+    await waitFor(() => expect(result.current).toHaveLength(2))
+    expect(result.current).toEqual(expect.arrayContaining(['Only', 'Two']))
+  })
+
+  it('returns empty array when list_labels is absent in response', async () => {
+    mockQuery.mockResolvedValue({ data: {} })
 
     const { result } = renderHook(() => useRecommendedLabels())
 
@@ -37,8 +56,8 @@ describe('useRecommendedLabels', () => {
     expect(result.current).toEqual([])
   })
 
-  it('returns empty array when list_labels is absent in response', async () => {
-    mockQuery.mockResolvedValue({ data: {} })
+  it('returns empty array when fetch fails', async () => {
+    mockQuery.mockRejectedValue(new Error('network error'))
 
     const { result } = renderHook(() => useRecommendedLabels())
 

@@ -2,6 +2,13 @@ import { useState, useEffect } from 'react'
 import { useApolloClient } from '@apollo/client/react'
 import { LIST_LABELS_QUERY } from '../../api-contract/graph-queries'
 
+const RECOMMENDATION_CAP = 3
+
+function pickRandom(labels: string[], count: number): string[] {
+  const shuffled = [...labels].sort(() => Math.random() - 0.5)
+  return shuffled.slice(0, count)
+}
+
 export function useRecommendedLabels(): string[] {
   const client = useApolloClient()
   const [labels, setLabels] = useState<string[]>([])
@@ -14,7 +21,7 @@ export function useRecommendedLabels(): string[] {
         fetchPolicy: 'cache-first',
       })
       .then(({ data }) => {
-        setLabels(data?.list_labels ?? [])
+        setLabels(pickRandom(data?.list_labels ?? [], RECOMMENDATION_CAP))
       })
       .catch(() => {
         // best-effort: recommendations silently absent on failure
