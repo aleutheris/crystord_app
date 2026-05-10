@@ -187,4 +187,52 @@ test.describe('Search and discoverability', () => {
     await expect(page.getByRole('complementary', { name: /search results/i })).not.toBeVisible()
     await expect(page.getByRole('status', { name: /active query/i })).not.toBeVisible()
   })
+
+  test('typing a label and pressing Space creates a chip and clears the input', async ({ page }) => {
+    await mockGraphQL(page)
+    await signIn(page)
+
+    const searchInput = page.getByLabel(/search labels/i)
+    await searchInput.click()
+    await page.keyboard.type('Project')
+    await page.keyboard.press(' ')
+
+    await expect(page.getByRole('button', { name: /remove project/i })).toBeVisible()
+    await expect(searchInput).toHaveValue('')
+  })
+
+  test('multiple chips can be added in sequence', async ({ page }) => {
+    await mockGraphQL(page)
+    await signIn(page)
+
+    const searchInput = page.getByLabel(/search labels/i)
+    await searchInput.click()
+    await page.keyboard.type('Alpha')
+    await page.keyboard.press(' ')
+    await page.keyboard.type('Beta')
+    await page.keyboard.press(':')
+
+    await expect(page.getByRole('button', { name: /remove alpha/i })).toBeVisible()
+    await expect(page.getByRole('button', { name: /remove beta/i })).toBeVisible()
+    await expect(searchInput).toHaveValue('')
+  })
+
+  test('Backspace removes the last chip when input is empty', async ({ page }) => {
+    await mockGraphQL(page)
+    await signIn(page)
+
+    const searchInput = page.getByLabel(/search labels/i)
+    await searchInput.click()
+    await page.keyboard.type('Alpha')
+    await page.keyboard.press(' ')
+    await page.keyboard.type('Beta')
+    await page.keyboard.press(' ')
+
+    await expect(page.getByRole('button', { name: /remove beta/i })).toBeVisible()
+
+    await page.keyboard.press('Backspace')
+
+    await expect(page.getByRole('button', { name: /remove beta/i })).not.toBeVisible()
+    await expect(page.getByRole('button', { name: /remove alpha/i })).toBeVisible()
+  })
 })

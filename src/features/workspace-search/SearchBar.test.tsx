@@ -11,6 +11,8 @@ function makeSearch(overrides: Partial<SearchState> = {}): SearchState {
     toggleLabel: vi.fn(),
     clearFilters: vi.fn(),
     submitSearch: vi.fn(),
+    commitLabelFromInput: vi.fn(),
+    removeLastLabel: vi.fn(),
     filteredAtoms: [],
     availableLabels: ['Project', 'Task'],
     querySummary: '',
@@ -105,5 +107,82 @@ describe('SearchBar', () => {
     render(<SearchBar search={makeSearch({ filters: { labelQuery: '', selectedLabels: ['Project'] } })} />)
     expect(screen.getByRole('button', { name: 'Project' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: 'Task' })).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('calls commitLabelFromInput when Space is pressed', async () => {
+    const commitLabelFromInput = vi.fn()
+    const user = userEvent.setup()
+    render(<SearchBar search={makeSearch({ commitLabelFromInput })} />)
+
+    const input = screen.getByLabelText(/search labels/i)
+    await user.click(input)
+    await user.keyboard(' ')
+    expect(commitLabelFromInput).toHaveBeenCalledOnce()
+  })
+
+  it('calls commitLabelFromInput when Colon is pressed', async () => {
+    const commitLabelFromInput = vi.fn()
+    const user = userEvent.setup()
+    render(<SearchBar search={makeSearch({ commitLabelFromInput })} />)
+
+    const input = screen.getByLabelText(/search labels/i)
+    await user.click(input)
+    await user.keyboard(':')
+    expect(commitLabelFromInput).toHaveBeenCalledOnce()
+  })
+
+  it('calls removeLastLabel when Backspace is pressed with empty input', async () => {
+    const removeLastLabel = vi.fn()
+    const user = userEvent.setup()
+    render(<SearchBar search={makeSearch({ removeLastLabel })} />)
+
+    const input = screen.getByLabelText(/search labels/i)
+    await user.click(input)
+    await user.keyboard('{Backspace}')
+    expect(removeLastLabel).toHaveBeenCalledOnce()
+  })
+
+  it('does not call removeLastLabel when Backspace is pressed with non-empty input', async () => {
+    const removeLastLabel = vi.fn()
+    const user = userEvent.setup()
+    render(
+      <SearchBar
+        search={makeSearch({
+          filters: { labelQuery: 'proj', selectedLabels: [] },
+          removeLastLabel,
+        })}
+      />,
+    )
+
+    const input = screen.getByLabelText(/search labels/i)
+    await user.click(input)
+    await user.keyboard('{Backspace}')
+    expect(removeLastLabel).not.toHaveBeenCalled()
+  })
+
+  it('renders committed label chips inside the input container', () => {
+    render(
+      <SearchBar
+        search={makeSearch({ filters: { labelQuery: '', selectedLabels: ['Alpha', 'Beta'] } })}
+      />,
+    )
+    expect(screen.getByRole('button', { name: 'Remove Alpha' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Remove Beta' })).toBeInTheDocument()
+  })
+
+  it('calls toggleLabel when chip remove button is clicked', async () => {
+    const toggleLabel = vi.fn()
+    const user = userEvent.setup()
+    render(
+      <SearchBar
+        search={makeSearch({
+          filters: { labelQuery: '', selectedLabels: ['Alpha'] },
+          toggleLabel,
+        })}
+      />,
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Remove Alpha' }))
+    expect(toggleLabel).toHaveBeenCalledWith('Alpha')
   })
 })

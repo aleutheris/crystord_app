@@ -119,6 +119,61 @@ describe('useSearch', () => {
     expect(() => act(() => result.current.submitSearch())).not.toThrow()
   })
 
+  it('commitLabelFromInput adds trimmed labelQuery to selectedLabels and clears input', () => {
+    const { result } = renderHook(() => useSearch(atoms))
+
+    act(() => result.current.setLabelQuery('  MyLabel  '))
+    act(() => result.current.commitLabelFromInput())
+
+    expect(result.current.filters.selectedLabels).toContain('MyLabel')
+    expect(result.current.filters.labelQuery).toBe('')
+  })
+
+  it('commitLabelFromInput clears input without adding when labelQuery is blank', () => {
+    const { result } = renderHook(() => useSearch(atoms))
+
+    act(() => result.current.setLabelQuery('   '))
+    act(() => result.current.commitLabelFromInput())
+
+    expect(result.current.filters.selectedLabels).toEqual([])
+    expect(result.current.filters.labelQuery).toBe('')
+  })
+
+  it('commitLabelFromInput does not duplicate an already-selected label', () => {
+    const { result } = renderHook(() => useSearch(atoms))
+
+    act(() => result.current.setLabelQuery('Project'))
+    act(() => result.current.commitLabelFromInput())
+    act(() => result.current.setLabelQuery('Project'))
+    act(() => result.current.commitLabelFromInput())
+
+    expect(result.current.filters.selectedLabels.filter((l) => l === 'Project')).toHaveLength(1)
+  })
+
+  it('removeLastLabel removes the last committed chip', () => {
+    const { result } = renderHook(() => useSearch(atoms))
+
+    act(() => {
+      result.current.setLabelQuery('Alpha')
+    })
+    act(() => result.current.commitLabelFromInput())
+    act(() => {
+      result.current.setLabelQuery('Beta')
+    })
+    act(() => result.current.commitLabelFromInput())
+
+    act(() => result.current.removeLastLabel())
+
+    expect(result.current.filters.selectedLabels).toEqual(['Alpha'])
+  })
+
+  it('removeLastLabel is a no-op when no labels are selected', () => {
+    const { result } = renderHook(() => useSearch(atoms))
+
+    expect(() => act(() => result.current.removeLastLabel())).not.toThrow()
+    expect(result.current.filters.selectedLabels).toEqual([])
+  })
+
   it('returns empty array when no atoms match', () => {
     const { result } = renderHook(() => useSearch(atoms))
 

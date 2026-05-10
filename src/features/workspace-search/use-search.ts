@@ -12,6 +12,8 @@ export interface SearchState {
   toggleLabel: (label: string) => void
   clearFilters: () => void
   submitSearch: () => void
+  commitLabelFromInput: () => void
+  removeLastLabel: () => void
   filteredAtoms: Atom[]
   availableLabels: string[]
   querySummary: string
@@ -46,6 +48,20 @@ export function useSearch(atoms: Atom[], onFetchAtoms?: () => Promise<void>): Se
   const submitSearch = useCallback(() => {
     void onFetchAtoms?.()
   }, [onFetchAtoms])
+
+  const commitLabelFromInput = useCallback(() => {
+    const text = labelQuery.trim()
+    if (text.length > 0 && !selectedLabels.includes(text)) {
+      setSelectedLabels((prev) => [...prev, text])
+    }
+    setLabelQuery('')
+  }, [labelQuery, selectedLabels])
+
+  const removeLastLabel = useCallback(() => {
+    if (selectedLabels.length > 0) {
+      setSelectedLabels((prev) => prev.slice(0, -1))
+    }
+  }, [selectedLabels])
 
   const filters: SearchFilters = { labelQuery, selectedLabels }
 
@@ -87,6 +103,8 @@ export function useSearch(atoms: Atom[], onFetchAtoms?: () => Promise<void>): Se
     toggleLabel,
     clearFilters,
     submitSearch,
+    commitLabelFromInput,
+    removeLastLabel,
     filteredAtoms,
     availableLabels,
     querySummary,
