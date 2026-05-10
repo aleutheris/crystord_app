@@ -8,7 +8,7 @@ import { SearchBar, QuerySummary, SearchResultPanel, useSearch, useRecommendedLa
 export function WorkspaceShell() {
   const { signOut } = useAuth()
   const graphData = useGraphData()
-  const search = useSearch(graphData.atoms, graphData.refetch)
+  const search = useSearch(graphData.atoms, graphData.search)
   const recommendedLabels = useRecommendedLabels()
   const [selectedAtomId, setSelectedAtomId] = useState<string | null>(null)
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)

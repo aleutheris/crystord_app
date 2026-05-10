@@ -105,16 +105,27 @@ describe('useSearch', () => {
     expect(result.current.querySummary).toBe('Labels: Task')
   })
 
-  it('submitSearch calls onFetchAtoms when provided', () => {
-    const onFetchAtoms = vi.fn().mockResolvedValue(undefined)
-    const { result } = renderHook(() => useSearch(atoms, onFetchAtoms))
+  it('submitSearch calls onSubmitSearch with empty array when no labels are selected', () => {
+    const onSubmitSearch = vi.fn().mockResolvedValue(undefined)
+    const { result } = renderHook(() => useSearch(atoms, onSubmitSearch))
 
     act(() => result.current.submitSearch())
 
-    expect(onFetchAtoms).toHaveBeenCalledOnce()
+    expect(onSubmitSearch).toHaveBeenCalledWith([])
   })
 
-  it('submitSearch is a no-op when onFetchAtoms is not provided', () => {
+  it('submitSearch calls onSubmitSearch with committed label chips', () => {
+    const onSubmitSearch = vi.fn().mockResolvedValue(undefined)
+    const { result } = renderHook(() => useSearch(atoms, onSubmitSearch))
+
+    act(() => result.current.setLabelQuery('Project'))
+    act(() => result.current.commitLabelFromInput())
+    act(() => result.current.submitSearch())
+
+    expect(onSubmitSearch).toHaveBeenCalledWith(['Project'])
+  })
+
+  it('submitSearch is a no-op when onSubmitSearch is not provided', () => {
     const { result } = renderHook(() => useSearch(atoms))
     expect(() => act(() => result.current.submitSearch())).not.toThrow()
   })

@@ -20,7 +20,7 @@ export interface SearchState {
   isActive: boolean
 }
 
-export function useSearch(atoms: Atom[], onFetchAtoms?: () => Promise<void>): SearchState {
+export function useSearch(atoms: Atom[], onSubmitSearch?: (labels: string[]) => Promise<void>): SearchState {
   const [labelQuery, setLabelQuery] = useState('')
   const [selectedLabels, setSelectedLabels] = useState<string[]>([])
 
@@ -46,8 +46,8 @@ export function useSearch(atoms: Atom[], onFetchAtoms?: () => Promise<void>): Se
   }, [])
 
   const submitSearch = useCallback(() => {
-    void onFetchAtoms?.()
-  }, [onFetchAtoms])
+    void onSubmitSearch?.(selectedLabels)
+  }, [onSubmitSearch, selectedLabels])
 
   const commitLabelFromInput = useCallback(() => {
     const text = labelQuery.trim()

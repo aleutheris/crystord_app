@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { useApolloClient } from '@apollo/client/react'
 import {
   RETRIEVE_QUERY,
@@ -16,6 +16,7 @@ export interface GraphData {
   loading: boolean
   error: string | null
   refetch: () => Promise<void>
+  search: (labels: string[]) => Promise<void>
   createAtom: (title: string, labels: string[]) => Promise<string | null>
   updateAtom: (uuid: string, atom: Atom) => Promise<void>
   deleteAtom: (uuid: string) => Promise<void>
@@ -28,13 +29,19 @@ export function useGraphData(): GraphData {
   const [atoms, setAtoms] = useState<Atom[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const searchLabelsRef = useRef<string[]>([])
 
-  const fetchAtoms = useCallback(async () => {
+  const fetchAtoms = useCallback(async (labels?: string[]) => {
+    if (labels !== undefined) {
+      searchLabelsRef.current = labels
+    }
+    const activeLabels = searchLabelsRef.current
     setLoading(true)
     setError(null)
     try {
       const { data } = await client.query<RetrieveResponse>({
         query: RETRIEVE_QUERY,
+        variables: activeLabels.length > 0 ? { labels: activeLabels } : undefined,
         fetchPolicy: 'network-only',
       })
 
@@ -110,5 +117,5 @@ export function useGraphData(): GraphData {
     await updateAtom(sourceUuid, updated)
   }, [atoms, updateAtom])
 
-  return { atoms, loading, error, refetch: fetchAtoms, createAtom, updateAtom, deleteAtom, addBond, removeBond }
+  return { atoms, loading, error, refetch: fetchAtoms, search: fetchAtoms, createAtom, updateAtom, deleteAtom, addBond, removeBond }
 }

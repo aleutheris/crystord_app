@@ -217,6 +217,70 @@ test.describe('Search and discoverability', () => {
     await expect(searchInput).toHaveValue('')
   })
 
+  test('submitted search with label chip passes labels to backend query', async ({ page }) => {
+    const taskAtom = {
+      labels: ['Task'],
+      bonds: [],
+      properties: {
+        shellies: { uuid: 'atom-2' },
+        nuclearies: { title: 'Beta', description: 'Second', content: 'Pending', operation: '', constants: {} },
+      },
+    }
+
+    await page.route('**/graphql', (route) => {
+      const postData = route.request().postData()
+      if (!postData) return route.continue()
+      const body = JSON.parse(postData)
+      const query: string = body.query ?? ''
+      const vars: Record<string, unknown> = body.variables ?? {}
+
+      if (query.includes('schemaInfo')) {
+        return route.fulfill({
+          status: 200, contentType: 'application/json',
+          body: JSON.stringify({ data: { schemaInfo: { schemaVersion: '1.0.0', schemaHash: 'abc', releasedAt: '2025-01-01T00:00:00Z' } } }),
+        })
+      }
+      if (query.includes('signin')) {
+        return route.fulfill({
+          status: 200, contentType: 'application/json',
+          body: JSON.stringify({ data: { signin: 'mock-token' } }),
+        })
+      }
+      if (query.includes('list_labels')) {
+        return route.fulfill({
+          status: 200, contentType: 'application/json',
+          body: JSON.stringify({ data: { list_labels: ['Active', 'Project', 'Task'] } }),
+        })
+      }
+      if (query.includes('retrieve')) {
+        const labels = vars['labels'] as string[] | undefined
+        const result = labels?.includes('Task') ? [taskAtom] : []
+        return route.fulfill({
+          status: 200, contentType: 'application/json',
+          body: JSON.stringify({ data: { retrieve: result } }),
+        })
+      }
+      return route.continue()
+    })
+
+    await signIn(page)
+
+    // Commit 'Task' chip then submit
+    const searchInput = page.getByLabel(/search labels/i)
+    await searchInput.click()
+    await page.keyboard.type('Task')
+    await page.keyboard.press(' ')
+
+    const retrieveResponse = page.waitForResponse(
+      (r) => r.url().includes('/graphql') && r.request().postData()?.includes('retrieve') === true,
+    )
+    await page.keyboard.press('Enter')
+    await retrieveResponse
+
+    // Backend-filtered result: only Beta visible, not Alpha
+    await expect(page.getByText('Beta')).toBeVisible()
+  })
+
   test('Backspace removes the last chip when input is empty', async ({ page }) => {
     await mockGraphQL(page)
     await signIn(page)
