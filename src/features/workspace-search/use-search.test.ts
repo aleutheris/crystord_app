@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useSearch } from './use-search'
 import type { Atom } from '../../api-contract/graph-queries'
@@ -103,6 +103,20 @@ describe('useSearch', () => {
 
     act(() => result.current.setLabelQuery(''))
     expect(result.current.querySummary).toBe('Labels: Task')
+  })
+
+  it('submitSearch calls onFetchAtoms when provided', () => {
+    const onFetchAtoms = vi.fn().mockResolvedValue(undefined)
+    const { result } = renderHook(() => useSearch(atoms, onFetchAtoms))
+
+    act(() => result.current.submitSearch())
+
+    expect(onFetchAtoms).toHaveBeenCalledOnce()
+  })
+
+  it('submitSearch is a no-op when onFetchAtoms is not provided', () => {
+    const { result } = renderHook(() => useSearch(atoms))
+    expect(() => act(() => result.current.submitSearch())).not.toThrow()
   })
 
   it('returns empty array when no atoms match', () => {

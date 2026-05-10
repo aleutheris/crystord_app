@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { useApolloClient } from '@apollo/client/react'
 import {
   RETRIEVE_QUERY,
@@ -26,7 +26,7 @@ export interface GraphData {
 export function useGraphData(): GraphData {
   const client = useApolloClient()
   const [atoms, setAtoms] = useState<Atom[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const fetchAtoms = useCallback(async () => {
@@ -45,11 +45,6 @@ export function useGraphData(): GraphData {
       setLoading(false)
     }
   }, [client])
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- data fetching on mount
-    void fetchAtoms()
-  }, [fetchAtoms])
 
   const createAtom = useCallback(async (title: string, labels: string[]): Promise<string | null> => {
     const result = await client.mutate({

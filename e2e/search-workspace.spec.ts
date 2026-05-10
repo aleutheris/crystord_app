@@ -99,12 +99,29 @@ async function signIn(page: import('@playwright/test').Page) {
   await responsePromise
 }
 
+async function submitSearch(page: import('@playwright/test').Page) {
+  const retrieveResponse = page.waitForResponse(
+    (r) => r.url().includes('/graphql') && r.request().postData()?.includes('retrieve') === true,
+  )
+  await page.getByLabel(/search labels/i).click()
+  await page.keyboard.press('Enter')
+  await retrieveResponse
+}
+
 test.describe('Search and discoverability', () => {
-  test('search bar and label chips are visible in workspace', async ({ page }) => {
+  test('search bar is visible in blank workspace before search', async ({ page }) => {
     await mockGraphQL(page)
     await signIn(page)
 
     await expect(page.getByLabel(/search labels/i)).toBeVisible()
+    await expect(page.getByText('Alpha')).not.toBeVisible()
+  })
+
+  test('label chips become available after search loads atoms', async ({ page }) => {
+    await mockGraphQL(page)
+    await signIn(page)
+    await submitSearch(page)
+
     await expect(page.getByRole('button', { name: 'Project' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Task' })).toBeVisible()
   })
@@ -112,6 +129,7 @@ test.describe('Search and discoverability', () => {
   test('label query filters graph and shows result panel', async ({ page }) => {
     await mockGraphQL(page)
     await signIn(page)
+    await submitSearch(page)
 
     await page.getByLabel(/search labels/i).fill('proj')
 
@@ -128,6 +146,7 @@ test.describe('Search and discoverability', () => {
   test('label chip filter scopes results', async ({ page }) => {
     await mockGraphQL(page)
     await signIn(page)
+    await submitSearch(page)
 
     await page.getByRole('button', { name: 'Task' }).click()
 
@@ -138,6 +157,7 @@ test.describe('Search and discoverability', () => {
   test('clicking a search result selects the atom', async ({ page }) => {
     await mockGraphQL(page)
     await signIn(page)
+    await submitSearch(page)
 
     await page.getByRole('button', { name: 'Task' }).click()
 
@@ -153,6 +173,7 @@ test.describe('Search and discoverability', () => {
   test('clear button removes search and hides result panel', async ({ page }) => {
     await mockGraphQL(page)
     await signIn(page)
+    await submitSearch(page)
 
     await page.getByLabel(/search labels/i).fill('proj')
     await expect(page.getByRole('complementary', { name: /search results/i })).toBeVisible()

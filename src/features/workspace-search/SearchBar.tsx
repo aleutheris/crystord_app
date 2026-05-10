@@ -6,7 +6,12 @@ interface SearchBarProps {
 
 export function SearchBar({ search }: SearchBarProps) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} role="search" aria-label="Search atoms">
+    <form
+      role="search"
+      aria-label="Search atoms"
+      onSubmit={(e) => { e.preventDefault(); search.submitSearch() }}
+      style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+    >
       <input
         type="search"
         placeholder="Search labels…"
@@ -51,6 +56,6 @@ export function SearchBar({ search }: SearchBarProps) {
           ✕
         </button>
       )}
-    </div>
+    </form>
   )
 }

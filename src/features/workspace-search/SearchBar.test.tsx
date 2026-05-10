@@ -10,6 +10,7 @@ function makeSearch(overrides: Partial<SearchState> = {}): SearchState {
     setLabelQuery: vi.fn(),
     toggleLabel: vi.fn(),
     clearFilters: vi.fn(),
+    submitSearch: vi.fn(),
     filteredAtoms: [],
     availableLabels: ['Project', 'Task'],
     querySummary: '',
@@ -56,6 +57,16 @@ describe('SearchBar', () => {
 
     await user.click(screen.getByLabelText(/clear search/i))
     expect(clearFilters).toHaveBeenCalledOnce()
+  })
+
+  it('calls submitSearch when form is submitted via Enter', async () => {
+    const submitSearch = vi.fn()
+    const user = userEvent.setup()
+    render(<SearchBar search={makeSearch({ submitSearch })} />)
+
+    await user.type(screen.getByLabelText(/search labels/i), 'proj')
+    await user.keyboard('{Enter}')
+    expect(submitSearch).toHaveBeenCalledOnce()
   })
 
   it('marks active label chips with aria-pressed', () => {

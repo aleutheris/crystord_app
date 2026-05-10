@@ -11,13 +11,14 @@ export interface SearchState {
   setLabelQuery: (query: string) => void
   toggleLabel: (label: string) => void
   clearFilters: () => void
+  submitSearch: () => void
   filteredAtoms: Atom[]
   availableLabels: string[]
   querySummary: string
   isActive: boolean
 }
 
-export function useSearch(atoms: Atom[]): SearchState {
+export function useSearch(atoms: Atom[], onFetchAtoms?: () => Promise<void>): SearchState {
   const [labelQuery, setLabelQuery] = useState('')
   const [selectedLabels, setSelectedLabels] = useState<string[]>([])
 
@@ -41,6 +42,10 @@ export function useSearch(atoms: Atom[]): SearchState {
     setLabelQuery('')
     setSelectedLabels([])
   }, [])
+
+  const submitSearch = useCallback(() => {
+    void onFetchAtoms?.()
+  }, [onFetchAtoms])
 
   const filters: SearchFilters = { labelQuery, selectedLabels }
 
@@ -81,6 +86,7 @@ export function useSearch(atoms: Atom[]): SearchState {
     setLabelQuery,
     toggleLabel,
     clearFilters,
+    submitSearch,
     filteredAtoms,
     availableLabels,
     querySummary,

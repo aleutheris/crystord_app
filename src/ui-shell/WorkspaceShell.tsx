@@ -1,15 +1,16 @@
 import { useState } from 'react'
 import { ReactFlowProvider } from '@xyflow/react'
 import { useAuth } from '../features/auth-entry'
-import { GraphCanvas, useGraphData } from '../features/workspace-graph'
+import { GraphCanvas, useGraphData, DeleteConfirmDialog } from '../features/workspace-graph'
 import { DetailPanel } from '../features/workspace-details'
 import { SearchBar, QuerySummary, SearchResultPanel, useSearch } from '../features/workspace-search'
 
 export function WorkspaceShell() {
   const { signOut } = useAuth()
   const graphData = useGraphData()
-  const search = useSearch(graphData.atoms)
+  const search = useSearch(graphData.atoms, graphData.refetch)
   const [selectedAtomId, setSelectedAtomId] = useState<string | null>(null)
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
 
   const displayAtoms = search.isActive ? search.filteredAtoms : graphData.atoms
   const displayData = { ...graphData, atoms: displayAtoms }
@@ -17,6 +18,18 @@ export function WorkspaceShell() {
   const selectedAtom = graphData.atoms.find(
     (a) => a.properties.shellies.uuid === selectedAtomId,
   ) ?? null
+
+  const pendingDeleteAtom = pendingDeleteId
+    ? graphData.atoms.find((a) => a.properties.shellies.uuid === pendingDeleteId) ?? null
+    : null
+
+  function handleDeleteConfirm() {
+    if (!pendingDeleteId) return
+    const id = pendingDeleteId
+    setPendingDeleteId(null)
+    setSelectedAtomId(null)
+    void graphData.deleteAtom(id)
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
@@ -49,18 +62,19 @@ export function WorkspaceShell() {
               key={selectedAtom.properties.shellies.uuid}
               atom={selectedAtom}
               onUpdate={graphData.updateAtom}
-              onDelete={(id) => {
-                const atom = graphData.atoms.find((a) => a.properties.shellies.uuid === id)
-                if (atom) {
-                  setSelectedAtomId(null)
-                  void graphData.deleteAtom(id)
-                }
-              }}
+              onDelete={(id) => setPendingDeleteId(id)}
               onClose={() => setSelectedAtomId(null)}
             />
           )}
         </div>
       </ReactFlowProvider>
+      {pendingDeleteAtom && (
+        <DeleteConfirmDialog
+          atomTitle={pendingDeleteAtom.properties.nuclearies.title}
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setPendingDeleteId(null)}
+        />
+      )}
     </div>
   )
 }

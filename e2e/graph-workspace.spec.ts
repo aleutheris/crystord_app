@@ -91,10 +91,34 @@ async function signIn(page: import('@playwright/test').Page) {
   await responsePromise
 }
 
+async function submitSearch(page: import('@playwright/test').Page) {
+  const retrieveResponse = page.waitForResponse(
+    (r) => r.url().includes('/graphql') && r.request().postData()?.includes('retrieve') === true,
+  )
+  await page.getByLabel(/search labels/i).click()
+  await page.keyboard.press('Enter')
+  await retrieveResponse
+}
+
 test.describe('Graph workspace', () => {
-  test('shows graph canvas with atom nodes after sign-in', async ({ page }) => {
+  test('shows blank workspace after sign-in with no preloaded atoms', async ({ page }) => {
     await mockGraphQL(page)
     await signIn(page)
+
+    await expect(page.getByRole('button', { name: /sign out/i })).toBeVisible()
+    await expect(page.getByLabel(/search labels/i)).toBeVisible()
+    await expect(page.getByText('Alpha')).not.toBeVisible()
+    await expect(page.getByText('Beta')).not.toBeVisible()
+  })
+
+  test('atoms appear in graph only after explicit search', async ({ page }) => {
+    await mockGraphQL(page)
+    await signIn(page)
+
+    await expect(page.getByText('Alpha')).not.toBeVisible()
+    await expect(page.getByText('Beta')).not.toBeVisible()
+
+    await submitSearch(page)
 
     await expect(page.getByText('Alpha')).toBeVisible()
     await expect(page.getByText('Beta')).toBeVisible()
@@ -103,6 +127,7 @@ test.describe('Graph workspace', () => {
   test('opens detail panel when clicking an atom node', async ({ page }) => {
     await mockGraphQL(page)
     await signIn(page)
+    await submitSearch(page)
 
     await page.getByText('Alpha').click()
     const detailPanel = page.getByRole('complementary', { name: /atom details/i })
@@ -115,6 +140,7 @@ test.describe('Graph workspace', () => {
   test('closes detail panel', async ({ page }) => {
     await mockGraphQL(page)
     await signIn(page)
+    await submitSearch(page)
 
     await page.getByText('Alpha').click()
     await expect(page.getByRole('complementary', { name: /atom details/i })).toBeVisible()
@@ -126,6 +152,7 @@ test.describe('Graph workspace', () => {
   test('switches detail panel between atoms', async ({ page }) => {
     await mockGraphQL(page)
     await signIn(page)
+    await submitSearch(page)
 
     await page.getByText('Alpha').click()
     await expect(page.getByLabel(/title/i)).toHaveValue('Alpha')
@@ -139,6 +166,7 @@ test.describe('Graph workspace', () => {
   test('creates a new atom via double-click on canvas', async ({ page }) => {
     await mockGraphQL(page)
     await signIn(page)
+    await submitSearch(page)
 
     await expect(page.getByText('Alpha')).toBeVisible()
 
@@ -157,6 +185,7 @@ test.describe('Graph workspace', () => {
   test('edits atom properties via detail panel save', async ({ page }) => {
     await mockGraphQL(page)
     await signIn(page)
+    await submitSearch(page)
 
     await page.getByText('Alpha').click()
     const detailPanel = page.getByRole('complementary', { name: /atom details/i })
@@ -179,6 +208,7 @@ test.describe('Graph workspace', () => {
   test('shows delete confirmation dialog and cancellation preserves atom', async ({ page }) => {
     await mockGraphQL(page)
     await signIn(page)
+    await submitSearch(page)
 
     await page.getByText('Alpha').click()
     const detailPanel = page.getByRole('complementary', { name: /atom details/i })
@@ -201,6 +231,7 @@ test.describe('Graph workspace', () => {
   test('delete confirmation dispatches destroy mutation', async ({ page }) => {
     await mockGraphQL(page)
     await signIn(page)
+    await submitSearch(page)
 
     await page.getByText('Alpha').click()
     const detailPanel = page.getByRole('complementary', { name: /atom details/i })
@@ -283,6 +314,7 @@ test.describe('Graph workspace', () => {
     })
 
     await signIn(page)
+    await submitSearch(page)
     await expect(page.getByText('Alpha')).toBeVisible()
 
     // Double-click to attempt create — should fail but not crash

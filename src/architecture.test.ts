@@ -228,7 +228,7 @@ describe('State partition checks (G2)', () => {
       path.join(FEATURES, 'workspace-graph', 'use-graph-data.ts'), 'utf-8',
     )
     expect(useGraphFile).toContain('useState<Atom[]>')
-    expect(useGraphFile).toContain('useState(true)')
+    expect(useGraphFile).toContain('useState(false)')
     expect(useGraphFile).toContain('useState<string | null>')
   })
 })
