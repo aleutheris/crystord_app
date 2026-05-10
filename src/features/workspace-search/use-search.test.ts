@@ -92,17 +92,88 @@ describe('useSearch', () => {
     expect(result.current.filteredAtoms).toEqual(atoms)
   })
 
-  it('generates query summary text', () => {
+  it('querySummary is empty before any submission', () => {
     const { result } = renderHook(() => useSearch(atoms))
 
     act(() => result.current.setLabelQuery('proj'))
-    expect(result.current.querySummary).toBe('Search: "proj"')
+    expect(result.current.querySummary).toBe('')
+  })
 
-    act(() => result.current.toggleLabel('Task'))
-    expect(result.current.querySummary).toBe('Search: "proj" · Labels: Task')
+  it('querySummary reflects submitted labels after submitSearch', () => {
+    const onSubmitSearch = vi.fn().mockResolvedValue(undefined)
+    const { result } = renderHook(() => useSearch(atoms, onSubmitSearch))
 
-    act(() => result.current.setLabelQuery(''))
+    act(() => result.current.setLabelQuery('Task'))
+    act(() => result.current.commitLabelFromInput())
+    act(() => result.current.submitSearch())
+
     expect(result.current.querySummary).toBe('Labels: Task')
+  })
+
+  it('querySummary is empty when submitted with no labels', () => {
+    const onSubmitSearch = vi.fn().mockResolvedValue(undefined)
+    const { result } = renderHook(() => useSearch(atoms, onSubmitSearch))
+
+    act(() => result.current.submitSearch())
+
+    expect(result.current.querySummary).toBe('')
+  })
+
+  it('querySummary resets to empty after clearFilters', () => {
+    const onSubmitSearch = vi.fn().mockResolvedValue(undefined)
+    const { result } = renderHook(() => useSearch(atoms, onSubmitSearch))
+
+    act(() => result.current.setLabelQuery('Task'))
+    act(() => result.current.commitLabelFromInput())
+    act(() => result.current.submitSearch())
+    expect(result.current.querySummary).toBe('Labels: Task')
+
+    act(() => result.current.clearFilters())
+    expect(result.current.querySummary).toBe('')
+  })
+
+  it('hasSubmitted is false before any submission', () => {
+    const { result } = renderHook(() => useSearch(atoms))
+    expect(result.current.hasSubmitted).toBe(false)
+  })
+
+  it('hasSubmitted becomes true after submitSearch', () => {
+    const onSubmitSearch = vi.fn().mockResolvedValue(undefined)
+    const { result } = renderHook(() => useSearch(atoms, onSubmitSearch))
+
+    act(() => result.current.submitSearch())
+
+    expect(result.current.hasSubmitted).toBe(true)
+  })
+
+  it('hasSubmitted resets to false after clearFilters', () => {
+    const onSubmitSearch = vi.fn().mockResolvedValue(undefined)
+    const { result } = renderHook(() => useSearch(atoms, onSubmitSearch))
+
+    act(() => result.current.submitSearch())
+    act(() => result.current.clearFilters())
+
+    expect(result.current.hasSubmitted).toBe(false)
+  })
+
+  it('isActive remains false after empty submission with no chips or text', () => {
+    const onSubmitSearch = vi.fn().mockResolvedValue(undefined)
+    const { result } = renderHook(() => useSearch(atoms, onSubmitSearch))
+
+    act(() => result.current.submitSearch())
+
+    expect(result.current.isActive).toBe(false)
+  })
+
+  it('isActive is true after submitting with committed chips', () => {
+    const onSubmitSearch = vi.fn().mockResolvedValue(undefined)
+    const { result } = renderHook(() => useSearch(atoms, onSubmitSearch))
+
+    act(() => result.current.setLabelQuery('Task'))
+    act(() => result.current.commitLabelFromInput())
+    act(() => result.current.submitSearch())
+
+    expect(result.current.isActive).toBe(true)
   })
 
   it('submitSearch calls onSubmitSearch with empty array when no labels are selected', () => {

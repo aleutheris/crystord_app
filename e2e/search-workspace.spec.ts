@@ -62,10 +62,15 @@ function mockGraphQL(page: import('@playwright/test').Page) {
     }
 
     if (query.includes('retrieve')) {
+      const vars = body.variables as Record<string, unknown> | undefined
+      const filterLabels = vars?.['labels'] as string[] | undefined
+      const result = filterLabels && filterLabels.length > 0
+        ? atoms.filter((a) => a.labels.some((l) => filterLabels.includes(l)))
+        : atoms
       return route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ data: { retrieve: atoms } }),
+        body: JSON.stringify({ data: { retrieve: result } }),
       })
     }
 
@@ -130,29 +135,53 @@ test.describe('Search and discoverability', () => {
     await expect(page.getByRole('button', { name: 'Task' })).toBeVisible()
   })
 
-  test('label query filters graph and shows result panel', async ({ page }) => {
+  test('typing alone does not trigger search or show result panel', async ({ page }) => {
     await mockGraphQL(page)
     await signIn(page)
-    await submitSearch(page)
 
     await page.getByLabel(/search labels/i).fill('proj')
 
-    // Query summary appears
-    await expect(page.getByRole('status', { name: /active query/i })).toBeVisible()
-    await expect(page.getByText('2 results')).toBeVisible()
+    // Typing alone must not show results or query summary
+    await expect(page.getByRole('complementary', { name: /search results/i })).not.toBeVisible()
+    await expect(page.getByRole('status', { name: /active query/i })).not.toBeVisible()
+  })
 
-    // Result panel appears with matching atoms
+  test('committing label chip and submitting shows backend-filtered results', async ({ page }) => {
+    await mockGraphQL(page)
+    await signIn(page)
+
+    const searchInput = page.getByLabel(/search labels/i)
+    await searchInput.click()
+    await page.keyboard.type('Project')
+    await page.keyboard.press(' ')
+
+    const retrieveResponse = page.waitForResponse(
+      (r) => r.url().includes('/graphql') && r.request().postData()?.includes('retrieve') === true,
+    )
+    await page.keyboard.press('Enter')
+    await retrieveResponse
+
+    // Result panel appears with backend-filtered atoms (Alpha and Gamma have Project label)
     await expect(page.getByRole('complementary', { name: /search results/i })).toBeVisible()
+    await expect(page.getByRole('status', { name: /active query/i })).toBeVisible()
     await expect(page.getByRole('complementary', { name: /search results/i }).getByText('Alpha')).toBeVisible()
     await expect(page.getByRole('complementary', { name: /search results/i }).getByText('Gamma')).toBeVisible()
   })
 
-  test('label chip filter scopes results', async ({ page }) => {
+  test('label chip filter scopes results via backend query', async ({ page }) => {
     await mockGraphQL(page)
     await signIn(page)
     await submitSearch(page)
 
+    // Click Task label chip to add it to selectedLabels, then submit
     await page.getByRole('button', { name: 'Task' }).click()
+
+    const retrieveResponse = page.waitForResponse(
+      (r) => r.url().includes('/graphql') && r.request().postData()?.includes('retrieve') === true,
+    )
+    await page.getByLabel(/search labels/i).click()
+    await page.keyboard.press('Enter')
+    await retrieveResponse
 
     await expect(page.getByText('1 result')).toBeVisible()
     await expect(page.getByRole('complementary', { name: /search results/i }).getByText('Beta')).toBeVisible()
@@ -161,9 +190,18 @@ test.describe('Search and discoverability', () => {
   test('clicking a search result selects the atom', async ({ page }) => {
     await mockGraphQL(page)
     await signIn(page)
-    await submitSearch(page)
 
-    await page.getByRole('button', { name: 'Task' }).click()
+    // Commit 'Task' chip and submit
+    const searchInput = page.getByLabel(/search labels/i)
+    await searchInput.click()
+    await page.keyboard.type('Task')
+    await page.keyboard.press(' ')
+
+    const retrieveResponse = page.waitForResponse(
+      (r) => r.url().includes('/graphql') && r.request().postData()?.includes('retrieve') === true,
+    )
+    await page.keyboard.press('Enter')
+    await retrieveResponse
 
     const resultPanel = page.getByRole('complementary', { name: /search results/i })
     await resultPanel.getByText('Beta').click()
@@ -177,10 +215,21 @@ test.describe('Search and discoverability', () => {
   test('clear button removes search and hides result panel', async ({ page }) => {
     await mockGraphQL(page)
     await signIn(page)
-    await submitSearch(page)
 
-    await page.getByLabel(/search labels/i).fill('proj')
+    // Commit 'Task' chip and submit
+    const searchInput = page.getByLabel(/search labels/i)
+    await searchInput.click()
+    await page.keyboard.type('Task')
+    await page.keyboard.press(' ')
+
+    const retrieveResponse = page.waitForResponse(
+      (r) => r.url().includes('/graphql') && r.request().postData()?.includes('retrieve') === true,
+    )
+    await page.keyboard.press('Enter')
+    await retrieveResponse
+
     await expect(page.getByRole('complementary', { name: /search results/i })).toBeVisible()
+    await expect(page.getByRole('status', { name: /active query/i })).toBeVisible()
 
     await page.getByLabel(/clear search/i).click()
 

@@ -13,9 +13,6 @@ export function WorkspaceShell() {
   const [selectedAtomId, setSelectedAtomId] = useState<string | null>(null)
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
 
-  const displayAtoms = search.isActive ? search.filteredAtoms : graphData.atoms
-  const displayData = { ...graphData, atoms: displayAtoms }
-
   const selectedAtom = graphData.atoms.find(
     (a) => a.properties.shellies.uuid === selectedAtomId,
   ) ?? null
@@ -41,19 +38,19 @@ export function WorkspaceShell() {
           Sign Out
         </button>
       </header>
-      <QuerySummary summary={search.querySummary} resultCount={search.filteredAtoms.length} />
+      <QuerySummary summary={search.querySummary} resultCount={graphData.atoms.length} />
       <ReactFlowProvider>
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-          {search.isActive && (
+          {search.querySummary.length > 0 && (
             <SearchResultPanel
-              atoms={search.filteredAtoms}
+              atoms={graphData.atoms}
               selectedAtomId={selectedAtomId}
               onSelectAtom={setSelectedAtomId}
             />
           )}
           <div style={{ flex: 1, position: 'relative' }}>
             <GraphCanvas
-              data={displayData}
+              data={graphData}
               selectedAtomId={selectedAtomId}
               onSelectAtom={setSelectedAtomId}
             />

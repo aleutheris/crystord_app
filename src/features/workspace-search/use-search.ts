@@ -14,6 +14,7 @@ export interface SearchState {
   submitSearch: () => void
   commitLabelFromInput: () => void
   removeLastLabel: () => void
+  hasSubmitted: boolean
   filteredAtoms: Atom[]
   availableLabels: string[]
   querySummary: string
@@ -23,6 +24,8 @@ export interface SearchState {
 export function useSearch(atoms: Atom[], onSubmitSearch?: (labels: string[]) => Promise<void>): SearchState {
   const [labelQuery, setLabelQuery] = useState('')
   const [selectedLabels, setSelectedLabels] = useState<string[]>([])
+  const [hasSubmitted, setHasSubmitted] = useState(false)
+  const [submittedLabels, setSubmittedLabels] = useState<string[]>([])
 
   const availableLabels = useMemo(() => {
     const all = new Set<string>()
@@ -43,9 +46,13 @@ export function useSearch(atoms: Atom[], onSubmitSearch?: (labels: string[]) => 
   const clearFilters = useCallback(() => {
     setLabelQuery('')
     setSelectedLabels([])
+    setHasSubmitted(false)
+    setSubmittedLabels([])
   }, [])
 
   const submitSearch = useCallback(() => {
+    setSubmittedLabels([...selectedLabels])
+    setHasSubmitted(true)
     void onSubmitSearch?.(selectedLabels)
   }, [onSubmitSearch, selectedLabels])
 
@@ -85,17 +92,9 @@ export function useSearch(atoms: Atom[], onSubmitSearch?: (labels: string[]) => 
   }, [atoms, labelQuery, selectedLabels, isActive])
 
   const querySummary = useMemo(() => {
-    const parts: string[] = []
-    const query = labelQuery.trim()
-    if (query.length > 0) {
-      parts.push(`Search: "${query}"`)
-    }
-    if (selectedLabels.length > 0) {
-      parts.push(`Labels: ${selectedLabels.join(', ')}`)
-    }
-    if (parts.length === 0) return ''
-    return parts.join(' · ')
-  }, [labelQuery, selectedLabels])
+    if (!hasSubmitted || submittedLabels.length === 0) return ''
+    return `Labels: ${submittedLabels.join(', ')}`
+  }, [hasSubmitted, submittedLabels])
 
   return {
     filters,
@@ -105,6 +104,7 @@ export function useSearch(atoms: Atom[], onSubmitSearch?: (labels: string[]) => 
     submitSearch,
     commitLabelFromInput,
     removeLastLabel,
+    hasSubmitted,
     filteredAtoms,
     availableLabels,
     querySummary,

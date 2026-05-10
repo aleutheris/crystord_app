@@ -13,6 +13,7 @@ function makeSearch(overrides: Partial<SearchState> = {}): SearchState {
     submitSearch: vi.fn(),
     commitLabelFromInput: vi.fn(),
     removeLastLabel: vi.fn(),
+    hasSubmitted: false,
     filteredAtoms: [],
     availableLabels: ['Project', 'Task'],
     querySummary: '',
