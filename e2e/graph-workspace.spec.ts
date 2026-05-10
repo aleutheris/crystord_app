@@ -101,14 +101,17 @@ async function submitSearch(page: import('@playwright/test').Page) {
 }
 
 test.describe('Graph workspace', () => {
-  test('shows blank workspace after sign-in with no preloaded atoms', async ({ page }) => {
+  test('shows blank graph after sign-in with recommended labels visible in search bar', async ({ page }) => {
     await mockGraphQL(page)
     await signIn(page)
 
     await expect(page.getByRole('button', { name: /sign out/i })).toBeVisible()
     await expect(page.getByLabel(/search labels/i)).toBeVisible()
+    // Graph is blank — no atom nodes
     await expect(page.getByText('Alpha')).not.toBeVisible()
     await expect(page.getByText('Beta')).not.toBeVisible()
+    // Recommended labels from list_labels are visible as search affordances
+    await expect(page.getByRole('button', { name: 'Project' })).toBeVisible()
   })
 
   test('atoms appear in graph only after explicit search', async ({ page }) => {

@@ -2,9 +2,14 @@ import type { SearchState } from './use-search'
 
 interface SearchBarProps {
   search: SearchState
+  recommendedLabels?: string[]
 }
 
-export function SearchBar({ search }: SearchBarProps) {
+export function SearchBar({ search, recommendedLabels = [] }: SearchBarProps) {
+  const labelsToShow = search.availableLabels.length > 0
+    ? search.availableLabels
+    : recommendedLabels
+
   return (
     <form
       role="search"
@@ -20,9 +25,9 @@ export function SearchBar({ search }: SearchBarProps) {
         aria-label="Search labels"
         style={{ padding: '0.3rem 0.5rem', fontSize: '0.85rem', border: '1px solid #ccc', borderRadius: 4, width: 180 }}
       />
-      {search.availableLabels.length > 0 && (
+      {labelsToShow.length > 0 && (
         <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
-          {search.availableLabels.map((label) => {
+          {labelsToShow.map((label) => {
             const active = search.filters.selectedLabels.includes(label)
             return (
               <button

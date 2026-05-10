@@ -109,15 +109,19 @@ async function submitSearch(page: import('@playwright/test').Page) {
 }
 
 test.describe('Search and discoverability', () => {
-  test('search bar is visible in blank workspace before search', async ({ page }) => {
+  test('recommended label chips are visible in blank workspace before search', async ({ page }) => {
     await mockGraphQL(page)
     await signIn(page)
 
     await expect(page.getByLabel(/search labels/i)).toBeVisible()
     await expect(page.getByText('Alpha')).not.toBeVisible()
+    // Recommended labels from list_labels are visible before any search
+    await expect(page.getByRole('button', { name: 'Active' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Project' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Task' })).toBeVisible()
   })
 
-  test('label chips become available after search loads atoms', async ({ page }) => {
+  test('label chips remain available after search loads atoms', async ({ page }) => {
     await mockGraphQL(page)
     await signIn(page)
     await submitSearch(page)

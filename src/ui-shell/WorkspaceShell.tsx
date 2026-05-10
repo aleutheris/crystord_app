@@ -3,12 +3,13 @@ import { ReactFlowProvider } from '@xyflow/react'
 import { useAuth } from '../features/auth-entry'
 import { GraphCanvas, useGraphData, DeleteConfirmDialog } from '../features/workspace-graph'
 import { DetailPanel } from '../features/workspace-details'
-import { SearchBar, QuerySummary, SearchResultPanel, useSearch } from '../features/workspace-search'
+import { SearchBar, QuerySummary, SearchResultPanel, useSearch, useRecommendedLabels } from '../features/workspace-search'
 
 export function WorkspaceShell() {
   const { signOut } = useAuth()
   const graphData = useGraphData()
   const search = useSearch(graphData.atoms, graphData.refetch)
+  const recommendedLabels = useRecommendedLabels()
   const [selectedAtomId, setSelectedAtomId] = useState<string | null>(null)
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
 
@@ -35,7 +36,7 @@ export function WorkspaceShell() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
       <header style={{ padding: '0.5rem 1rem', borderBottom: '1px solid #ddd', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
         <h1 style={{ margin: 0, fontSize: '1.25rem', flexShrink: 0 }}>Crystord</h1>
-        <SearchBar search={search} />
+        <SearchBar search={search} recommendedLabels={recommendedLabels} />
         <button type="button" onClick={signOut} style={{ padding: '0.25rem 0.75rem', flexShrink: 0 }}>
           Sign Out
         </button>

@@ -69,6 +69,38 @@ describe('SearchBar', () => {
     expect(submitSearch).toHaveBeenCalledOnce()
   })
 
+  it('shows recommendedLabels as chips when no atoms are loaded (availableLabels empty)', () => {
+    render(
+      <SearchBar
+        search={makeSearch({ availableLabels: [] })}
+        recommendedLabels={['Finance', 'Legal']}
+      />,
+    )
+    expect(screen.getByRole('button', { name: 'Finance' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Legal' })).toBeInTheDocument()
+  })
+
+  it('shows availableLabels from loaded atoms over recommendedLabels once atoms are present', () => {
+    render(
+      <SearchBar
+        search={makeSearch({ availableLabels: ['Project', 'Task'] })}
+        recommendedLabels={['Finance', 'Legal']}
+      />,
+    )
+    expect(screen.getByRole('button', { name: 'Project' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Finance' })).not.toBeInTheDocument()
+  })
+
+  it('shows no chips when both availableLabels and recommendedLabels are empty', () => {
+    render(
+      <SearchBar
+        search={makeSearch({ availableLabels: [] })}
+        recommendedLabels={[]}
+      />,
+    )
+    expect(screen.queryByRole('button', { name: /project|task/i })).not.toBeInTheDocument()
+  })
+
   it('marks active label chips with aria-pressed', () => {
     render(<SearchBar search={makeSearch({ filters: { labelQuery: '', selectedLabels: ['Project'] } })} />)
     expect(screen.getByRole('button', { name: 'Project' })).toHaveAttribute('aria-pressed', 'true')
