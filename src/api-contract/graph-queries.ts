@@ -38,13 +38,13 @@ export const CREATE_ATOMS_MUTATION = gql`
 `
 
 export const UPDATE_ATOM_MUTATION = gql`
-  mutation UpdateAtom($selector: SelectorInput!, $inputs: [AtomInput!]!) {
+  mutation UpdateAtom($selector: Selector!, $inputs: [AtomInput!]!) {
     change(selector: $selector, inputs: $inputs)
   }
 `
 
 export const DESTROY_ATOMS_MUTATION = gql`
-  mutation DestroyAtoms($selector: SelectorInput!) {
+  mutation DestroyAtoms($selector: Selector!) {
     destroy(selector: $selector)
   }
 `

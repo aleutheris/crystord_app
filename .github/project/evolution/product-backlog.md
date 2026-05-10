@@ -19,6 +19,13 @@ User-outcome-oriented backlog for Crystord Web.
 | 11 | BI-260017 | Formalize delivery and quality baseline | See `.github/project/evolution/backlog-status.md` | Captures accepted I1-I6 release gates, accessibility/reliability baseline, observability operations, and fallback trust rules. |
 | 12 | BI-260018 | Formalize evolution and extensibility baseline | See `.github/project/evolution/backlog-status.md` | Captures accepted J1-J5 evolution seams, growth boundaries, data-model flexibility, and migration safeguards. |
 | 13 | BI-260019 | Operationalize branding governance for UI changes | See `.github/project/evolution/backlog-status.md` | Makes `.github/project/branding.md` mandatory in project instructions, review checks, and implementation decision tracking. |
+| 14 | BI-260020 | Rebaseline workspace entry to blank-first explicit search | See `.github/project/evolution/backlog-status.md` | Records the decision to open the workspace blank after sign-in and populate graph content only after explicit search. |
+| 15 | BI-260021 | Preserve pre-search recommended label visibility | See `.github/project/evolution/backlog-status.md` | Records the decision to keep recommended labels visible before first search to guide initial discovery. |
+| 16 | BI-260022 | Add temporary capped recommendation strategy from list_labels | See `.github/project/evolution/backlog-status.md` | Records temporary source/cap behavior: use list_labels and show exactly three random recommended labels before search. |
+| 17 | BI-260023 | Implement Enter-to-Search with Multi-Label Chip Input | See `.github/project/evolution/backlog-status.md` | Records search UX changes: Enter-to-search only (no keystroke filtering), Space/Colon chip creation, multi-label support, Backspace removal. |
+| 18 | BI-260024 | Execute submitted searches through fresh backend queries | See `.github/project/evolution/backlog-status.md` | Records the decision that each submitted search must hit the backend GraphQL filter path and render fresh results without client-side overfetch filtering. |
+| 19 | BI-260025 | Disable live search behaviors while preserving future extension seams | See `.github/project/evolution/backlog-status.md` | Records that typing must not change graph/results and autocomplete remains deferred, while dormant structure may be preserved for later use. |
+| 20 | BI-260026 | Align bond mutation documents with the backend selector contract | See `.github/project/evolution/backlog-status.md` | Records the fix for the bond 400 error caused by a client-side selector type mismatch; keeps the bond dialog unchanged. |
 
 ## Workflow States
 

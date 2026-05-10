@@ -13,7 +13,7 @@ When a requirement is deprecated, keep its row in this file and set `Status` to 
 | REQ-FR-260004 | Label Search and Graph Inspection Experience | FR | Accepted | ADR-260002 | BI-260002 |
 | REQ-FR-260005 | Backend Contract for Essential Atom and Bond Operations | FR | Accepted | ADR-260003 | BI-260003 |
 | REQ-FR-260006 | Read-Only Label Querying and Metadata Inspection | FR | Accepted | ADR-260003 | BI-260003 |
-| REQ-FR-260007 | Graph-First Interaction with Search Bootstrap | FR | Accepted | ADR-260014 | BI-260011 |
+| REQ-FR-260007 | Graph-First Interaction with Search Bootstrap | FR | Deprecated | ADR-260014 | BI-260011, BI-260020 |
 | REQ-FR-260008 | Full Workspace Navigation and Side-Panel Editing | FR | Accepted | ADR-260014 | BI-260011 |
 | REQ-FR-260009 | Canvas Visualization Modes and In-Workspace View Switching | FR | Accepted | ADR-260015 | BI-260012 |
 | REQ-FR-260010 | Direct-Manipulation Primitives and Canvas-First Creation | FR | Accepted | ADR-260015 | BI-260012 |
@@ -28,12 +28,21 @@ When a requirement is deprecated, keep its row in this file and set `Status` to 
 | REQ-FR-260019 | MVP Critical End-to-End Acceptance Flows | FR | Accepted | ADR-260020 | BI-260017 |
 | REQ-FR-260020 | Extensibility Seams for Anticipated Post-MVP Capabilities | FR | Accepted | ADR-260021 | BI-260018 |
 | REQ-FR-260021 | Adapter-Based Resilience for Data Model Evolution | FR | Accepted | ADR-260021 | BI-260018 |
+| REQ-FR-260022 | Blank-First Workspace Entry with Explicit Search Activation | FR | Accepted | ADR-260023 | BI-260020 |
+| REQ-FR-260023 | Pre-Search Visibility of Recommended Labels | FR | Accepted | ADR-260016 | BI-260021 |
+| REQ-FR-260024 | Search Execution on Enter Key | FR | Accepted | ADR-260023 | BI-260023 |
+| REQ-FR-260025 | Multi-Label Chip Input with Space/Colon Delimiters | FR | Accepted | ADR-260023 | BI-260023 |
+| REQ-FR-260026 | Fresh Backend-Executed Search Results on Submit | FR | Accepted | ADR-260016, ADR-260023 | BI-260024 |
+| REQ-FR-260027 | No Graph Re-Scoping While Search Input Is Being Edited | FR | Accepted | ADR-260016, ADR-260023 | BI-260025 |
 | REQ-OR-260001 | MVP Demo Sign-In Operating Model | OR | Accepted | ADR-260002, ADR-260014 | BI-260002, BI-260011 |
 | REQ-OR-260002 | GraphQL Schema Stability and Versioning Contract | OR | Accepted | ADR-260013 | BI-260010 |
 | REQ-OR-260003 | Frontend Contract Stability and Breaking-Change Control | OR | Accepted | ADR-260018 | BI-260015 |
 | REQ-OR-260004 | Build, Tooling, and Auth-Evolution Operational Criteria | OR | Accepted | ADR-260019 | BI-260016 |
 | REQ-OR-260005 | MVP Observability, Release Gate, and Rollback Operations | OR | Accepted | ADR-260020 | BI-260017 |
 | REQ-OR-260006 | Evolution Governance and Change-Budget Discipline | OR | Accepted | ADR-260021 | BI-260018 |
+| REQ-OR-260007 | Suggested Label Source Uses Existing list_labels Query (Temporary) | OR | Accepted | ADR-260016 | BI-260022 |
+| REQ-OR-260008 | Search Filtering Delegates to Backend GraphQL Without Overfetch | OR | Accepted | ADR-260016, ADR-260023 | BI-260024 |
+| REQ-OR-260009 | Bond Mutation Client Contract Must Match the Schema Selector Type | OR | Accepted | ADR-260003, ADR-260015 | BI-260026 |
 | REQ-CR-260001 | MVP Scope Exclusions for Graph Experience | CR | Accepted | ADR-260002 | BI-260002 |
 | REQ-CR-260002 | Backend Error Handling and Resilience Baseline | CR | Accepted | ADR-260003 | BI-260003 |
 | REQ-CR-260003 | Desktop-Only MVP and Minimal Placeholder Policy | CR | Accepted | ADR-260014 | BI-260011 |
@@ -45,5 +54,7 @@ When a requirement is deprecated, keep its row in this file and set `Status` to 
 | REQ-CR-260009 | MVP Placeholder and Fallback Trust Constraints | CR | Accepted | ADR-260020 | BI-260017 |
 | REQ-CR-260010 | MVP Growth Boundary and Migration Safety Constraints | CR | Accepted | ADR-260021 | BI-260018 |
 | REQ-CR-260011 | Branding Governance and Semantic Usage Constraint | CR | Accepted | ADR-260022 | BI-260019 |
+| REQ-CR-260012 | Suggested Label Display Cap of Three (Temporary) | CR | Accepted | ADR-260016 | BI-260022 |
+| REQ-CR-260013 | Autocomplete and Incremental Search Behaviors Are Deferred | CR | Accepted | ADR-260016, ADR-260023 | BI-260025 |
 | REQ-QR-260001 | MVP Graph Interaction Performance Baseline | QR | Accepted | ADR-260015 | BI-260012 |
 | REQ-QR-260002 | MVP Accessibility and Reliability Quality Baseline | QR | Accepted | ADR-260020 | BI-260017 |
