@@ -20,3 +20,4 @@ Status lifecycle used here: Proposed | Accepted | Superseded.
 | ADR-260021 | Evolution and Extensibility Baseline | Accepted | 2026-04-17 | - | - | Defines growth boundaries and evolution seams. |
 | ADR-260022 | Branding Governance as a First-Class Constraint | Accepted | 2026-04-17 | - | - | Elevates branding to governance-level constraint. |
 | ADR-260023 | Blank-First Workspace Entry Supersedes Bootstrap Search on Load | Accepted | 2026-05-08 | ADR-260014 (C1 only) | - | Replaces implicit preload entry with explicit search activation model. |
+| ADR-260027 | Always-Fresh Search Fetching and Auto-Chip on Enter | Accepted | 2026-05-11 | - | - | Guarantees fresh backend fetch on every search and auto-converts incomplete text to chip on Enter. |

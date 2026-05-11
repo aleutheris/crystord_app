@@ -34,6 +34,8 @@ When a requirement is deprecated, keep its row in this file and set `Status` to 
 | REQ-FR-260025 | Multi-Label Chip Input with Space/Colon Delimiters | FR | Accepted | ADR-260023 | BI-260023 |
 | REQ-FR-260026 | Fresh Backend-Executed Search Results on Submit | FR | Accepted | ADR-260016, ADR-260023 | BI-260024 |
 | REQ-FR-260027 | No Graph Re-Scoping While Search Input Is Being Edited | FR | Accepted | ADR-260016, ADR-260023 | BI-260025 |
+| REQ-FR-260028 | Auto-Chip Incomplete Text on Enter | FR | Accepted | ADR-260027 | BI-260027 |
+| REQ-FR-260029 | Always-Fresh Backend Query on Every Search Submission | FR | Accepted | ADR-260027 | BI-260028 |
 | REQ-OR-260001 | MVP Demo Sign-In Operating Model | OR | Accepted | ADR-260002, ADR-260014 | BI-260002, BI-260011 |
 | REQ-OR-260002 | GraphQL Schema Stability and Versioning Contract | OR | Accepted | ADR-260013 | BI-260010 |
 | REQ-OR-260003 | Frontend Contract Stability and Breaking-Change Control | OR | Accepted | ADR-260018 | BI-260015 |
