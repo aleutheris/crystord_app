@@ -16,6 +16,22 @@ export function createApolloClient(graphqlEndpoint: string): ApolloClient {
 
   return new ApolloClient({
     link: authLink.concat(httpLink),
-    cache: new InMemoryCache(),
+    cache: new InMemoryCache({
+      typePolicies: {
+        Query: {
+          fields: {
+            retrieve: {
+              merge(existing, incoming) {
+                // Simply replace the array since we always fetch fresh data
+                return incoming
+              },
+            },
+          },
+        },
+        Atom: {
+          keyFields: ['properties', ['shellies', 'uuid']],
+        },
+      },
+    }),
   })
 }
