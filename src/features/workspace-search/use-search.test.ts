@@ -156,6 +156,54 @@ describe('useSearch', () => {
     expect(result.current.hasSubmitted).toBe(false)
   })
 
+  it('submitSearch auto-chips uncommitted text before executing', () => {
+    const onSubmitSearch = vi.fn().mockResolvedValue(undefined)
+    const { result } = renderHook(() => useSearch(atoms, onSubmitSearch))
+
+    act(() => result.current.setLabelQuery('Task'))
+    act(() => result.current.submitSearch())
+
+    expect(onSubmitSearch).toHaveBeenCalledWith(['Task'])
+    expect(result.current.filters.labelQuery).toBe('')
+    expect(result.current.filters.selectedLabels).toContain('Task')
+  })
+
+  it('submitSearch includes both committed chips and auto-chipped text', () => {
+    const onSubmitSearch = vi.fn().mockResolvedValue(undefined)
+    const { result } = renderHook(() => useSearch(atoms, onSubmitSearch))
+
+    act(() => result.current.setLabelQuery('Project'))
+    act(() => result.current.commitLabelFromInput())
+    act(() => result.current.setLabelQuery('Task'))
+    act(() => result.current.submitSearch())
+
+    expect(onSubmitSearch).toHaveBeenCalledWith(['Project', 'Task'])
+    expect(result.current.filters.labelQuery).toBe('')
+  })
+
+  it('submitSearch does not duplicate auto-chip if text already in chips', () => {
+    const onSubmitSearch = vi.fn().mockResolvedValue(undefined)
+    const { result } = renderHook(() => useSearch(atoms, onSubmitSearch))
+
+    act(() => result.current.setLabelQuery('Task'))
+    act(() => result.current.commitLabelFromInput())
+    act(() => result.current.setLabelQuery('Task'))
+    act(() => result.current.submitSearch())
+
+    expect(onSubmitSearch).toHaveBeenCalledWith(['Task'])
+  })
+
+  it('submitSearch with empty input uses existing chips only', () => {
+    const onSubmitSearch = vi.fn().mockResolvedValue(undefined)
+    const { result } = renderHook(() => useSearch(atoms, onSubmitSearch))
+
+    act(() => result.current.setLabelQuery('Task'))
+    act(() => result.current.commitLabelFromInput())
+    act(() => result.current.submitSearch())
+
+    expect(onSubmitSearch).toHaveBeenCalledWith(['Task'])
+  })
+
   it('isActive remains false after empty submission with no chips or text', () => {
     const onSubmitSearch = vi.fn().mockResolvedValue(undefined)
     const { result } = renderHook(() => useSearch(atoms, onSubmitSearch))

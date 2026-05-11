@@ -56,6 +56,27 @@ describe('useGraphData search', () => {
     }))
   })
 
+  it('repeated identical search triggers two separate backend queries', async () => {
+    mockQuery.mockResolvedValue(emptyRetrieve)
+    const { result } = renderHook(() => useGraphData())
+
+    await act(() => result.current.search(['Project']))
+    await act(() => result.current.search(['Project']))
+
+    expect(mockQuery).toHaveBeenCalledTimes(2)
+  })
+
+  it('search uses network-only fetch policy to bypass Apollo cache', async () => {
+    mockQuery.mockResolvedValue(emptyRetrieve)
+    const { result } = renderHook(() => useGraphData())
+
+    await act(() => result.current.search(['Task']))
+
+    expect(mockQuery).toHaveBeenCalledWith(expect.objectContaining({
+      fetchPolicy: 'network-only',
+    }))
+  })
+
   it('atoms are populated from backend response', async () => {
     const atom = {
       labels: ['Project'],

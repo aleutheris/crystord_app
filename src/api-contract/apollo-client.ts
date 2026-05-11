@@ -21,7 +21,7 @@ export function createApolloClient(graphqlEndpoint: string): ApolloClient {
         Query: {
           fields: {
             retrieve: {
-              merge(existing, incoming) {
+              merge(_existing, incoming) {
                 // Simply replace the array since we always fetch fresh data
                 return incoming
               },

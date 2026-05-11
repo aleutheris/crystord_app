@@ -51,10 +51,20 @@ export function useSearch(atoms: Atom[], onSubmitSearch?: (labels: string[]) => 
   }, [])
 
   const submitSearch = useCallback(() => {
-    setSubmittedLabels([...selectedLabels])
+    const text = labelQuery.trim()
+    const finalLabels = text.length > 0 && !selectedLabels.includes(text)
+      ? [...selectedLabels, text]
+      : [...selectedLabels]
+    if (text.length > 0) {
+      setLabelQuery('')
+      if (!selectedLabels.includes(text)) {
+        setSelectedLabels(finalLabels)
+      }
+    }
+    setSubmittedLabels(finalLabels)
     setHasSubmitted(true)
-    void onSubmitSearch?.(selectedLabels)
-  }, [onSubmitSearch, selectedLabels])
+    void onSubmitSearch?.(finalLabels)
+  }, [labelQuery, selectedLabels, onSubmitSearch])
 
   const commitLabelFromInput = useCallback(() => {
     const text = labelQuery.trim()
