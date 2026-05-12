@@ -21,3 +21,8 @@ Status lifecycle used here: Proposed | Accepted | Superseded.
 | ADR-260022 | Branding Governance as a First-Class Constraint | Accepted | 2026-04-17 | - | - | Elevates branding to governance-level constraint. |
 | ADR-260023 | Blank-First Workspace Entry Supersedes Bootstrap Search on Load | Accepted | 2026-05-08 | ADR-260014 (C1 only) | - | Replaces implicit preload entry with explicit search activation model. |
 | ADR-260027 | Always-Fresh Search Fetching and Auto-Chip on Enter | Accepted | 2026-05-11 | - | - | Guarantees fresh backend fetch on every search and auto-converts incomplete text to chip on Enter. |
+| ADR-260028 | Dual Graph View Scope and UX Baseline | Accepted | 2026-05-12 | - | - | Defines Network/Flow view model, Network-first default, shared dataset rendering, and shell-preserving scope boundary. |
+| ADR-260029 | Network View Circle Node and Connector Interaction Baseline | Accepted | 2026-05-12 | - | - | Defines circle nodes, visible connector handles, and nearest-edge anchoring for Network view relationships. |
+| ADR-260030 | Dual-View Shared State and Large-Graph Degrade Behavior Baseline | Accepted | 2026-05-12 | - | - | Defines shared dataset/selection state, centralized mutation reflection, and large-result degrade thresholds. |
+| ADR-260031 | Dual-View Accessibility and Usability Baseline | Accepted | 2026-05-12 | - | - | Defines keyboard navigation, ARIA tab semantics, focus visibility, non-color state cues, and legend/tooltip guidance. |
+| ADR-260032 | Dual-View Delivery, Validation, and Rollout Baseline | Accepted | 2026-05-12 | - | - | Defines required test layers, performance targets, and feature-flag rollout/rollback policy. |

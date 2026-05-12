@@ -26,6 +26,11 @@ User-outcome-oriented backlog for Crystord Web.
 | 18 | BI-260024 | Execute submitted searches through fresh backend queries | See `.github/project/evolution/backlog-status.md` | Records the decision that each submitted search must hit the backend GraphQL filter path and render fresh results without client-side overfetch filtering. |
 | 19 | BI-260025 | Disable live search behaviors while preserving future extension seams | See `.github/project/evolution/backlog-status.md` | Records that typing must not change graph/results and autocomplete remains deferred, while dormant structure may be preserved for later use. |
 | 20 | BI-260026 | Align bond mutation documents with the backend selector contract | See `.github/project/evolution/backlog-status.md` | Records the fix for the bond 400 error caused by a client-side selector type mismatch; keeps the bond dialog unchanged. |
+| 21 | BI-260029 | Formalize dual-view scope and UX baseline | See `.github/project/evolution/backlog-status.md` | Records accepted dual-view scope and UX baseline with traceable ADR/REQ links before implementation work begins. |
+| 22 | BI-260030 | Formalize Network view visual grammar baseline | See `.github/project/evolution/backlog-status.md` | Records accepted Network-view circle-node and connector-handle decisions before implementation planning begins. |
+| 23 | BI-260031 | Formalize dual-view behavior and shared-state baseline | See `.github/project/evolution/backlog-status.md` | Records accepted shared state, cross-view selection, mutation reflection, and large-result degrade policy decisions before implementation planning begins. |
+| 24 | BI-260032 | Formalize dual-view accessibility and usability baseline | See `.github/project/evolution/backlog-status.md` | Records accepted keyboard, ARIA/focus, contrast/state signaling, and legend/tooltip discoverability decisions before implementation planning begins. |
+| 25 | BI-260033 | Formalize dual-view delivery and validation baseline | See `.github/project/evolution/backlog-status.md` | Records accepted coverage, performance targets, and rollout/rollback flag policy before implementation planning begins. |
 
 ## Workflow States
 
