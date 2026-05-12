@@ -19,11 +19,12 @@ export interface GraphCanvasProps {
   data: GraphData
   selectedAtomId: string | null
   onSelectAtom: (id: string | null) => void
+  renderMode?: 'full' | 'reduced'
 }
 
 const nodeTypes = { atom: AtomNode }
 
-export function GraphCanvas({ data, selectedAtomId, onSelectAtom }: GraphCanvasProps) {
+export function GraphCanvas({ data, selectedAtomId, onSelectAtom, renderMode = 'full' }: GraphCanvasProps) {
   const { atoms, loading, error, createAtom, deleteAtom, addBond, removeBond } = data
 
   const [nodes, setNodes, onNodesChange] = useNodesState([])
@@ -31,8 +32,9 @@ export function GraphCanvas({ data, selectedAtomId, onSelectAtom }: GraphCanvasP
 
   useEffect(() => {
     setNodes((prev) => mergeNodePositions(atomsToNodes(atoms), prev))
-    setEdges(atomsToEdges(atoms))
-  }, [atoms, setNodes, setEdges])
+    const rawEdges = atomsToEdges(atoms)
+    setEdges(renderMode === 'reduced' ? rawEdges.map((e) => ({ ...e, label: undefined })) : rawEdges)
+  }, [atoms, renderMode, setNodes, setEdges])
 
   const ix = useCanvasInteractions({ atoms, edges, selectedAtomId, onSelectAtom, deleteAtom, createAtom, addBond, removeBond })
 

@@ -21,6 +21,7 @@ vi.mock('../features/workspace-graph', () => ({
     addBond: vi.fn(),
     removeBond: vi.fn(),
   }),
+  useGraphDegrade: () => ({ mode: 'full', confirmRender: vi.fn() }),
   GraphCanvas: () => <div data-testid="flow-canvas" />,
   NetworkCanvas: () => <div data-testid="network-canvas" />,
   DeleteConfirmDialog: () => null,

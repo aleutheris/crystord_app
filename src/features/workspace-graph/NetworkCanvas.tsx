@@ -21,6 +21,7 @@ export interface NetworkCanvasProps {
   data: GraphData
   selectedAtomId: string | null
   onSelectAtom: (id: string | null) => void
+  renderMode?: 'full' | 'reduced'
 }
 
 const NODE_SIZE = 80
@@ -39,7 +40,7 @@ function atomsToNetworkNodes(atoms: Atom[]): Node[] {
   }))
 }
 
-export function NetworkCanvas({ data, selectedAtomId, onSelectAtom }: NetworkCanvasProps) {
+export function NetworkCanvas({ data, selectedAtomId, onSelectAtom, renderMode = 'full' }: NetworkCanvasProps) {
   const { atoms, loading, error, createAtom, deleteAtom, addBond, removeBond } = data
 
   const [nodes, setNodes, onNodesChange] = useNodesState([])
@@ -47,8 +48,9 @@ export function NetworkCanvas({ data, selectedAtomId, onSelectAtom }: NetworkCan
 
   useEffect(() => {
     setNodes((prev) => mergeNodePositions(atomsToNetworkNodes(atoms), prev))
-    setEdges(atomsToEdges(atoms))
-  }, [atoms, setNodes, setEdges])
+    const rawEdges = atomsToEdges(atoms)
+    setEdges(renderMode === 'reduced' ? rawEdges.map((e) => ({ ...e, label: undefined })) : rawEdges)
+  }, [atoms, renderMode, setNodes, setEdges])
 
   const ix = useCanvasInteractions({ atoms, edges, selectedAtomId, onSelectAtom, deleteAtom, createAtom, addBond, removeBond })
 
