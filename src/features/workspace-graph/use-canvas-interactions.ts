@@ -111,8 +111,27 @@ export function useCanvasInteractions({
       } else {
         handleDeleteRequest(selectedAtomId)
       }
+      return
     }
-  }, [selectedAtomId, edges, handleDeleteRequest, handleEdgeDelete])
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      onSelectAtom(null)
+      return
+    }
+    if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
+      event.preventDefault()
+      if (atoms.length === 0) return
+      const idx = selectedAtomId ? atoms.findIndex((a) => a.properties.shellies.uuid === selectedAtomId) : -1
+      onSelectAtom(atoms[(idx + 1) % atoms.length]!.properties.shellies.uuid)
+      return
+    }
+    if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
+      event.preventDefault()
+      if (atoms.length === 0) return
+      const idx = selectedAtomId ? atoms.findIndex((a) => a.properties.shellies.uuid === selectedAtomId) : 0
+      onSelectAtom(atoms[(idx - 1 + atoms.length) % atoms.length]!.properties.shellies.uuid)
+    }
+  }, [selectedAtomId, atoms, edges, onSelectAtom, handleDeleteRequest, handleEdgeDelete])
 
   const pendingSource = useMemo(() =>
     pendingConnection ? atoms.find((a) => a.properties.shellies.uuid === pendingConnection.source) : null,

@@ -5,11 +5,27 @@ interface GraphViewTabsProps {
   onViewChange: (view: GraphView) => void
 }
 
+const VIEWS: GraphView[] = ['network', 'flow']
+const LABELS: Record<GraphView, string> = { network: 'Network', flow: 'Flow' }
+
 export function GraphViewTabs({ activeView, onViewChange }: GraphViewTabsProps) {
+  function handleKeyDown(event: React.KeyboardEvent) {
+    if (event.key === 'ArrowRight') {
+      event.preventDefault()
+      const next = VIEWS[(VIEWS.indexOf(activeView) + 1) % VIEWS.length]!
+      onViewChange(next)
+    } else if (event.key === 'ArrowLeft') {
+      event.preventDefault()
+      const prev = VIEWS[(VIEWS.indexOf(activeView) - 1 + VIEWS.length) % VIEWS.length]!
+      onViewChange(prev)
+    }
+  }
+
   return (
     <div
       role="tablist"
       aria-label="Graph view"
+      onKeyDown={handleKeyDown}
       style={{
         display: 'flex',
         borderBottom: '1px solid #D6DEE5',
@@ -18,12 +34,15 @@ export function GraphViewTabs({ activeView, onViewChange }: GraphViewTabsProps) 
         flexShrink: 0,
       }}
     >
-      {(['network', 'flow'] as const).map((view) => (
+      {VIEWS.map((view) => (
         <button
           key={view}
+          id={`tab-${view}`}
           role="tab"
           type="button"
           aria-selected={activeView === view}
+          aria-controls="tabpanel-graph"
+          tabIndex={activeView === view ? 0 : -1}
           onClick={() => onViewChange(view)}
           style={{
             padding: '0.4rem 1rem',
@@ -34,9 +53,12 @@ export function GraphViewTabs({ activeView, onViewChange }: GraphViewTabsProps) 
             fontWeight: activeView === view ? 600 : 400,
             cursor: 'pointer',
             fontSize: '0.85rem',
+            outline: 'none',
           }}
+          onFocus={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 2px #0066CC' }}
+          onBlur={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}
         >
-          {view === 'network' ? 'Network' : 'Flow'}
+          {LABELS[view]}
         </button>
       ))}
     </div>

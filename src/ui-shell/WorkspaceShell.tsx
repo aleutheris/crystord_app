@@ -6,6 +6,7 @@ import { DetailPanel } from '../features/workspace-details'
 import { SearchBar, QuerySummary, SearchResultPanel, useSearch, useRecommendedLabels } from '../features/workspace-search'
 import { GraphViewTabs } from './GraphViewTabs'
 import { GraphRenderGate } from './GraphRenderGate'
+import { GraphLegend } from './GraphLegend'
 import type { GraphView } from './GraphViewTabs'
 
 export function WorkspaceShell() {
@@ -56,7 +57,13 @@ export function WorkspaceShell() {
           )}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <GraphViewTabs activeView={activeView} onViewChange={setActiveView} />
-            <div style={{ flex: 1, position: 'relative' }}>
+            <div
+              id="tabpanel-graph"
+              role="tabpanel"
+              aria-labelledby={`tab-${activeView}`}
+              style={{ flex: 1, position: 'relative' }}
+            >
+              <GraphLegend view={activeView} />
               <GraphRenderGate
                 atomCount={graphData.atoms.length}
                 mode={renderMode}
@@ -79,6 +86,7 @@ export function WorkspaceShell() {
                 )}
               </GraphRenderGate>
             </div>
+
           </div>
           {selectedAtom && (
             <DetailPanel

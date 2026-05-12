@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { GraphViewTabs } from './GraphViewTabs'
 
@@ -39,5 +39,37 @@ describe('GraphViewTabs', () => {
   it('tabs are rendered inside a tablist container', () => {
     render(<GraphViewTabs activeView="network" onViewChange={vi.fn()} />)
     expect(screen.getByRole('tablist')).toBeInTheDocument()
+  })
+
+  it('active tab has tabIndex 0 and inactive tab has tabIndex -1', () => {
+    render(<GraphViewTabs activeView="network" onViewChange={vi.fn()} />)
+    expect(screen.getByRole('tab', { name: 'Network' })).toHaveAttribute('tabindex', '0')
+    expect(screen.getByRole('tab', { name: 'Flow' })).toHaveAttribute('tabindex', '-1')
+  })
+
+  it('each tab has aria-controls pointing to the tabpanel', () => {
+    render(<GraphViewTabs activeView="network" onViewChange={vi.fn()} />)
+    expect(screen.getByRole('tab', { name: 'Network' })).toHaveAttribute('aria-controls', 'tabpanel-graph')
+    expect(screen.getByRole('tab', { name: 'Flow' })).toHaveAttribute('aria-controls', 'tabpanel-graph')
+  })
+
+  it('tabs have stable IDs for panel linkage', () => {
+    render(<GraphViewTabs activeView="network" onViewChange={vi.fn()} />)
+    expect(screen.getByRole('tab', { name: 'Network' })).toHaveAttribute('id', 'tab-network')
+    expect(screen.getByRole('tab', { name: 'Flow' })).toHaveAttribute('id', 'tab-flow')
+  })
+
+  it('ArrowRight on tablist calls onViewChange with next view', () => {
+    const onViewChange = vi.fn()
+    render(<GraphViewTabs activeView="network" onViewChange={onViewChange} />)
+    fireEvent.keyDown(screen.getByRole('tablist'), { key: 'ArrowRight' })
+    expect(onViewChange).toHaveBeenCalledWith('flow')
+  })
+
+  it('ArrowLeft on tablist calls onViewChange with previous view', () => {
+    const onViewChange = vi.fn()
+    render(<GraphViewTabs activeView="flow" onViewChange={onViewChange} />)
+    fireEvent.keyDown(screen.getByRole('tablist'), { key: 'ArrowLeft' })
+    expect(onViewChange).toHaveBeenCalledWith('network')
   })
 })

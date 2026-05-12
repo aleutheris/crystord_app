@@ -47,7 +47,13 @@ export function GraphCanvas({ data, selectedAtomId, onSelectAtom, renderMode = '
   }
 
   return (
-    <div style={{ width: '100%', height: '100%' }} onKeyDown={ix.onKeyDown}>
+    <div
+      role="region"
+      aria-label="Flow view graph canvas"
+      tabIndex={0}
+      style={{ width: '100%', height: '100%', outline: 'none' }}
+      onKeyDown={ix.onKeyDown}
+    >
       <ReactFlow
         nodes={nodes}
         edges={edges}

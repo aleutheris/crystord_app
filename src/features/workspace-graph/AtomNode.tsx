@@ -9,25 +9,29 @@ interface AtomNodeData {
 
 export function AtomNode({ data, selected }: NodeProps) {
   const { title, labels } = data as AtomNodeData
+  const labelList = labels.join(', ')
+  const tooltip = labelList ? `${title} [${labelList}]` : title
 
   return (
     <>
       <Handle type="target" position={Position.Top} />
       <div
+        title={tooltip}
+        aria-label={tooltip}
         style={{
           padding: '8px 14px',
           borderRadius: 6,
-          border: selected ? '2px solid #1a73e8' : '1px solid #ccc',
-          background: selected ? '#e8f0fe' : '#fff',
+          border: selected ? '2px solid #0066CC' : '1px solid #D6DEE5',
+          background: selected ? '#E8F4FF' : '#FAFBFC',
           minWidth: 100,
           textAlign: 'center',
           cursor: 'grab',
         }}
       >
-        <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>{title}</div>
+        <div style={{ fontWeight: selected ? 700 : 600, fontSize: '0.85rem', color: '#17202A' }}>{title}</div>
         {labels.length > 0 && (
-          <div style={{ fontSize: '0.7rem', color: '#666', marginTop: 2 }}>
-            {labels.join(', ')}
+          <div style={{ fontSize: '0.7rem', color: '#5B6B7A', marginTop: 2 }}>
+            {labelList}
           </div>
         )}
       </div>

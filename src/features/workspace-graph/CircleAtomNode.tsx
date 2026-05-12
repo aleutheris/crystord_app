@@ -11,7 +11,9 @@ interface CircleAtomNodeData {
 }
 
 export function CircleAtomNode({ data, selected }: NodeProps) {
-  const { title } = data as CircleAtomNodeData
+  const { title, labels } = data as CircleAtomNodeData
+  const labelList = (labels as string[]).join(', ')
+  const tooltip = labelList ? `${title} [${labelList}]` : title
 
   return (
     <>
@@ -22,11 +24,13 @@ export function CircleAtomNode({ data, selected }: NodeProps) {
       <Handle type="target" id="left" position={Position.Left} style={invisibleHandle} />
       <div
         data-testid="circle-node-body"
+        title={tooltip}
+        aria-label={tooltip}
         style={{
           width: NODE_SIZE,
           height: NODE_SIZE,
           borderRadius: '50%',
-          border: selected ? '2px solid #0066CC' : '1px solid #D6DEE5',
+          border: selected ? '3px solid #0066CC' : '1px solid #D6DEE5',
           background: selected ? '#E8F4FF' : '#FAFBFC',
           display: 'flex',
           alignItems: 'center',
@@ -39,7 +43,7 @@ export function CircleAtomNode({ data, selected }: NodeProps) {
       >
         <span
           style={{
-            fontWeight: 600,
+            fontWeight: selected ? 700 : 600,
             fontSize: '0.72rem',
             color: '#17202A',
             wordBreak: 'break-word',
@@ -56,6 +60,7 @@ export function CircleAtomNode({ data, selected }: NodeProps) {
         type="source"
         position={Position.Right}
         data-testid="connector-handle"
+        aria-label="Drag to create a relationship"
         style={{
           width: 10,
           height: 10,

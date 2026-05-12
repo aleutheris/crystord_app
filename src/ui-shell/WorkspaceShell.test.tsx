@@ -27,6 +27,10 @@ vi.mock('../features/workspace-graph', () => ({
   DeleteConfirmDialog: () => null,
 }))
 
+vi.mock('./GraphLegend', () => ({
+  GraphLegend: () => null,
+}))
+
 vi.mock('../features/workspace-search', () => ({
   useSearch: () => ({
     filters: { labelQuery: '', selectedLabels: [] },
