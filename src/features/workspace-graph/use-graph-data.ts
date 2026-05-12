@@ -70,6 +70,14 @@ export function useGraphData(): GraphData {
     return ids?.[0] ?? null
   }, [client, fetchAtoms])
 
+  const toNucleariesInput = useCallback((nuclearies: Atom['properties']['nuclearies']) => ({
+    title: nuclearies.title,
+    description: nuclearies.description,
+    content: nuclearies.content,
+    operation: nuclearies.operation,
+    constants: nuclearies.constants,
+  }), [])
+
   const updateAtom = useCallback(async (uuid: string, atom: Atom) => {
     await client.mutate({
       mutation: UPDATE_ATOM_MUTATION,
@@ -78,12 +86,12 @@ export function useGraphData(): GraphData {
         inputs: [{
           labels: atom.labels,
           bonds: atom.bonds.map((b) => ({ uuid: b.uuid, name: b.name, direction: b.direction })),
-          properties: { nuclearies: atom.properties.nuclearies },
+          properties: { nuclearies: toNucleariesInput(atom.properties.nuclearies) },
         }],
       },
     })
     await fetchAtoms()
-  }, [client, fetchAtoms])
+  }, [client, fetchAtoms, toNucleariesInput])
 
   const deleteAtom = useCallback(async (uuid: string) => {
     await client.mutate({
