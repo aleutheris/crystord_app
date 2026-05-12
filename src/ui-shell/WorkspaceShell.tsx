@@ -8,6 +8,7 @@ import { GraphViewTabs } from './GraphViewTabs'
 import { GraphRenderGate } from './GraphRenderGate'
 import { GraphLegend } from './GraphLegend'
 import type { GraphView } from './GraphViewTabs'
+import { networkViewEnabled } from '../feature-flags'
 
 export function WorkspaceShell() {
   const { signOut } = useAuth()
@@ -16,7 +17,7 @@ export function WorkspaceShell() {
   const recommendedLabels = useRecommendedLabels()
   const [selectedAtomId, setSelectedAtomId] = useState<string | null>(null)
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
-  const [activeView, setActiveView] = useState<GraphView>('network')
+  const [activeView, setActiveView] = useState<GraphView>(networkViewEnabled ? 'network' : 'flow')
   const { mode: renderMode, confirmRender } = useGraphDegrade(graphData.atoms.length)
   const canvasMode = renderMode === 'full' ? 'full' : 'reduced'
 
@@ -56,7 +57,7 @@ export function WorkspaceShell() {
             />
           )}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <GraphViewTabs activeView={activeView} onViewChange={setActiveView} />
+            {networkViewEnabled && <GraphViewTabs activeView={activeView} onViewChange={setActiveView} />}
             <div
               id="tabpanel-graph"
               role="tabpanel"

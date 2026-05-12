@@ -7,7 +7,7 @@ import {
   useEdgesState,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import type { Node } from '@xyflow/react'
+import type { Node, Edge } from '@xyflow/react'
 import type { Atom } from '../../api-contract/graph-queries'
 import type { GraphData } from './use-graph-data'
 import { atomsToEdges, mergeNodePositions } from './graph-types'
@@ -43,8 +43,8 @@ function atomsToNetworkNodes(atoms: Atom[]): Node[] {
 export function NetworkCanvas({ data, selectedAtomId, onSelectAtom, renderMode = 'full' }: NetworkCanvasProps) {
   const { atoms, loading, error, createAtom, deleteAtom, addBond, removeBond } = data
 
-  const [nodes, setNodes, onNodesChange] = useNodesState([])
-  const [edges, setEdges, onEdgesChange] = useEdgesState([])
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
 
   useEffect(() => {
     setNodes((prev) => mergeNodePositions(atomsToNetworkNodes(atoms), prev))

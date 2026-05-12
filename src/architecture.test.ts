@@ -1161,3 +1161,146 @@ describe('Branding policy content completeness', () => {
     expect(branding).toContain('error')
   })
 })
+
+// --- BI-260033: Dual-view delivery and validation baseline (D1-D3 / ADR-260032) ---
+
+describe('Feature flag rollout control (D3 / REQ-OR-260011)', () => {
+  it('feature-flags module exists at src/feature-flags.ts', () => {
+    expect(fs.existsSync(path.join(SRC, 'feature-flags.ts'))).toBe(true)
+  })
+
+  it('feature-flags module exports networkViewEnabled derived from VITE env var', () => {
+    const flags = fs.readFileSync(path.join(SRC, 'feature-flags.ts'), 'utf-8')
+    expect(flags).toContain('networkViewEnabled')
+    expect(flags).toContain('VITE_NETWORK_VIEW_ENABLED')
+    expect(flags).toContain('import.meta.env')
+  })
+
+  it('WorkspaceShell imports networkViewEnabled from feature-flags', () => {
+    const shell = fs.readFileSync(path.join(SRC, 'ui-shell', 'WorkspaceShell.tsx'), 'utf-8')
+    expect(shell).toContain('networkViewEnabled')
+    expect(shell).toContain('feature-flags')
+  })
+
+  it('WorkspaceShell gates GraphViewTabs rendering behind networkViewEnabled', () => {
+    const shell = fs.readFileSync(path.join(SRC, 'ui-shell', 'WorkspaceShell.tsx'), 'utf-8')
+    // Flag guards tab rendering — both identifiers appear in the same conditional expression
+    expect(shell).toMatch(/networkViewEnabled[\s\S]{0,40}GraphViewTabs/)
+  })
+
+  it('Flow view remains always available as immediate fallback (GraphCanvas in barrel)', () => {
+    const barrel = fs.readFileSync(path.join(FEATURES, 'workspace-graph', 'index.ts'), 'utf-8')
+    expect(barrel).toContain('GraphCanvas')
+  })
+
+  it('default view falls back to Flow when networkViewEnabled is false (initialised from flag)', () => {
+    const shell = fs.readFileSync(path.join(SRC, 'ui-shell', 'WorkspaceShell.tsx'), 'utf-8')
+    // useState initialiser references the flag so the default view is flag-driven
+    expect(shell).toMatch(/useState.*networkViewEnabled/)
+  })
+})
+
+describe('Shared-state dual-view architecture (D1 / REQ-FR-260034)', () => {
+  it('selectedAtomId is lifted to WorkspaceShell and passed to both canvases', () => {
+    const shell = fs.readFileSync(path.join(SRC, 'ui-shell', 'WorkspaceShell.tsx'), 'utf-8')
+    expect(shell).toContain('selectedAtomId')
+    expect(shell).toMatch(/GraphCanvas[\s\S]{0,200}selectedAtomId/)
+    expect(shell).toMatch(/NetworkCanvas[\s\S]{0,200}selectedAtomId/)
+  })
+
+  it('single useGraphData call feeds both canvas views', () => {
+    const shell = fs.readFileSync(path.join(SRC, 'ui-shell', 'WorkspaceShell.tsx'), 'utf-8')
+    const hookCallCount = (shell.match(/useGraphData\(\)/g) ?? []).length
+    expect(hookCallCount).toBe(1)
+    const dataPropCount = (shell.match(/data=\{graphData\}/g) ?? []).length
+    expect(dataPropCount).toBeGreaterThanOrEqual(2)
+  })
+
+  it('mutations update shared atoms state so all views reflect changes', () => {
+    const useGraphData = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'use-graph-data.ts'), 'utf-8',
+    )
+    expect(useGraphData).toContain('fetchAtoms')
+    expect(useGraphData).toContain('setAtoms')
+    expect(useGraphData).toContain('await fetchAtoms()')
+  })
+
+  it('NetworkCanvas uses the shared graph-types edge adapter', () => {
+    const networkCanvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'NetworkCanvas.tsx'), 'utf-8',
+    )
+    expect(networkCanvas).toContain('atomsToEdges')
+    expect(networkCanvas).toContain('graph-types')
+  })
+})
+
+describe('Large-graph degrade policy seam (D2 / REQ-QR-260005)', () => {
+  it('degrade hook enforces full mode below 150 nodes (REDUCED_THRESHOLD)', () => {
+    const degrade = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'use-graph-degrade.ts'), 'utf-8',
+    )
+    expect(degrade).toContain('REDUCED_THRESHOLD')
+    expect(degrade).toContain('150')
+  })
+
+  it('degrade hook enforces blocked mode above 400 nodes (BLOCKED_THRESHOLD)', () => {
+    const degrade = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'use-graph-degrade.ts'), 'utf-8',
+    )
+    expect(degrade).toContain('BLOCKED_THRESHOLD')
+    expect(degrade).toContain('400')
+  })
+
+  it('GraphRenderGate blocks render and exposes confirm path when mode is blocked', () => {
+    const gate = fs.readFileSync(path.join(SRC, 'ui-shell', 'GraphRenderGate.tsx'), 'utf-8')
+    expect(gate).toContain('blocked')
+    expect(gate).toContain('onConfirm')
+  })
+
+  it('both canvas components accept renderMode prop for reduced rendering', () => {
+    const graphCanvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
+    )
+    const networkCanvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'NetworkCanvas.tsx'), 'utf-8',
+    )
+    expect(graphCanvas).toContain('renderMode')
+    expect(networkCanvas).toContain('renderMode')
+  })
+
+  it('reduced mode strips edge labels on both canvases', () => {
+    const graphCanvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
+    )
+    const networkCanvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'NetworkCanvas.tsx'), 'utf-8',
+    )
+    expect(graphCanvas).toContain('reduced')
+    expect(networkCanvas).toContain('reduced')
+  })
+
+  it('degrade threshold constants are exported from the workspace-graph barrel', () => {
+    const barrel = fs.readFileSync(path.join(FEATURES, 'workspace-graph', 'index.ts'), 'utf-8')
+    expect(barrel).toContain('REDUCED_THRESHOLD')
+    expect(barrel).toContain('BLOCKED_THRESHOLD')
+  })
+})
+
+describe('Dual-view E2E coverage baseline (D1 / REQ-FR-260034)', () => {
+  const E2E_DIR = path.join(ROOT, 'e2e')
+
+  it('E2E spec covers default Network view after login', () => {
+    const spec = fs.readFileSync(path.join(E2E_DIR, 'graph-workspace.spec.ts'), 'utf-8')
+    expect(spec).toMatch(/network.*view.*default|default.*network.*view/i)
+  })
+
+  it('E2E spec covers view switching between Network and Flow tabs', () => {
+    const spec = fs.readFileSync(path.join(E2E_DIR, 'graph-workspace.spec.ts'), 'utf-8')
+    expect(spec).toMatch(/flow.*tab|switch.*view/i)
+  })
+
+  it('E2E spec covers keyboard-driven view switch via ArrowRight on tablist', () => {
+    const spec = fs.readFileSync(path.join(E2E_DIR, 'graph-workspace.spec.ts'), 'utf-8')
+    expect(spec).toMatch(/ArrowRight|keyboard.*view|view.*keyboard/i)
+  })
+})

@@ -254,6 +254,34 @@ test.describe('Graph workspace', () => {
     await expect(page.getByRole('button', { name: /sign out/i })).toBeVisible()
   })
 
+  test('shows Network view as default after sign-in', async ({ page }) => {
+    await mockGraphQL(page)
+    await signIn(page)
+
+    await expect(page.getByRole('tab', { name: 'Network' })).toHaveAttribute('aria-selected', 'true')
+    await expect(page.getByRole('tab', { name: 'Flow' })).toHaveAttribute('aria-selected', 'false')
+  })
+
+  test('can switch to Flow view by clicking the Flow tab', async ({ page }) => {
+    await mockGraphQL(page)
+    await signIn(page)
+
+    await page.getByRole('tab', { name: 'Flow' }).click()
+    await expect(page.getByRole('tab', { name: 'Flow' })).toHaveAttribute('aria-selected', 'true')
+    await expect(page.getByRole('tab', { name: 'Network' })).toHaveAttribute('aria-selected', 'false')
+  })
+
+  test('can switch views with ArrowRight keyboard navigation on tablist', async ({ page }) => {
+    await mockGraphQL(page)
+    await signIn(page)
+
+    await page.getByRole('tablist').focus()
+    await page.keyboard.press('ArrowRight')
+    await expect(page.getByRole('tab', { name: 'Flow' })).toHaveAttribute('aria-selected', 'true')
+    await page.keyboard.press('ArrowLeft')
+    await expect(page.getByRole('tab', { name: 'Network' })).toHaveAttribute('aria-selected', 'true')
+  })
+
   test('workspace remains functional after mutation error', async ({ page }) => {
     // Override mock to fail on mutations
     await page.route('**/graphql', (route) => {
