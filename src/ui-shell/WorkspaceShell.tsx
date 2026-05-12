@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { ReactFlowProvider } from '@xyflow/react'
 import { useAuth } from '../features/auth-entry'
-import { GraphCanvas, useGraphData, DeleteConfirmDialog } from '../features/workspace-graph'
+import { GraphCanvas, NetworkCanvas, useGraphData, DeleteConfirmDialog } from '../features/workspace-graph'
 import { DetailPanel } from '../features/workspace-details'
 import { SearchBar, QuerySummary, SearchResultPanel, useSearch, useRecommendedLabels } from '../features/workspace-search'
+import { GraphViewTabs } from './GraphViewTabs'
+import type { GraphView } from './GraphViewTabs'
 
 export function WorkspaceShell() {
   const { signOut } = useAuth()
@@ -12,6 +14,7 @@ export function WorkspaceShell() {
   const recommendedLabels = useRecommendedLabels()
   const [selectedAtomId, setSelectedAtomId] = useState<string | null>(null)
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
+  const [activeView, setActiveView] = useState<GraphView>('network')
 
   const selectedAtom = graphData.atoms.find(
     (a) => a.properties.shellies.uuid === selectedAtomId,
@@ -48,12 +51,23 @@ export function WorkspaceShell() {
               onSelectAtom={setSelectedAtomId}
             />
           )}
-          <div style={{ flex: 1, position: 'relative' }}>
-            <GraphCanvas
-              data={graphData}
-              selectedAtomId={selectedAtomId}
-              onSelectAtom={setSelectedAtomId}
-            />
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <GraphViewTabs activeView={activeView} onViewChange={setActiveView} />
+            <div style={{ flex: 1, position: 'relative' }}>
+              {activeView === 'network' ? (
+                <NetworkCanvas
+                  data={graphData}
+                  selectedAtomId={selectedAtomId}
+                  onSelectAtom={setSelectedAtomId}
+                />
+              ) : (
+                <GraphCanvas
+                  data={graphData}
+                  selectedAtomId={selectedAtomId}
+                  onSelectAtom={setSelectedAtomId}
+                />
+              )}
+            </div>
           </div>
           {selectedAtom && (
             <DetailPanel

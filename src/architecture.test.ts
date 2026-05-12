@@ -604,19 +604,22 @@ describe('Accessibility baseline (I2 / REQ-QR-260002)', () => {
     const canvas = fs.readFileSync(
       path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
     )
+    const interactions = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'use-canvas-interactions.ts'), 'utf-8',
+    )
     expect(canvas).toContain('onKeyDown')
-    expect(canvas).toContain('Delete')
-    expect(canvas).toContain('Backspace')
+    expect(interactions).toContain('Delete')
+    expect(interactions).toContain('Backspace')
   })
 })
 
 describe('Observability error-handling seams (I3 / REQ-OR-260005)', () => {
   it('mutation operations have try/catch error handling', () => {
-    const canvas = fs.readFileSync(
-      path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
+    const interactions = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'use-canvas-interactions.ts'), 'utf-8',
     )
     // Multiple try/catch blocks around mutation calls
-    const tryCatchCount = (canvas.match(/try\s*\{/g) ?? []).length
+    const tryCatchCount = (interactions.match(/try\s*\{/g) ?? []).length
     expect(tryCatchCount).toBeGreaterThanOrEqual(4)
 
     const signIn = fs.readFileSync(

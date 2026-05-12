@@ -1,4 +1,5 @@
 export { GraphCanvas } from './GraphCanvas'
+export { NetworkCanvas } from './NetworkCanvas'
 export { DeleteConfirmDialog } from './DeleteConfirmDialog'
 export { useGraphData } from './use-graph-data'
 export type { GraphData } from './use-graph-data'
