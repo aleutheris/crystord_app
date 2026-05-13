@@ -108,8 +108,7 @@ async function submitSearch(page: import('@playwright/test').Page) {
   const retrieveResponse = page.waitForResponse(
     (r) => r.url().includes('/graphql') && r.request().postData()?.includes('retrieve') === true,
   )
-  await page.getByLabel(/search labels/i).click()
-  await page.keyboard.press('Enter')
+  await page.getByRole('button', { name: /search/i }).click()
   await retrieveResponse
 }
 

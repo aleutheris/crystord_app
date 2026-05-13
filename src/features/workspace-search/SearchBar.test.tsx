@@ -72,6 +72,17 @@ describe('SearchBar', () => {
     expect(submitSearch).toHaveBeenCalledOnce()
   })
 
+  it('renders a visible search submit button and submits when clicked', async () => {
+    const submitSearch = vi.fn()
+    const user = userEvent.setup()
+    render(<SearchBar search={makeSearch({ submitSearch })} />)
+
+    expect(screen.getByRole('button', { name: /search/i })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /search/i }))
+    expect(submitSearch).toHaveBeenCalledOnce()
+  })
+
   it('shows recommendedLabels as chips when no atoms are loaded (availableLabels empty)', () => {
     render(
       <SearchBar

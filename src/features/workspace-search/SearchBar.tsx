@@ -93,6 +93,28 @@ export function SearchBar({ search, recommendedLabels = [] }: SearchBarProps) {
           }}
         />
       </div>
+      <button
+        type="submit"
+        aria-label="Run search query"
+        title="Run search query"
+        style={{
+          width: '2rem',
+          height: '2rem',
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: 0,
+          border: '1px solid #1a73e8',
+          background: '#1a73e8',
+          color: '#fff',
+          cursor: 'pointer',
+          fontSize: '1rem',
+          fontWeight: 700,
+          lineHeight: 1,
+        }}
+      >
+        ▶
+      </button>
       {labelsToShow.length > 0 && (
         <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
           {labelsToShow.map((label) => {
