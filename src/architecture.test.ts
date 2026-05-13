@@ -1534,3 +1534,83 @@ describe('Flow view layout unchanged — scope boundary (ADR-260035)', () => {
     expect(canvas).not.toContain('d3-force')
   })
 })
+
+// --- BI-260037: Outer-circumference edge initiation baseline for Network view (D1-D5 / ADR-260036) ---
+
+describe('Ring affordance replaces connector dot (D1 / REQ-FR-260038)', () => {
+  it('CircleAtomNode exports RING_THICKNESS constant', () => {
+    const node = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'CircleAtomNode.tsx'), 'utf-8',
+    )
+    expect(node).toContain('RING_THICKNESS')
+    expect(node).toContain('export')
+  })
+
+  it('CircleAtomNode exports CLICK_DRAG_THRESHOLD constant', () => {
+    const node = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'CircleAtomNode.tsx'), 'utf-8',
+    )
+    expect(node).toContain('CLICK_DRAG_THRESHOLD')
+    expect(node).toContain('export')
+  })
+
+  it('CircleAtomNode uses ring-handle as source Handle (no connector dot)', () => {
+    const node = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'CircleAtomNode.tsx'), 'utf-8',
+    )
+    expect(node).toContain('ring-handle')
+    expect(node).not.toContain('connector-handle')
+  })
+
+  it('CircleAtomNode has dedicated test coverage', () => {
+    expect(
+      fs.existsSync(path.join(FEATURES, 'workspace-graph', 'CircleAtomNode.test.tsx')),
+    ).toBe(true)
+  })
+})
+
+describe('Ring visibility and state rules (D2 / REQ-FR-260038)', () => {
+  it('CircleAtomNode ring opacity is controlled by hover and selected state', () => {
+    const node = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'CircleAtomNode.tsx'), 'utf-8',
+    )
+    expect(node).toContain('ringVisible')
+    expect(node).toContain('hovered')
+    expect(node).toContain('selected')
+    expect(node).toContain('opacity')
+  })
+
+  it('CircleAtomNode ring uses Trust Blue border color (#0066CC)', () => {
+    const node = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'CircleAtomNode.tsx'), 'utf-8',
+    )
+    expect(node).toContain('#0066CC')
+    expect(node).toContain('ring-handle')
+  })
+})
+
+describe('Self-connection no-op (D4 / REQ-FR-260038)', () => {
+  it('useCanvasInteractions onConnect guards against source === target', () => {
+    const ix = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'use-canvas-interactions.ts'), 'utf-8',
+    )
+    expect(ix).toContain('source !== connection.target')
+  })
+})
+
+describe('Flow view scope boundary — ring affordance (D5 / ADR-260036)', () => {
+  it('GraphCanvas.tsx does not reference ring-handle or RING_THICKNESS', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).not.toContain('ring-handle')
+    expect(canvas).not.toContain('RING_THICKNESS')
+  })
+
+  it('GraphCanvas.tsx does not import CircleAtomNode', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).not.toContain('CircleAtomNode')
+  })
+})

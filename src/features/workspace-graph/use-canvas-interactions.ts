@@ -38,7 +38,7 @@ export function useCanvasInteractions({
   }, [onSelectAtom])
 
   const onConnect = useCallback((connection: Connection) => {
-    if (connection.source && connection.target) {
+    if (connection.source && connection.target && connection.source !== connection.target) {
       setPendingConnection({ source: connection.source, target: connection.target })
     }
   }, [])

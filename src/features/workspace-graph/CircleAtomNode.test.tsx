@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import { CircleAtomNode } from './CircleAtomNode'
+import { CircleAtomNode, RING_THICKNESS, CLICK_DRAG_THRESHOLD } from './CircleAtomNode'
 
 vi.mock('@xyflow/react', () => ({
   Handle: ({ id, type, 'data-testid': testid, style }: {
@@ -52,17 +52,8 @@ describe('CircleAtomNode', () => {
   it('applies selected border when selected', () => {
     render(<CircleAtomNode {...makeProps('Alpha', true)} />)
     const body = screen.getByTestId('circle-node-body') as HTMLElement
-    // jsdom normalises hex to rgb; verify solid border with non-trivial width
     expect(body.style.borderStyle).toBe('solid')
     expect(body.style.borderWidth).not.toBe('0px')
-  })
-
-  it('exposes a visible connector handle on the source side', () => {
-    render(<CircleAtomNode {...makeProps('Alpha')} />)
-    const connector = screen.getByTestId('connector-handle')
-    expect(connector).toBeInTheDocument()
-    expect(connector).toHaveAttribute('data-handle-type', 'source')
-    expect(connector).toHaveAttribute('data-handle-id', 'connector')
   })
 
   it('has invisible target handles on all four sides for nearest-boundary anchoring', () => {
@@ -75,9 +66,56 @@ describe('CircleAtomNode', () => {
     }
   })
 
-  it('connector handle is visually distinct (Trust Blue background)', () => {
+  it('does not render a connector dot (previous side-handle affordance removed)', () => {
     render(<CircleAtomNode {...makeProps('Alpha')} />)
-    const connector = screen.getByTestId('connector-handle')
-    expect(connector).toHaveStyle({ background: '#0066CC' })
+    expect(screen.queryByTestId('connector-handle')).not.toBeInTheDocument()
+  })
+
+  it('renders a ring source handle', () => {
+    render(<CircleAtomNode {...makeProps('Alpha')} />)
+    const ring = screen.getByTestId('ring-handle')
+    expect(ring).toBeInTheDocument()
+    expect(ring).toHaveAttribute('data-handle-type', 'source')
+    expect(ring).toHaveAttribute('data-handle-id', 'ring')
+  })
+
+  it('ring is hidden by default (opacity 0, pointerEvents none)', () => {
+    render(<CircleAtomNode {...makeProps('Alpha')} />)
+    const ring = screen.getByTestId('ring-handle') as HTMLElement
+    expect(ring.style.opacity).toBe('0')
+    expect(ring.style.pointerEvents).toBe('none')
+  })
+
+  it('ring is visible when the node is selected (opacity 1)', () => {
+    render(<CircleAtomNode {...makeProps('Alpha', true)} />)
+    const ring = screen.getByTestId('ring-handle') as HTMLElement
+    expect(ring.style.opacity).toBe('1')
+    expect(ring.style.pointerEvents).toBe('all')
+  })
+
+  it('ring uses Trust Blue border color', () => {
+    render(<CircleAtomNode {...makeProps('Alpha', true)} />)
+    const ring = screen.getByTestId('ring-handle') as HTMLElement
+    expect(ring.style.borderColor).toBe('rgb(0, 102, 204)')
+  })
+
+  it('ring is circular (border-radius 50%)', () => {
+    render(<CircleAtomNode {...makeProps('Alpha')} />)
+    const ring = screen.getByTestId('ring-handle') as HTMLElement
+    expect(ring.style.borderRadius).toBe('50%')
+  })
+
+  it('inner node body uses grab cursor for drag affordance', () => {
+    render(<CircleAtomNode {...makeProps('Alpha')} />)
+    const body = screen.getByTestId('circle-node-body') as HTMLElement
+    expect(body.style.cursor).toBe('grab')
+  })
+
+  it('RING_THICKNESS is 8px (acceptable range 6–10px per D1 / ADR-260036)', () => {
+    expect(RING_THICKNESS).toBe(8)
+  })
+
+  it('CLICK_DRAG_THRESHOLD is 4px (minimum pointer movement to distinguish click from drag)', () => {
+    expect(CLICK_DRAG_THRESHOLD).toBe(4)
   })
 })

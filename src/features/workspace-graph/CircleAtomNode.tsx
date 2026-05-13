@@ -1,5 +1,9 @@
+import { useState, useRef } from 'react'
 import { Handle, Position } from '@xyflow/react'
 import type { NodeProps } from '@xyflow/react'
+
+export const RING_THICKNESS = 8      // outer ring interactive thickness (px) — D1 / ADR-260036
+export const CLICK_DRAG_THRESHOLD = 4  // min pointer movement (px) to distinguish click from drag — D3 / ADR-260036
 
 const NODE_SIZE = 80
 const invisibleHandle: React.CSSProperties = { opacity: 0, pointerEvents: 'none' }
@@ -11,9 +15,24 @@ interface CircleAtomNodeData {
 }
 
 export function CircleAtomNode({ data, selected }: NodeProps) {
+  const [hovered, setHovered] = useState(false)
+  const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   const { title, labels } = data as CircleAtomNodeData
   const labelList = (labels as string[]).join(', ')
   const tooltip = labelList ? `${title} [${labelList}]` : title
+  const ringVisible = hovered || !!selected
+
+  function scheduleHide() {
+    hideTimerRef.current = setTimeout(() => setHovered(false), 50)
+  }
+
+  function cancelHide() {
+    if (hideTimerRef.current) {
+      clearTimeout(hideTimerRef.current)
+      hideTimerRef.current = null
+    }
+  }
 
   return (
     <>
@@ -22,11 +41,44 @@ export function CircleAtomNode({ data, selected }: NodeProps) {
       <Handle type="target" id="right" position={Position.Right} style={invisibleHandle} />
       <Handle type="target" id="bottom" position={Position.Bottom} style={invisibleHandle} />
       <Handle type="target" id="left" position={Position.Left} style={invisibleHandle} />
+
+      {/* Outer ring — full-circumference edge-initiation affordance (D1–D3 / ADR-260036) */}
+      <Handle
+        id="ring"
+        type="source"
+        position={Position.Left}
+        data-testid="ring-handle"
+        aria-label="Drag from ring to create a relationship"
+        onMouseEnter={() => { cancelHide(); setHovered(true) }}
+        onMouseLeave={scheduleHide}
+        style={{
+          position: 'absolute',
+          top: -RING_THICKNESS,
+          left: -RING_THICKNESS,
+          width: NODE_SIZE + 2 * RING_THICKNESS,
+          height: NODE_SIZE + 2 * RING_THICKNESS,
+          borderRadius: '50%',
+          border: `${RING_THICKNESS}px solid #0066CC`,
+          background: 'transparent',
+          opacity: ringVisible ? 1 : 0,
+          pointerEvents: ringVisible ? 'all' : 'none',
+          cursor: 'crosshair',
+          boxSizing: 'border-box',
+          zIndex: 1,
+          transform: 'none',
+        }}
+      />
+
+      {/* Inner node body — primary drag surface for atom movement (D3 / ADR-260036) */}
       <div
         data-testid="circle-node-body"
         title={tooltip}
         aria-label={tooltip}
+        onMouseEnter={() => { cancelHide(); setHovered(true) }}
+        onMouseLeave={scheduleHide}
         style={{
+          position: 'relative',
+          zIndex: 2,
           width: NODE_SIZE,
           height: NODE_SIZE,
           borderRadius: '50%',
@@ -54,20 +106,6 @@ export function CircleAtomNode({ data, selected }: NodeProps) {
           {title}
         </span>
       </div>
-      {/* Visible connector dot — the drag affordance for creating relationships */}
-      <Handle
-        id="connector"
-        type="source"
-        position={Position.Right}
-        data-testid="connector-handle"
-        aria-label="Drag to create a relationship"
-        style={{
-          width: 10,
-          height: 10,
-          background: '#0066CC',
-          border: '2px solid #fff',
-        }}
-      />
     </>
   )
 }
