@@ -41,6 +41,9 @@ When a requirement is deprecated, keep its row in this file and set `Status` to 
 | REQ-FR-260032 | Dual-View Shared Dataset and Cross-View Selection Consistency | FR | Accepted | ADR-260030 | BI-260031 |
 | REQ-FR-260033 | Keyboard and Discoverability Support for Dual Graph Views | FR | Accepted | ADR-260031 | BI-260032 |
 | REQ-FR-260034 | Dual-View Validation Coverage Must Include Unit, Integration, and E2E Paths | FR | Accepted | ADR-260032 | BI-260033 |
+| REQ-FR-260035 | Network View Bonds Must Anchor at Geometrically Closest Circle Boundary Points | FR | Accepted | ADR-260033, ADR-260029 | BI-260034 |
+| REQ-FR-260036 | Network View Bonds Must Show Direction with Arrowheads | FR | Accepted | ADR-260034 | BI-260035 |
+| REQ-FR-260037 | Network View Must Apply Topology-Aware Automatic Layout | FR | Accepted | ADR-260035 | BI-260036 |
 | REQ-OR-260001 | MVP Demo Sign-In Operating Model | OR | Accepted | ADR-260002, ADR-260014 | BI-260002, BI-260011 |
 | REQ-OR-260002 | GraphQL Schema Stability and Versioning Contract | OR | Accepted | ADR-260013 | BI-260010 |
 | REQ-OR-260003 | Frontend Contract Stability and Breaking-Change Control | OR | Accepted | ADR-260018 | BI-260015 |

@@ -31,6 +31,9 @@ User-outcome-oriented backlog for Crystord Web.
 | 23 | BI-260031 | Formalize dual-view behavior and shared-state baseline | See `.github/project/evolution/backlog-status.md` | Records accepted shared state, cross-view selection, mutation reflection, and large-result degrade policy decisions before implementation planning begins. |
 | 24 | BI-260032 | Formalize dual-view accessibility and usability baseline | See `.github/project/evolution/backlog-status.md` | Records accepted keyboard, ARIA/focus, contrast/state signaling, and legend/tooltip discoverability decisions before implementation planning begins. |
 | 25 | BI-260033 | Formalize dual-view delivery and validation baseline | See `.github/project/evolution/backlog-status.md` | Records accepted coverage, performance targets, and rollout/rollback flag policy before implementation planning begins. |
+| 26 | BI-260034 | Formalize geometric closest-point bond anchoring baseline | See `.github/project/evolution/backlog-status.md` | Records Topic 1 anchoring refinement baseline (geometric nearest-boundary attachment) and preserves optional/off-by-default Network-view bond-label seam for future enablement. |
+| 27 | BI-260035 | Formalize directional arrowheads baseline for Network-view bonds | See `.github/project/evolution/backlog-status.md` | Records Topic 2 direction baseline (target-end arrowheads) and keeps Network-view labels optional/off-by-default while preserving future label seam. |
+| 28 | BI-260036 | Formalize force-directed automatic layout baseline for Network view | See `.github/project/evolution/backlog-status.md` | Records Topic 3 layout baseline (d3-force, synchronous iteration cap, drag-position preservation, grid fallback above 400 nodes, non-determinism policy). |
 
 ## Workflow States
 

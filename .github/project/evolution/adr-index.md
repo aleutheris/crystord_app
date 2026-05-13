@@ -26,3 +26,6 @@ Status lifecycle used here: Proposed | Accepted | Superseded.
 | ADR-260030 | Dual-View Shared State and Large-Graph Degrade Behavior Baseline | Accepted | 2026-05-12 | - | - | Defines shared dataset/selection state, centralized mutation reflection, and large-result degrade thresholds. |
 | ADR-260031 | Dual-View Accessibility and Usability Baseline | Accepted | 2026-05-12 | - | - | Defines keyboard navigation, ARIA tab semantics, focus visibility, non-color state cues, and legend/tooltip guidance. |
 | ADR-260032 | Dual-View Delivery, Validation, and Rollout Baseline | Accepted | 2026-05-12 | - | - | Defines required test layers, performance targets, and feature-flag rollout/rollback policy. |
+| ADR-260033 | Geometric Closest-Point Bond Anchoring for Network View | Accepted | 2026-05-13 | - | - | Refines Network-view bond anchoring to geometric nearest-boundary points and preserves optional label seam. |
+| ADR-260034 | Directional Arrowheads for Network-View Bonds | Accepted | 2026-05-13 | - | - | Establishes target-end arrowheads as baseline directional cue and keeps label rendering optional/off-by-default seam. |
+| ADR-260035 | Force-Directed Automatic Layout for Network View | Accepted | 2026-05-13 | - | - | Selects d3-force as layout engine, synchronous iteration-capped pre-render, drag-position preservation, and grid fallback above 400 nodes. |
