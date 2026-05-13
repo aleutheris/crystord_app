@@ -34,6 +34,7 @@ User-outcome-oriented backlog for Crystord Web.
 | 26 | BI-260034 | Formalize geometric closest-point bond anchoring baseline | See `.github/project/evolution/backlog-status.md` | Records Topic 1 anchoring refinement baseline (geometric nearest-boundary attachment) and preserves optional/off-by-default Network-view bond-label seam for future enablement. |
 | 27 | BI-260035 | Formalize directional arrowheads baseline for Network-view bonds | See `.github/project/evolution/backlog-status.md` | Records Topic 2 direction baseline (target-end arrowheads) and keeps Network-view labels optional/off-by-default while preserving future label seam. |
 | 28 | BI-260036 | Formalize force-directed automatic layout baseline for Network view | See `.github/project/evolution/backlog-status.md` | Records Topic 3 layout baseline (d3-force, synchronous iteration cap, drag-position preservation, grid fallback above 400 nodes, non-determinism policy). |
+| 29 | BI-260037 | Formalize outer-circumference edge initiation baseline for Network view | See `.github/project/evolution/backlog-status.md` | Records superseding ring-based initiation baseline (hover/selected ring, inner-vs-outer pointer zones, no-op blank/self drop, target-circle completion) and preserves Flow-view boundary. |
 
 ## Workflow States
 
