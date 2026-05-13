@@ -2,7 +2,7 @@ import { BaseEdge, useInternalNode } from '@xyflow/react'
 import type { EdgeProps } from '@xyflow/react'
 import { floatingEdgePath } from './graph-geometry'
 
-export function FloatingEdge({ id, source, target, markerEnd, style }: EdgeProps) {
+export function FloatingEdge({ id, source, target, markerEnd, style, selected }: EdgeProps) {
   const sourceNode = useInternalNode(source)
   const targetNode = useInternalNode(target)
 
@@ -28,5 +28,7 @@ export function FloatingEdge({ id, source, target, markerEnd, style }: EdgeProps
 
   if (!edgePath) return null
 
-  return <BaseEdge id={id} path={edgePath} markerEnd={markerEnd} style={style} />
+  const edgeStyle = { ...style, strokeWidth: selected ? 2.5 : 1.5 }
+
+  return <BaseEdge id={id} path={edgePath} markerEnd={markerEnd} style={edgeStyle} />
 }

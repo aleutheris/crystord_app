@@ -1400,3 +1400,59 @@ describe('Label extensibility seam (D4 / ADR-260033)', () => {
     expect(types).toContain('label: undefined')
   })
 })
+
+// --- BI-260035: Directional arrowheads baseline for Network-view bonds (D1-D4 / ADR-260034) ---
+
+describe('Target-end arrowhead on Network-view bonds (D1 / REQ-FR-260036)', () => {
+  it('atomsToNetworkEdges sets markerEnd using MarkerType.ArrowClosed', () => {
+    const types = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'graph-types.ts'), 'utf-8',
+    )
+    expect(types).toContain('markerEnd')
+    expect(types).toContain('MarkerType')
+    expect(types).toContain('ArrowClosed')
+  })
+
+  it('FloatingEdge passes markerEnd to BaseEdge for rendering', () => {
+    const edge = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'FloatingEdge.tsx'), 'utf-8',
+    )
+    expect(edge).toContain('markerEnd')
+    expect(edge).toContain('BaseEdge')
+  })
+
+  it('FloatingEdge applies selected-state strokeWidth emphasis without color change (D3)', () => {
+    const edge = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'FloatingEdge.tsx'), 'utf-8',
+    )
+    expect(edge).toContain('selected')
+    expect(edge).toContain('strokeWidth')
+  })
+})
+
+describe('Arrowheads in full and reduced render modes (D2 / REQ-FR-260036)', () => {
+  it('markerEnd is set in atomsToNetworkEdges for all edges regardless of render mode', () => {
+    const types = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'graph-types.ts'), 'utf-8',
+    )
+    // markerEnd is set unconditionally — no renderMode branch in atomsToNetworkEdges
+    expect(types).toContain('markerEnd: { type: MarkerType.ArrowClosed }')
+  })
+})
+
+describe('Flow view unchanged — direction scope boundary (D4 / ADR-260034)', () => {
+  it('GraphCanvas.tsx does not set markerEnd or MarkerType on edges', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).not.toContain('MarkerType')
+    expect(canvas).not.toContain('ArrowClosed')
+  })
+
+  it('label seam still intact in atomsToEdges (bond name preserved for optional future rendering)', () => {
+    const types = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'graph-types.ts'), 'utf-8',
+    )
+    expect(types).toContain('label: bond.name')
+  })
+})

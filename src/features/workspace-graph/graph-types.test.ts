@@ -1,7 +1,11 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { atomsToNodes, atomsToEdges, atomsToNetworkEdges, mergeNodePositions } from './graph-types'
 import type { Atom } from '../../api-contract/graph-queries'
 import type { Node } from '@xyflow/react'
+
+vi.mock('@xyflow/react', () => ({
+  MarkerType: { ArrowClosed: 'arrowclosed' },
+}))
 
 function makeAtom(uuid: string, title: string, labels: string[] = [], bonds: Atom['bonds'] = []): Atom {
   return {
@@ -56,7 +60,7 @@ describe('atomsToEdges', () => {
 })
 
 describe('atomsToNetworkEdges', () => {
-  it('creates floating-type edges with label stripped for Network view', () => {
+  it('creates floating-type edges with label stripped and arrowhead marker', () => {
     const atoms = [
       makeAtom('a1', 'Alpha', [], [{ uuid: 'a2', name: 'DEPENDS_ON', direction: 'from' }]),
       makeAtom('a2', 'Beta'),
@@ -66,6 +70,7 @@ describe('atomsToNetworkEdges', () => {
     expect(edges).toHaveLength(1)
     expect(edges[0]).toMatchObject({ type: 'floating', source: 'a1', target: 'a2' })
     expect(edges[0]!.label).toBeUndefined()
+    expect(edges[0]!.markerEnd).toMatchObject({ type: 'arrowclosed' })
   })
 
   it('preserves bond name in atomsToEdges data seam (label extensibility)', () => {

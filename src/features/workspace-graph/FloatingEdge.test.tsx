@@ -5,9 +5,10 @@ import type { EdgeProps } from '@xyflow/react'
 
 vi.mock('@xyflow/react', () => ({
   useInternalNode: vi.fn(),
-  BaseEdge: ({ id, path }: { id: string; path: string }) => (
-    <path data-testid={`edge-${id}`} d={path} />
+  BaseEdge: ({ id, path, style }: { id: string; path: string; style?: React.CSSProperties }) => (
+    <path data-testid={`edge-${id}`} d={path} style={style} />
   ),
+  MarkerType: { ArrowClosed: 'arrowclosed' },
 }))
 
 import { useInternalNode } from '@xyflow/react'
@@ -60,5 +61,14 @@ describe('FloatingEdge', () => {
       .mockReturnValueOnce(makeNode(200, 0) as ReturnType<typeof useInternalNode>)
     const { getByTestId } = render(<FloatingEdge {...makeProps()} />)
     expect(getByTestId('edge-test-edge')).toBeInTheDocument()
+  })
+
+  it('applies thicker strokeWidth when selected', () => {
+    vi.mocked(useInternalNode)
+      .mockReturnValueOnce(makeNode(0, 0) as ReturnType<typeof useInternalNode>)
+      .mockReturnValueOnce(makeNode(200, 0) as ReturnType<typeof useInternalNode>)
+    const { getByTestId } = render(<FloatingEdge {...makeProps()} selected />)
+    const path = getByTestId('edge-test-edge') as HTMLElement
+    expect((path.style as CSSStyleDeclaration).strokeWidth).toBe('2.5')
   })
 })

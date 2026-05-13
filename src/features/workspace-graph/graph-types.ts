@@ -1,3 +1,4 @@
+import { MarkerType } from '@xyflow/react'
 import type { Node, Edge } from '@xyflow/react'
 import type { Atom } from '../../api-contract/graph-queries'
 
@@ -41,7 +42,12 @@ export function atomsToEdges(atoms: Atom[]): Edge[] {
 }
 
 export function atomsToNetworkEdges(atoms: Atom[]): Edge[] {
-  return atomsToEdges(atoms).map((e) => ({ ...e, type: 'floating', label: undefined }))
+  return atomsToEdges(atoms).map((e) => ({
+    ...e,
+    type: 'floating',
+    label: undefined,
+    markerEnd: { type: MarkerType.ArrowClosed },
+  }))
 }
 
 export function mergeNodePositions(
