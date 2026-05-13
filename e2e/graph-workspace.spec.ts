@@ -173,6 +173,9 @@ test.describe('Graph workspace', () => {
 
     await expect(page.getByText('Alpha')).toBeVisible()
 
+    // Switch to Flow view — deterministic grid layout ensures the pane is reachable at a fixed position
+    await page.getByRole('tab', { name: 'Flow' }).click()
+
     // Double-click on the React Flow pane to create a new atom
     const canvas = page.locator('.react-flow__pane')
     const createResponse = page.waitForResponse((r) =>

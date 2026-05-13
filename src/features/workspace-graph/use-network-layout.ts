@@ -28,9 +28,12 @@ export function applyForceLayout(nodes: Node[], edges: Edge[]): Node[] {
     y: n.position.y,
   }))
 
-  // Exclude self-loops per D5
+  const nodeIds = new Set(simNodes.map((n) => n.id))
+
+  // Exclude self-loops (D5) and edges referencing nodes absent from the current result set
   const simLinks: ForceLink[] = edges
     .filter((e) => e.source !== e.target)
+    .filter((e) => nodeIds.has(e.source as string) && nodeIds.has(e.target as string))
     .map((e) => ({ source: e.source as string, target: e.target as string }))
 
   forceSimulation<ForceNode>(simNodes)

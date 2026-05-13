@@ -25,6 +25,7 @@ export function GraphViewTabs({ activeView, onViewChange }: GraphViewTabsProps) 
     <div
       role="tablist"
       aria-label="Graph view"
+      tabIndex={0}
       onKeyDown={handleKeyDown}
       style={{
         display: 'flex',
