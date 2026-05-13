@@ -1229,7 +1229,7 @@ describe('Shared-state dual-view architecture (D1 / REQ-FR-260034)', () => {
     const networkCanvas = fs.readFileSync(
       path.join(FEATURES, 'workspace-graph', 'NetworkCanvas.tsx'), 'utf-8',
     )
-    expect(networkCanvas).toContain('atomsToEdges')
+    expect(networkCanvas).toContain('atomsToNetworkEdges')
     expect(networkCanvas).toContain('graph-types')
   })
 })
@@ -1302,5 +1302,101 @@ describe('Dual-view E2E coverage baseline (D1 / REQ-FR-260034)', () => {
   it('E2E spec covers keyboard-driven view switch via ArrowRight on tablist', () => {
     const spec = fs.readFileSync(path.join(E2E_DIR, 'graph-workspace.spec.ts'), 'utf-8')
     expect(spec).toMatch(/ArrowRight|keyboard.*view|view.*keyboard/i)
+  })
+})
+
+// --- BI-260034: Geometric closest-point bond anchoring baseline (D1-D4 / ADR-260033) ---
+
+describe('FloatingEdge geometry module (D1 / REQ-FR-260035)', () => {
+  it('graph-geometry.ts exists with floatingEdgePath helper', () => {
+    expect(fs.existsSync(path.join(FEATURES, 'workspace-graph', 'graph-geometry.ts'))).toBe(true)
+    const geo = fs.readFileSync(path.join(FEATURES, 'workspace-graph', 'graph-geometry.ts'), 'utf-8')
+    expect(geo).toContain('floatingEdgePath')
+  })
+
+  it('graph-geometry.ts has dedicated test coverage', () => {
+    expect(
+      fs.existsSync(path.join(FEATURES, 'workspace-graph', 'graph-geometry.test.ts')),
+    ).toBe(true)
+  })
+
+  it('FloatingEdge.tsx exists and uses useInternalNode for geometry-driven anchoring', () => {
+    expect(fs.existsSync(path.join(FEATURES, 'workspace-graph', 'FloatingEdge.tsx'))).toBe(true)
+    const edge = fs.readFileSync(path.join(FEATURES, 'workspace-graph', 'FloatingEdge.tsx'), 'utf-8')
+    expect(edge).toContain('useInternalNode')
+    expect(edge).toContain('positionAbsolute')
+  })
+
+  it('FloatingEdge uses floatingEdgePath from graph-geometry (not hand-rolled inline)', () => {
+    const edge = fs.readFileSync(path.join(FEATURES, 'workspace-graph', 'FloatingEdge.tsx'), 'utf-8')
+    expect(edge).toContain('floatingEdgePath')
+    expect(edge).toContain('graph-geometry')
+  })
+
+  it('FloatingEdge has dedicated test coverage', () => {
+    expect(
+      fs.existsSync(path.join(FEATURES, 'workspace-graph', 'FloatingEdge.test.tsx')),
+    ).toBe(true)
+  })
+})
+
+describe('Network view anchoring wiring (D1-D2 / REQ-FR-260035)', () => {
+  it('NetworkCanvas registers FloatingEdge as a custom edge type', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'NetworkCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).toContain('FloatingEdge')
+    expect(canvas).toContain('edgeTypes')
+    expect(canvas).toContain('floating')
+  })
+
+  it('NetworkCanvas uses atomsToNetworkEdges (not raw atomsToEdges) for displayed edges', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'NetworkCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).toContain('atomsToNetworkEdges')
+    expect(canvas).not.toContain('atomsToEdges')
+  })
+
+  it('atomsToNetworkEdges produces edges typed as floating', () => {
+    const types = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'graph-types.ts'), 'utf-8',
+    )
+    expect(types).toContain('atomsToNetworkEdges')
+    expect(types).toContain("'floating'")
+  })
+})
+
+describe('Flow view unchanged — scope boundary preservation (D3 / ADR-260033)', () => {
+  it('GraphCanvas.tsx does not reference FloatingEdge or floating edge type', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).not.toContain('FloatingEdge')
+    expect(canvas).not.toContain("'floating'")
+  })
+
+  it('GraphCanvas.tsx still uses atomsToEdges (Flow view behavior unchanged)', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).toContain('atomsToEdges')
+  })
+})
+
+describe('Label extensibility seam (D4 / ADR-260033)', () => {
+  it('atomsToEdges still sets label from bond name (seam preserved for future rendering)', () => {
+    const types = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'graph-types.ts'), 'utf-8',
+    )
+    expect(types).toContain('label: bond.name')
+  })
+
+  it('atomsToNetworkEdges strips label for default Network view (off-by-default policy)', () => {
+    const types = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'graph-types.ts'), 'utf-8',
+    )
+    expect(types).toContain('atomsToNetworkEdges')
+    expect(types).toContain('label: undefined')
   })
 })

@@ -40,6 +40,10 @@ export function atomsToEdges(atoms: Atom[]): Edge[] {
   return edges
 }
 
+export function atomsToNetworkEdges(atoms: Atom[]): Edge[] {
+  return atomsToEdges(atoms).map((e) => ({ ...e, type: 'floating', label: undefined }))
+}
+
 export function mergeNodePositions(
   newNodes: Node[],
   prevNodes: Node[],

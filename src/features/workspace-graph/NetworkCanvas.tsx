@@ -10,8 +10,9 @@ import '@xyflow/react/dist/style.css'
 import type { Node, Edge } from '@xyflow/react'
 import type { Atom } from '../../api-contract/graph-queries'
 import type { GraphData } from './use-graph-data'
-import { atomsToEdges, mergeNodePositions } from './graph-types'
+import { atomsToNetworkEdges, mergeNodePositions } from './graph-types'
 import { CircleAtomNode } from './CircleAtomNode'
+import { FloatingEdge } from './FloatingEdge'
 import { DeleteConfirmDialog } from './DeleteConfirmDialog'
 import { UndoNotification } from './UndoNotification'
 import { BondNameDialog } from './BondNameDialog'
@@ -28,6 +29,7 @@ const NODE_SIZE = 80
 const SPACING = 160
 
 const nodeTypes = { circleAtom: CircleAtomNode }
+const edgeTypes = { floating: FloatingEdge }
 
 function atomsToNetworkNodes(atoms: Atom[]): Node[] {
   const cols = Math.max(1, Math.ceil(Math.sqrt(atoms.length)))
@@ -40,7 +42,7 @@ function atomsToNetworkNodes(atoms: Atom[]): Node[] {
   }))
 }
 
-export function NetworkCanvas({ data, selectedAtomId, onSelectAtom, renderMode = 'full' }: NetworkCanvasProps) {
+export function NetworkCanvas({ data, selectedAtomId, onSelectAtom }: NetworkCanvasProps) {
   const { atoms, loading, error, createAtom, deleteAtom, addBond, removeBond } = data
 
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
@@ -48,9 +50,8 @@ export function NetworkCanvas({ data, selectedAtomId, onSelectAtom, renderMode =
 
   useEffect(() => {
     setNodes((prev) => mergeNodePositions(atomsToNetworkNodes(atoms), prev))
-    const rawEdges = atomsToEdges(atoms)
-    setEdges(renderMode === 'reduced' ? rawEdges.map((e) => ({ ...e, label: undefined })) : rawEdges)
-  }, [atoms, renderMode, setNodes, setEdges])
+    setEdges(atomsToNetworkEdges(atoms))
+  }, [atoms, setNodes, setEdges])
 
   const ix = useCanvasInteractions({ atoms, edges, selectedAtomId, onSelectAtom, deleteAtom, createAtom, addBond, removeBond })
 
@@ -74,6 +75,7 @@ export function NetworkCanvas({ data, selectedAtomId, onSelectAtom, renderMode =
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={ix.onConnect}

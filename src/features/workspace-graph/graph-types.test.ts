@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { atomsToNodes, atomsToEdges, mergeNodePositions } from './graph-types'
+import { atomsToNodes, atomsToEdges, atomsToNetworkEdges, mergeNodePositions } from './graph-types'
 import type { Atom } from '../../api-contract/graph-queries'
 import type { Node } from '@xyflow/react'
 
@@ -52,6 +52,29 @@ describe('atomsToEdges', () => {
 
   it('returns empty for atoms without bonds', () => {
     expect(atomsToEdges([makeAtom('a1', 'X')])).toHaveLength(0)
+  })
+})
+
+describe('atomsToNetworkEdges', () => {
+  it('creates floating-type edges with label stripped for Network view', () => {
+    const atoms = [
+      makeAtom('a1', 'Alpha', [], [{ uuid: 'a2', name: 'DEPENDS_ON', direction: 'from' }]),
+      makeAtom('a2', 'Beta'),
+    ]
+    const edges = atomsToNetworkEdges(atoms)
+
+    expect(edges).toHaveLength(1)
+    expect(edges[0]).toMatchObject({ type: 'floating', source: 'a1', target: 'a2' })
+    expect(edges[0]!.label).toBeUndefined()
+  })
+
+  it('preserves bond name in atomsToEdges data seam (label extensibility)', () => {
+    const atoms = [
+      makeAtom('a1', 'Alpha', [], [{ uuid: 'a2', name: 'RELATES_TO', direction: 'from' }]),
+      makeAtom('a2', 'Beta'),
+    ]
+    const raw = atomsToEdges(atoms)
+    expect(raw[0]!.label).toBe('RELATES_TO')
   })
 })
 
