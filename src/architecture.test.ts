@@ -1456,3 +1456,81 @@ describe('Flow view unchanged — direction scope boundary (D4 / ADR-260034)', (
     expect(types).toContain('label: bond.name')
   })
 })
+
+// --- BI-260036: Force-directed automatic layout baseline for Network view (D1-D6 / ADR-260035) ---
+
+describe('Force-directed layout engine (D1 / REQ-FR-260037)', () => {
+  it('d3-force is a listed dependency in package.json', () => {
+    const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf-8')) as Record<string, Record<string, string>>
+    expect(pkg['dependencies']).toHaveProperty('d3-force')
+  })
+
+  it('use-network-layout.ts exists and exports applyForceLayout', () => {
+    expect(fs.existsSync(path.join(FEATURES, 'workspace-graph', 'use-network-layout.ts'))).toBe(true)
+    const layout = fs.readFileSync(path.join(FEATURES, 'workspace-graph', 'use-network-layout.ts'), 'utf-8')
+    expect(layout).toContain('applyForceLayout')
+    expect(layout).toContain('d3-force')
+  })
+
+  it('synchronous iteration cap FORCE_TICK_COUNT is 300 (D3)', () => {
+    const layout = fs.readFileSync(path.join(FEATURES, 'workspace-graph', 'use-network-layout.ts'), 'utf-8')
+    expect(layout).toContain('FORCE_TICK_COUNT')
+    expect(layout).toContain('300')
+  })
+
+  it('use-network-layout.ts has dedicated test coverage', () => {
+    expect(
+      fs.existsSync(path.join(FEATURES, 'workspace-graph', 'use-network-layout.test.ts')),
+    ).toBe(true)
+  })
+})
+
+describe('Layout trigger and drag-position preservation (D2 / REQ-FR-260037)', () => {
+  it('NetworkCanvas imports and uses applyForceLayout', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'NetworkCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).toContain('applyForceLayout')
+    expect(canvas).toContain('use-network-layout')
+  })
+
+  it('NetworkCanvas uses mergeNodePositions to preserve dragged positions', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'NetworkCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).toContain('mergeNodePositions')
+  })
+
+  it('NetworkCanvas exposes a Re-layout action for on-demand recompute', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'NetworkCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).toContain('Re-layout')
+    expect(canvas).toContain('handleRelayout')
+  })
+})
+
+describe('Grid fallback above blocked threshold (D4 / REQ-FR-260037)', () => {
+  it('applyForceLayout returns nodes unchanged above BLOCKED_THRESHOLD', () => {
+    const layout = fs.readFileSync(path.join(FEATURES, 'workspace-graph', 'use-network-layout.ts'), 'utf-8')
+    expect(layout).toContain('BLOCKED_THRESHOLD')
+    expect(layout).toContain('return nodes')
+  })
+})
+
+describe('Self-loop exclusion from simulation (D5 / REQ-FR-260037)', () => {
+  it('applyForceLayout filters self-loop edges before forceLink', () => {
+    const layout = fs.readFileSync(path.join(FEATURES, 'workspace-graph', 'use-network-layout.ts'), 'utf-8')
+    expect(layout).toContain('source !== e.target')
+  })
+})
+
+describe('Flow view layout unchanged — scope boundary (ADR-260035)', () => {
+  it('GraphCanvas.tsx does not import applyForceLayout or d3-force', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).not.toContain('applyForceLayout')
+    expect(canvas).not.toContain('d3-force')
+  })
+})

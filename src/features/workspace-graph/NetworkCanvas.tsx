@@ -3,6 +3,7 @@ import {
   ReactFlow,
   Background,
   Controls,
+  Panel,
   useNodesState,
   useEdgesState,
 } from '@xyflow/react'
@@ -11,6 +12,7 @@ import type { Node, Edge } from '@xyflow/react'
 import type { Atom } from '../../api-contract/graph-queries'
 import type { GraphData } from './use-graph-data'
 import { atomsToNetworkEdges, mergeNodePositions } from './graph-types'
+import { applyForceLayout } from './use-network-layout'
 import { CircleAtomNode } from './CircleAtomNode'
 import { FloatingEdge } from './FloatingEdge'
 import { DeleteConfirmDialog } from './DeleteConfirmDialog'
@@ -49,9 +51,15 @@ export function NetworkCanvas({ data, selectedAtomId, onSelectAtom }: NetworkCan
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
 
   useEffect(() => {
-    setNodes((prev) => mergeNodePositions(atomsToNetworkNodes(atoms), prev))
-    setEdges(atomsToNetworkEdges(atoms))
+    const networkEdges = atomsToNetworkEdges(atoms)
+    const laidOut = applyForceLayout(atomsToNetworkNodes(atoms), networkEdges)
+    setNodes((prev) => mergeNodePositions(laidOut, prev))
+    setEdges(networkEdges)
   }, [atoms, setNodes, setEdges])
+
+  function handleRelayout() {
+    setNodes(applyForceLayout(atomsToNetworkNodes(atoms), atomsToNetworkEdges(atoms)))
+  }
 
   const ix = useCanvasInteractions({ atoms, edges, selectedAtomId, onSelectAtom, deleteAtom, createAtom, addBond, removeBond })
 
@@ -87,6 +95,16 @@ export function NetworkCanvas({ data, selectedAtomId, onSelectAtom }: NetworkCan
       >
         <Background />
         <Controls />
+        <Panel position="top-right">
+          <button
+            type="button"
+            onClick={handleRelayout}
+            aria-label="Re-layout graph"
+            style={{ padding: '0.25rem 0.5rem', cursor: 'pointer' }}
+          >
+            Re-layout
+          </button>
+        </Panel>
       </ReactFlow>
 
       {ix.confirmDelete && (
