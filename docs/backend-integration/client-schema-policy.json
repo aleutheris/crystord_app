@@ -3,10 +3,10 @@
   "contractSource": ".github/project/evolution/schema-compatibility-contract.md",
   "supportedSchemaRange": ">=1.0.0,<2.0.0",
   "copiedFrom": {
-    "schemaVersion": "1.0.0",
-    "schemaHash": "<fill-from-schemaInfo>",
-    "releasedAt": "2026-04-13T00:00:00Z",
-    "lastSyncedAt": "2026-04-16T00:00:00Z"
+    "schemaVersion": "1.1.0",
+    "schemaHash": "a12b6e7f14d32ee43879ac90e4536c02c794986e03cadec5e81055a8b4316837",
+    "releasedAt": "2026-05-14T00:00:00Z",
+    "lastSyncedAt": "2026-05-14T00:00:00Z"
   },
   "startupValidation": {
     "required": true,

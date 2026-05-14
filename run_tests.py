@@ -11,6 +11,8 @@ Usage:
 """
 
 import argparse
+import json
+from pathlib import Path
 import subprocess
 import sys
 import os
@@ -25,6 +27,35 @@ def run_command(command, description):
     except subprocess.CalledProcessError as e:
         print(f"Error running {description}: {e}")
         return False
+
+
+def run_interface_preflight():
+    """Verify the bundled backend interface against the client-supported schema range."""
+    root = Path(os.getcwd())
+    policy_file = root / "docs" / "backend-integration" / "client-schema-policy.json"
+    verify_script = root / "backend_intf" / "crystord-interface-v1.1.0" / "verify.py"
+    archive_file = root / "backend_intf" / "crystord-interface-v1.1.0" / "crystord-interface-v1.1.0.tgz"
+
+    if not policy_file.exists():
+        print(f"Interface preflight failed: missing policy file at {policy_file}")
+        return False
+
+    try:
+        policy = json.loads(policy_file.read_text(encoding="utf-8"))
+        supported_range = policy["supportedSchemaRange"]
+    except (json.JSONDecodeError, KeyError) as exc:
+        print(f"Interface preflight failed: invalid policy file ({exc})")
+        return False
+
+    if not verify_script.exists() or not archive_file.exists():
+        print("Interface preflight failed: verify script or bundle archive is missing.")
+        return False
+
+    command = (
+        f'python3 "{verify_script}" "{archive_file}" '
+        f'--supported-range "{supported_range}" --json'
+    )
+    return run_command(command, "backend interface compatibility preflight")
 
 def main():
     parser = argparse.ArgumentParser(
@@ -72,11 +103,13 @@ Examples:
     success = True
 
     if args.all:
+        if not run_interface_preflight():
+            success = False
         # Run unit tests first
-        if not run_command("npm run test", "unit/component tests"):
+        if success and not run_command("npm run test", "unit/component tests"):
             success = False
         # Then E2E tests
-        if not run_command("npm run test:e2e", "E2E tests"):
+        if success and not run_command("npm run test:e2e", "E2E tests"):
             success = False
     elif args.unit:
         if args.watch:

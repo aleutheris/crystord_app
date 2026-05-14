@@ -1,7 +1,7 @@
 # Schema snapshot for client integration.
 # Informational metadata only; runtime compatibility authority is Query.schemaInfo.
-# Snapshot copied date: 2026-04-16
-# Snapshot schemaVersion target: 1.0.0
+# Snapshot copied date: 2026-05-14
+# Snapshot schemaVersion target: 1.1.0
 
 schema {
     query: Query
@@ -17,12 +17,18 @@ type Query {
     signinGoogle(idToken: String!): String!
     list_labels(labels_prefix: String!): [String!]!
     schemaInfo: SchemaInfo!
+    discoverOperations(prefix: String, limit: Int): [OperationFunction!]!
 }
 
 type SchemaInfo {
     schemaVersion: String!
     schemaHash: String!
     releasedAt: String!
+}
+
+type OperationFunction {
+    name: String!
+    description: String
 }
 
 type Mutation {
