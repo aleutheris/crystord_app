@@ -1,6 +1,12 @@
 import { useState, useRef } from 'react'
 import { Handle, Position } from '@xyflow/react'
 import type { NodeProps } from '@xyflow/react'
+import {
+  RING_COLOR,
+  SELECTION_BORDER_COLOR,
+  SELECTION_BG_COLOR,
+  DEFAULT_BORDER_COLOR,
+} from './network-tokens'
 
 export const RING_THICKNESS = 8      // outer ring interactive thickness (px) — D1 / ADR-260036
 export const CLICK_DRAG_THRESHOLD = 4  // min pointer movement (px) to distinguish click from drag — D3 / ADR-260036
@@ -58,7 +64,7 @@ export function CircleAtomNode({ data, selected }: NodeProps) {
           width: NODE_SIZE + 2 * RING_THICKNESS,
           height: NODE_SIZE + 2 * RING_THICKNESS,
           borderRadius: '50%',
-          border: `${RING_THICKNESS}px solid #0066CC`,
+          border: `${RING_THICKNESS}px solid ${RING_COLOR}`,
           background: 'transparent',
           opacity: ringVisible ? 1 : 0,
           pointerEvents: ringVisible ? 'all' : 'none',
@@ -82,8 +88,8 @@ export function CircleAtomNode({ data, selected }: NodeProps) {
           width: NODE_SIZE,
           height: NODE_SIZE,
           borderRadius: '50%',
-          border: selected ? '3px solid #0066CC' : '1px solid #D6DEE5',
-          background: selected ? '#E8F4FF' : '#FAFBFC',
+          border: selected ? `3px solid ${SELECTION_BORDER_COLOR}` : `1px solid ${DEFAULT_BORDER_COLOR}`,
+          background: selected ? SELECTION_BG_COLOR : '#FAFBFC',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

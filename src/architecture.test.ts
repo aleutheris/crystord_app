@@ -1580,11 +1580,11 @@ describe('Ring visibility and state rules (D2 / REQ-FR-260038)', () => {
     expect(node).toContain('opacity')
   })
 
-  it('CircleAtomNode ring uses Trust Blue border color (#0066CC)', () => {
+  it('CircleAtomNode ring references a color token (not a hardcoded literal)', () => {
     const node = fs.readFileSync(
       path.join(FEATURES, 'workspace-graph', 'CircleAtomNode.tsx'), 'utf-8',
     )
-    expect(node).toContain('#0066CC')
+    expect(node).toContain('RING_COLOR')
     expect(node).toContain('ring-handle')
   })
 })
@@ -1641,5 +1641,61 @@ describe('Full-circle connection drop zone (D4 / REQ-FR-260038)', () => {
     )
     expect(canvas).not.toContain('connectionRadius')
     expect(canvas).not.toContain('CIRCLE_DROP_RADIUS')
+  })
+})
+
+// --- BI-260039: Network-view preview-line and ring-token refinements (ADR-260037 D2-D3) ---
+
+describe('Straight-line connection drag preview (D2 / REQ-FR-260039)', () => {
+  it('NetworkCanvas sets connectionLineType to Straight', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'NetworkCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).toContain('connectionLineType')
+    expect(canvas).toContain('ConnectionLineType')
+    expect(canvas).toContain('Straight')
+  })
+
+  it('GraphCanvas does not set connectionLineType (Flow view preview unchanged)', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).not.toContain('connectionLineType')
+    expect(canvas).not.toContain('ConnectionLineType')
+  })
+})
+
+describe('Tokenized ring and selection colors (D3 / REQ-CR-260017)', () => {
+  it('network-tokens.ts exists and exports RING_COLOR and SELECTION_BORDER_COLOR', () => {
+    expect(
+      fs.existsSync(path.join(FEATURES, 'workspace-graph', 'network-tokens.ts')),
+    ).toBe(true)
+    const tokens = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'network-tokens.ts'), 'utf-8',
+    )
+    expect(tokens).toContain('RING_COLOR')
+    expect(tokens).toContain('SELECTION_BORDER_COLOR')
+  })
+
+  it('CircleAtomNode imports interaction colors from network-tokens (no local hardcoded ring/selection literals)', () => {
+    const node = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'CircleAtomNode.tsx'), 'utf-8',
+    )
+    expect(node).toContain('network-tokens')
+    expect(node).toContain('RING_COLOR')
+    expect(node).toContain('SELECTION_BORDER_COLOR')
+    // Ring and selection colors must not appear as hardcoded literals in the component
+    expect(node).not.toMatch(/#0066CC|#00A676|#E8F4FF|#D6DEE5/)
+  })
+
+  it('RING_COLOR and SELECTION_BORDER_COLOR are distinct values', () => {
+    const tokens = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'network-tokens.ts'), 'utf-8',
+    )
+    const ringMatch = tokens.match(/RING_COLOR\s*=\s*'(#[0-9A-Fa-f]+)'/)
+    const selectionMatch = tokens.match(/SELECTION_BORDER_COLOR\s*=\s*'(#[0-9A-Fa-f]+)'/)
+    expect(ringMatch).not.toBeNull()
+    expect(selectionMatch).not.toBeNull()
+    expect(ringMatch![1]).not.toBe(selectionMatch![1])
   })
 })

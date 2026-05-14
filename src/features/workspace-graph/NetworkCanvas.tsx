@@ -6,6 +6,7 @@ import {
   Panel,
   useNodesState,
   useEdgesState,
+  ConnectionLineType,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import type { Node, Edge } from '@xyflow/react'
@@ -92,6 +93,7 @@ export function NetworkCanvas({ data, selectedAtomId, onSelectAtom }: NetworkCan
         onPaneClick={ix.onPaneClick}
         onDoubleClick={ix.handleDoubleClick}
         connectionRadius={CIRCLE_DROP_RADIUS}
+        connectionLineType={ConnectionLineType.Straight}
         fitView
         deleteKeyCode={null}
       >

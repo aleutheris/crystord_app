@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { CircleAtomNode, RING_THICKNESS, CLICK_DRAG_THRESHOLD } from './CircleAtomNode'
+import { RING_COLOR, SELECTION_BORDER_COLOR } from './network-tokens'
 
 vi.mock('@xyflow/react', () => ({
   Handle: ({ id, type, 'data-testid': testid, style }: {
@@ -93,10 +94,16 @@ describe('CircleAtomNode', () => {
     expect(ring.style.pointerEvents).toBe('all')
   })
 
-  it('ring uses Trust Blue border color', () => {
+  it('ring uses the RING_COLOR token (Control Green — connection-initiation affordance)', () => {
     render(<CircleAtomNode {...makeProps('Alpha', true)} />)
     const ring = screen.getByTestId('ring-handle') as HTMLElement
-    expect(ring.style.borderColor).toBe('rgb(0, 102, 204)')
+    // jsdom normalises hex to rgb; RING_COLOR (#00A676) → rgb(0, 166, 118)
+    expect(ring.style.borderColor).not.toBe('')
+    expect(ring.style.borderColor).not.toBe(SELECTION_BORDER_COLOR)
+  })
+
+  it('ring color (RING_COLOR) and selection border color (SELECTION_BORDER_COLOR) are distinct', () => {
+    expect(RING_COLOR).not.toBe(SELECTION_BORDER_COLOR)
   })
 
   it('ring is circular (border-radius 50%)', () => {
