@@ -29,6 +29,7 @@ export interface NetworkCanvasProps {
 
 const NODE_SIZE = 80
 const SPACING = 160
+const CIRCLE_DROP_RADIUS = 42  // node radius (40) + 2px margin — covers full circle drop zone (D4 / ADR-260036)
 
 const nodeTypes = { circleAtom: CircleAtomNode }
 const edgeTypes = { floating: FloatingEdge }
@@ -90,6 +91,7 @@ export function NetworkCanvas({ data, selectedAtomId, onSelectAtom }: NetworkCan
         onNodeClick={ix.onNodeClick}
         onPaneClick={ix.onPaneClick}
         onDoubleClick={ix.handleDoubleClick}
+        connectionRadius={CIRCLE_DROP_RADIUS}
         fitView
         deleteKeyCode={null}
       >

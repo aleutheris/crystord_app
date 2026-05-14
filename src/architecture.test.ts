@@ -1614,3 +1614,32 @@ describe('Flow view scope boundary — ring affordance (D5 / ADR-260036)', () =>
     expect(canvas).not.toContain('CircleAtomNode')
   })
 })
+
+// --- BI-260038: Correct Network-view target-circle drop compliance (ADR-260036 D4) ---
+
+describe('Full-circle connection drop zone (D4 / REQ-FR-260038)', () => {
+  it('NetworkCanvas sets connectionRadius covering the full node circle', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'NetworkCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).toContain('connectionRadius')
+    expect(canvas).toContain('CIRCLE_DROP_RADIUS')
+  })
+
+  it('CIRCLE_DROP_RADIUS value is at least 40 (node radius) to cover the full circle', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'NetworkCanvas.tsx'), 'utf-8',
+    )
+    const match = canvas.match(/CIRCLE_DROP_RADIUS\s*=\s*(\d+)/)
+    expect(match).not.toBeNull()
+    expect(Number(match![1])).toBeGreaterThanOrEqual(40)
+  })
+
+  it('GraphCanvas does not set connectionRadius (Flow view drop behavior unchanged)', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).not.toContain('connectionRadius')
+    expect(canvas).not.toContain('CIRCLE_DROP_RADIUS')
+  })
+})
