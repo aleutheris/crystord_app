@@ -46,6 +46,9 @@ When a requirement is deprecated, keep its row in this file and set `Status` to 
 | REQ-FR-260037 | Network View Must Apply Topology-Aware Automatic Layout | FR | Accepted | ADR-260035 | BI-260036 |
 | REQ-FR-260038 | Network View Outer-Circumference Edge Initiation and Hover Selection Affordance | FR | Accepted | ADR-260036 | BI-260037, BI-260038 |
 | REQ-FR-260039 | Network View Connection Drag Preview Must Render as a Straight Line | FR | Accepted | ADR-260037 | BI-260039 |
+| REQ-FR-260040 | Network View Magnetic Attach Must Activate Only on Target Atom Hit Area | FR | Accepted | ADR-260038 | BI-260040 |
+| REQ-FR-260041 | Network View Drag-Time Target Snap Must Use Nearest-Boundary Geometry | FR | Accepted | ADR-260038, ADR-260033 | BI-260041 |
+| REQ-FR-260042 | Network View Selected-State Must Not Force Outer Initiation Ring Visibility | FR | Accepted | ADR-260038 | BI-260041 |
 | REQ-OR-260001 | MVP Demo Sign-In Operating Model | OR | Accepted | ADR-260002, ADR-260014 | BI-260002, BI-260011 |
 | REQ-OR-260002 | GraphQL Schema Stability and Versioning Contract | OR | Accepted | ADR-260013 | BI-260010 |
 | REQ-OR-260003 | Frontend Contract Stability and Breaking-Change Control | OR | Accepted | ADR-260018 | BI-260015 |
