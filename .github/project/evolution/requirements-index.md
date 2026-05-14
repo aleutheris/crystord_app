@@ -49,6 +49,7 @@ When a requirement is deprecated, keep its row in this file and set `Status` to 
 | REQ-FR-260040 | Network View Magnetic Attach Must Activate Only on Target Atom Hit Area | FR | Accepted | ADR-260038 | BI-260040 |
 | REQ-FR-260041 | Network View Drag-Time Target Snap Must Use Nearest-Boundary Geometry | FR | Accepted | ADR-260038, ADR-260033 | BI-260041 |
 | REQ-FR-260042 | Network View Selected-State Must Not Force Outer Initiation Ring Visibility | FR | Accepted | ADR-260038 | BI-260041 |
+| REQ-FR-260043 | Bond-Name Dialog Keyboard Input Must Not Trigger Canvas Deletion Flows | FR | Accepted | ADR-260015, ADR-260031 | BI-260042 |
 | REQ-OR-260001 | MVP Demo Sign-In Operating Model | OR | Accepted | ADR-260002, ADR-260014 | BI-260002, BI-260011 |
 | REQ-OR-260002 | GraphQL Schema Stability and Versioning Contract | OR | Accepted | ADR-260013 | BI-260010 |
 | REQ-OR-260003 | Frontend Contract Stability and Breaking-Change Control | OR | Accepted | ADR-260018 | BI-260015 |
@@ -77,6 +78,7 @@ When a requirement is deprecated, keep its row in this file and set `Status` to 
 | REQ-CR-260015 | Network View Must Use Circle Nodes with Visible Connector Handles | CR | Deprecated | ADR-260029 | BI-260030 |
 | REQ-CR-260016 | Dual-View Tabs Must Follow ARIA Tab Pattern with Visible Focus | CR | Accepted | ADR-260031 | BI-260032 |
 | REQ-CR-260017 | Network View Ring Visual Semantics Must Use Distinct Tokenized Colors | CR | Accepted | ADR-260037 | BI-260039 |
+| REQ-CR-260018 | Atom Keyboard Deletion Must Be Delete-Key Only | CR | Accepted | ADR-260015, ADR-260031 | BI-260042 |
 | REQ-QR-260001 | MVP Graph Interaction Performance Baseline | QR | Accepted | ADR-260015 | BI-260012 |
 | REQ-QR-260002 | MVP Accessibility and Reliability Quality Baseline | QR | Accepted | ADR-260020 | BI-260017 |
 | REQ-QR-260003 | Large-Graph Degrade Policy for Dual-View Rendering | QR | Accepted | ADR-260030 | BI-260031 |
