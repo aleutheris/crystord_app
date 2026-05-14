@@ -44,7 +44,8 @@ When a requirement is deprecated, keep its row in this file and set `Status` to 
 | REQ-FR-260035 | Network View Bonds Must Anchor at Geometrically Closest Circle Boundary Points | FR | Accepted | ADR-260033, ADR-260029 | BI-260034 |
 | REQ-FR-260036 | Network View Bonds Must Show Direction with Arrowheads | FR | Accepted | ADR-260034 | BI-260035 |
 | REQ-FR-260037 | Network View Must Apply Topology-Aware Automatic Layout | FR | Accepted | ADR-260035 | BI-260036 |
-| REQ-FR-260038 | Network View Outer-Circumference Edge Initiation and Hover Selection Affordance | FR | Accepted | ADR-260036 | BI-260037 |
+| REQ-FR-260038 | Network View Outer-Circumference Edge Initiation and Hover Selection Affordance | FR | Accepted | ADR-260036 | BI-260037, BI-260038 |
+| REQ-FR-260039 | Network View Connection Drag Preview Must Render as a Straight Line | FR | Accepted | ADR-260037 | BI-260039 |
 | REQ-OR-260001 | MVP Demo Sign-In Operating Model | OR | Accepted | ADR-260002, ADR-260014 | BI-260002, BI-260011 |
 | REQ-OR-260002 | GraphQL Schema Stability and Versioning Contract | OR | Accepted | ADR-260013 | BI-260010 |
 | REQ-OR-260003 | Frontend Contract Stability and Breaking-Change Control | OR | Accepted | ADR-260018 | BI-260015 |
@@ -72,6 +73,7 @@ When a requirement is deprecated, keep its row in this file and set `Status` to 
 | REQ-CR-260014 | View-Switching Must Not Change Shell and Panel Contracts | CR | Accepted | ADR-260028 | BI-260029 |
 | REQ-CR-260015 | Network View Must Use Circle Nodes with Visible Connector Handles | CR | Deprecated | ADR-260029 | BI-260030 |
 | REQ-CR-260016 | Dual-View Tabs Must Follow ARIA Tab Pattern with Visible Focus | CR | Accepted | ADR-260031 | BI-260032 |
+| REQ-CR-260017 | Network View Ring Visual Semantics Must Use Distinct Tokenized Colors | CR | Accepted | ADR-260037 | BI-260039 |
 | REQ-QR-260001 | MVP Graph Interaction Performance Baseline | QR | Accepted | ADR-260015 | BI-260012 |
 | REQ-QR-260002 | MVP Accessibility and Reliability Quality Baseline | QR | Accepted | ADR-260020 | BI-260017 |
 | REQ-QR-260003 | Large-Graph Degrade Policy for Dual-View Rendering | QR | Accepted | ADR-260030 | BI-260031 |
