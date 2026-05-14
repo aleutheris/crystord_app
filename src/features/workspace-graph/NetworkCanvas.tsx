@@ -6,7 +6,6 @@ import {
   Panel,
   useNodesState,
   useEdgesState,
-  ConnectionLineType,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import type { Node, Edge } from '@xyflow/react'
@@ -14,7 +13,8 @@ import type { Atom } from '../../api-contract/graph-queries'
 import type { GraphData } from './use-graph-data'
 import { atomsToNetworkEdges, mergeNodePositions } from './graph-types'
 import { applyForceLayout } from './use-network-layout'
-import { CircleAtomNode } from './CircleAtomNode'
+import { CircleAtomNode, RING_THICKNESS } from './CircleAtomNode'
+import { NetworkConnectionLine } from './NetworkConnectionLine'
 import { FloatingEdge } from './FloatingEdge'
 import { DeleteConfirmDialog } from './DeleteConfirmDialog'
 import { UndoNotification } from './UndoNotification'
@@ -30,7 +30,8 @@ export interface NetworkCanvasProps {
 
 const NODE_SIZE = 80
 const SPACING = 160
-const CIRCLE_DROP_RADIUS = 42  // node radius (40) + 2px margin — covers full circle drop zone (D4 / ADR-260036)
+// Acceptance area = node disk radius (40) + outer ring thickness (8) — activates only within disk+ring boundary (D2/D4 / ADR-260038)
+const CIRCLE_DROP_RADIUS = NODE_SIZE / 2 + RING_THICKNESS
 
 const nodeTypes = { circleAtom: CircleAtomNode }
 const edgeTypes = { floating: FloatingEdge }
@@ -93,7 +94,7 @@ export function NetworkCanvas({ data, selectedAtomId, onSelectAtom }: NetworkCan
         onPaneClick={ix.onPaneClick}
         onDoubleClick={ix.handleDoubleClick}
         connectionRadius={CIRCLE_DROP_RADIUS}
-        connectionLineType={ConnectionLineType.Straight}
+        connectionLineComponent={NetworkConnectionLine}
         fitView
         deleteKeyCode={null}
       >

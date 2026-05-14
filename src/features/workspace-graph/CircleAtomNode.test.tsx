@@ -57,14 +57,12 @@ describe('CircleAtomNode', () => {
     expect(body.style.borderWidth).not.toBe('0px')
   })
 
-  it('has invisible target handles on all four sides for nearest-boundary anchoring', () => {
+  it('has a centered full-body target handle for full disk+ring drop acceptance', () => {
     render(<CircleAtomNode {...makeProps('Alpha')} />)
-    const sides = ['top', 'right', 'bottom', 'left']
-    for (const side of sides) {
-      const handle = screen.getByTestId(`handle-target-${side}`)
-      expect(handle).toHaveAttribute('data-handle-type', 'target')
-      expect(handle).toHaveStyle({ opacity: 0 })
-    }
+    const handle = screen.getByTestId('circle-body-handle')
+    expect(handle).toHaveAttribute('data-handle-type', 'target')
+    expect(handle).toHaveAttribute('data-handle-id', 'circle-body')
+    expect(handle).toHaveStyle({ opacity: 0 })
   })
 
   it('does not render a connector dot (previous side-handle affordance removed)', () => {
@@ -87,15 +85,15 @@ describe('CircleAtomNode', () => {
     expect(ring.style.pointerEvents).toBe('none')
   })
 
-  it('ring is visible when the node is selected (opacity 1)', () => {
+  it('ring is hidden when the node is selected but not hovered (D1 / ADR-260038)', () => {
     render(<CircleAtomNode {...makeProps('Alpha', true)} />)
     const ring = screen.getByTestId('ring-handle') as HTMLElement
-    expect(ring.style.opacity).toBe('1')
-    expect(ring.style.pointerEvents).toBe('all')
+    expect(ring.style.opacity).toBe('0')
+    expect(ring.style.pointerEvents).toBe('none')
   })
 
   it('ring uses the RING_COLOR token (Control Green — connection-initiation affordance)', () => {
-    render(<CircleAtomNode {...makeProps('Alpha', true)} />)
+    render(<CircleAtomNode {...makeProps('Alpha')} />)
     const ring = screen.getByTestId('ring-handle') as HTMLElement
     // jsdom normalises hex to rgb; RING_COLOR (#00A676) → rgb(0, 166, 118)
     expect(ring.style.borderColor).not.toBe('')

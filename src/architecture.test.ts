@@ -1626,13 +1626,12 @@ describe('Full-circle connection drop zone (D4 / REQ-FR-260038)', () => {
     expect(canvas).toContain('CIRCLE_DROP_RADIUS')
   })
 
-  it('CIRCLE_DROP_RADIUS value is at least 40 (node radius) to cover the full circle', () => {
+  it('CIRCLE_DROP_RADIUS is expressed as NODE_SIZE / 2 + RING_THICKNESS (disk-radius + ring formula — D2/D4 / ADR-260040)', () => {
     const canvas = fs.readFileSync(
       path.join(FEATURES, 'workspace-graph', 'NetworkCanvas.tsx'), 'utf-8',
     )
-    const match = canvas.match(/CIRCLE_DROP_RADIUS\s*=\s*(\d+)/)
-    expect(match).not.toBeNull()
-    expect(Number(match![1])).toBeGreaterThanOrEqual(40)
+    // Formula must encode disk radius (NODE_SIZE / 2) + ring thickness (RING_THICKNESS) — not a magic literal
+    expect(canvas).toMatch(/CIRCLE_DROP_RADIUS\s*=\s*NODE_SIZE\s*\/\s*2\s*\+\s*RING_THICKNESS/)
   })
 
   it('GraphCanvas does not set connectionRadius (Flow view drop behavior unchanged)', () => {
@@ -1647,21 +1646,21 @@ describe('Full-circle connection drop zone (D4 / REQ-FR-260038)', () => {
 // --- BI-260039: Network-view preview-line and ring-token refinements (ADR-260037 D2-D3) ---
 
 describe('Straight-line connection drag preview (D2 / REQ-FR-260039)', () => {
-  it('NetworkCanvas sets connectionLineType to Straight', () => {
+  it('NetworkCanvas uses a custom connectionLineComponent for drag preview (supersedes connectionLineType.Straight)', () => {
     const canvas = fs.readFileSync(
       path.join(FEATURES, 'workspace-graph', 'NetworkCanvas.tsx'), 'utf-8',
     )
-    expect(canvas).toContain('connectionLineType')
-    expect(canvas).toContain('ConnectionLineType')
-    expect(canvas).toContain('Straight')
+    // Custom component replaced connectionLineType — provides straight + nearest-boundary geometry
+    expect(canvas).toContain('connectionLineComponent')
+    expect(canvas).toContain('NetworkConnectionLine')
   })
 
-  it('GraphCanvas does not set connectionLineType (Flow view preview unchanged)', () => {
+  it('GraphCanvas does not set connectionLineType or connectionLineComponent (Flow view preview unchanged)', () => {
     const canvas = fs.readFileSync(
       path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
     )
     expect(canvas).not.toContain('connectionLineType')
-    expect(canvas).not.toContain('ConnectionLineType')
+    expect(canvas).not.toContain('connectionLineComponent')
   })
 })
 
@@ -1697,5 +1696,119 @@ describe('Tokenized ring and selection colors (D3 / REQ-CR-260017)', () => {
     expect(ringMatch).not.toBeNull()
     expect(selectionMatch).not.toBeNull()
     expect(ringMatch![1]).not.toBe(selectionMatch![1])
+  })
+})
+
+// --- BI-260040: Correct Network-view attach activation boundary and completion reliability (ADR-260038 D1/D2/D4) ---
+
+describe('Selected-state ring visibility refinement (D1 / ADR-260038)', () => {
+  it('CircleAtomNode ringVisible depends on hover only — not on selected state', () => {
+    const node = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'CircleAtomNode.tsx'), 'utf-8',
+    )
+    // ringVisible must be derived from hovered alone
+    expect(node).toContain('ringVisible = hovered')
+    // ringVisible must not include selected
+    expect(node).not.toMatch(/ringVisible\s*=\s*hovered\s*\|\|/)
+  })
+})
+
+describe('Disk+ring acceptance boundary (D2/D4 / REQ-FR-260040)', () => {
+  it('CircleAtomNode uses a single centered target handle (circle-body), not four cardinal handles', () => {
+    const node = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'CircleAtomNode.tsx'), 'utf-8',
+    )
+    expect(node).toContain('circle-body')
+    expect(node).not.toContain('id="top"')
+    expect(node).not.toContain('id="right"')
+    expect(node).not.toContain('id="bottom"')
+    expect(node).not.toContain('id="left"')
+  })
+
+  it('CIRCLE_DROP_RADIUS is expressed as node radius + RING_THICKNESS', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'NetworkCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).toContain('RING_THICKNESS')
+    expect(canvas).toContain('NODE_SIZE / 2 + RING_THICKNESS')
+  })
+
+  it('NetworkCanvas imports RING_THICKNESS from CircleAtomNode', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'NetworkCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).toContain('RING_THICKNESS')
+    expect(canvas).toContain('CircleAtomNode')
+  })
+
+  it('GraphCanvas unchanged — no circle-body handle or CIRCLE_DROP_RADIUS (D5 / ADR-260038)', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).not.toContain('circle-body')
+    expect(canvas).not.toContain('CIRCLE_DROP_RADIUS')
+  })
+})
+
+// --- BI-260041: Drag-snap geometry and selected-state ring visibility refinements (ADR-260038 D1/D3) ---
+
+describe('Nearest-boundary drag-time snap geometry (D3 / REQ-FR-260041)', () => {
+  it('NetworkConnectionLine.tsx exists and exports NetworkConnectionLine and CONNECTION_LINE_NODE_RADIUS', () => {
+    expect(
+      fs.existsSync(path.join(FEATURES, 'workspace-graph', 'NetworkConnectionLine.tsx')),
+    ).toBe(true)
+    const src = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'NetworkConnectionLine.tsx'), 'utf-8',
+    )
+    expect(src).toContain('NetworkConnectionLine')
+    expect(src).toContain('CONNECTION_LINE_NODE_RADIUS')
+  })
+
+  it('NetworkConnectionLine uses toNode null-check — not a fixed-side cardinal position (no cardinal bias)', () => {
+    const src = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'NetworkConnectionLine.tsx'), 'utf-8',
+    )
+    // Must check for toNode to trigger nearest-boundary snap
+    expect(src).toContain('toNode')
+    // Must NOT bias toward fixed cardinal sides
+    expect(src).not.toMatch(/toX\s*[+-]\s*(NODE_SIZE|80)\b/)
+    expect(src).not.toMatch(/toY\s*[+-]\s*(NODE_SIZE|80)\b/)
+  })
+
+  it('NetworkConnectionLine uses distance-normalized geometry for boundary point', () => {
+    const src = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'NetworkConnectionLine.tsx'), 'utf-8',
+    )
+    // Nearest-boundary snap requires distance normalization (sqrt + division)
+    expect(src).toContain('Math.sqrt')
+    expect(src).toContain('dist')
+    expect(src).toContain('CONNECTION_LINE_NODE_RADIUS')
+  })
+
+  it('NetworkCanvas wires connectionLineComponent to NetworkConnectionLine', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'NetworkCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).toContain('connectionLineComponent={NetworkConnectionLine}')
+    expect(canvas).toContain('NetworkConnectionLine')
+  })
+
+  it('GraphCanvas does not use NetworkConnectionLine (D5 scope boundary — Flow view unchanged)', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).not.toContain('NetworkConnectionLine')
+    expect(canvas).not.toContain('connectionLineComponent')
+  })
+})
+
+describe('Selected-state ring suppression (D1 / REQ-FR-260042)', () => {
+  it('CircleAtomNode ring is not forced visible by selected prop — ringVisible = hovered only', () => {
+    const src = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'CircleAtomNode.tsx'), 'utf-8',
+    )
+    // Verified by BI-260040, confirmed here for BI-260041 compliance
+    expect(src).toContain('ringVisible = hovered')
+    expect(src).not.toMatch(/ringVisible\s*=.*selected/)
   })
 })

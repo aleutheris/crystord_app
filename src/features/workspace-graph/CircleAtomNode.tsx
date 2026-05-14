@@ -27,7 +27,8 @@ export function CircleAtomNode({ data, selected }: NodeProps) {
   const { title, labels } = data as CircleAtomNodeData
   const labelList = (labels as string[]).join(', ')
   const tooltip = labelList ? `${title} [${labelList}]` : title
-  const ringVisible = hovered || !!selected
+  // Ring visible on hover only — selected state is represented by inner selection visual (D1 / ADR-260038)
+  const ringVisible = hovered
 
   function scheduleHide() {
     hideTimerRef.current = setTimeout(() => setHovered(false), 50)
@@ -42,13 +43,26 @@ export function CircleAtomNode({ data, selected }: NodeProps) {
 
   return (
     <>
-      {/* Invisible target handles on all four sides for nearest-boundary edge anchoring */}
-      <Handle type="target" id="top" position={Position.Top} style={invisibleHandle} />
-      <Handle type="target" id="right" position={Position.Right} style={invisibleHandle} />
-      <Handle type="target" id="bottom" position={Position.Bottom} style={invisibleHandle} />
-      <Handle type="target" id="left" position={Position.Left} style={invisibleHandle} />
+      {/* Centered full-body target handle — accepts connection drops over the full disk+ring area (D2/D4 / ADR-260038) */}
+      <Handle
+        id="circle-body"
+        type="target"
+        position={Position.Left}
+        data-testid="circle-body-handle"
+        style={{
+          ...invisibleHandle,
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: NODE_SIZE,
+          height: NODE_SIZE,
+          borderRadius: '50%',
+          border: 'none',
+          transform: 'none',
+        }}
+      />
 
-      {/* Outer ring — full-circumference edge-initiation affordance (D1–D3 / ADR-260036) */}
+      {/* Outer ring — full-circumference edge-initiation affordance, hover-only (D1–D3 / ADR-260036, D1 / ADR-260038) */}
       <Handle
         id="ring"
         type="source"
