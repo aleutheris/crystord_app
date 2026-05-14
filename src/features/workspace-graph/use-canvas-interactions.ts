@@ -15,6 +15,13 @@ interface UseCanvasInteractionsProps {
   removeBond: GraphData['removeBond']
 }
 
+function isEditableTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false
+  const tag = target.tagName
+  if (target.isContentEditable) return true
+  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT'
+}
+
 export function useCanvasInteractions({
   atoms,
   edges,
@@ -103,7 +110,9 @@ export function useCanvasInteractions({
   }, [createAtom, onSelectAtom])
 
   const onKeyDown = useCallback((event: React.KeyboardEvent) => {
-    if ((event.key === 'Delete' || event.key === 'Backspace') && selectedAtomId) {
+    if (isEditableTarget(event.target)) return
+
+    if (event.key === 'Delete' && selectedAtomId) {
       event.preventDefault()
       const selectedEdge = edges.find((e) => e.selected)
       if (selectedEdge) {

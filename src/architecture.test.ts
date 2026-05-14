@@ -608,8 +608,8 @@ describe('Accessibility baseline (I2 / REQ-QR-260002)', () => {
       path.join(FEATURES, 'workspace-graph', 'use-canvas-interactions.ts'), 'utf-8',
     )
     expect(canvas).toContain('onKeyDown')
-    expect(interactions).toContain('Delete')
-    expect(interactions).toContain('Backspace')
+    expect(interactions).toContain("event.key === 'Delete'")
+    expect(interactions).not.toContain("event.key === 'Backspace'")
   })
 })
 
