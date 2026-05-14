@@ -27,6 +27,15 @@ function baseProps(overrides: Partial<Parameters<typeof NetworkConnectionLine>[0
   }
 }
 
+function parseLineEnd(pathD: string): [number, number] {
+  const parts = pathD.split(' L ')
+  expect(parts[1]).toBeDefined()
+  const coords = (parts[1] ?? '').split(',').map(Number)
+  expect(coords[0]).toBeDefined()
+  expect(coords[1]).toBeDefined()
+  return [coords[0] ?? Number.NaN, coords[1] ?? Number.NaN]
+}
+
 describe('NetworkConnectionLine', () => {
   it('renders a path element', () => {
     const { container } = render(
@@ -62,8 +71,7 @@ describe('NetworkConnectionLine', () => {
     )
     const path = container.querySelector('path')!
     const d = path.getAttribute('d')!
-    const [, endPart] = d.split(' L ')
-    const [ex, ey] = endPart.split(',').map(Number)
+    const [ex, ey] = parseLineEnd(d)
     expect(ex).toBeCloseTo(160, 5)
     expect(ey).toBeCloseTo(0, 5)
   })
@@ -77,8 +85,7 @@ describe('NetworkConnectionLine', () => {
     )
     const path = container.querySelector('path')!
     const d = path.getAttribute('d')!
-    const [, endPart] = d.split(' L ')
-    const [ex, ey] = endPart.split(',').map(Number)
+    const [ex, ey] = parseLineEnd(d)
     expect(ex).toBeCloseTo(0, 5)
     expect(ey).toBeCloseTo(160, 5)
   })
@@ -99,8 +106,7 @@ describe('NetworkConnectionLine', () => {
     )
     const path = container.querySelector('path')!
     const d = path.getAttribute('d')!
-    const [, endPart] = d.split(' L ')
-    const [ex, ey] = endPart.split(',').map(Number)
+    const [ex, ey] = parseLineEnd(d)
     const expectedBoundary = 100 - (100 / Math.sqrt(20000)) * 40
     expect(ex).toBeCloseTo(expectedBoundary, 4)
     expect(ey).toBeCloseTo(expectedBoundary, 4)
@@ -114,8 +120,7 @@ describe('NetworkConnectionLine', () => {
     )
     const path = container.querySelector('path')!
     const d = path.getAttribute('d')!
-    const [, endPart] = d.split(' L ')
-    const [ex, ey] = endPart.split(',').map(Number)
+    const [ex, ey] = parseLineEnd(d)
     const distFromCenter = Math.sqrt((ex - 300) ** 2 + (ey - 80) ** 2)
     expect(distFromCenter).toBeCloseTo(CONNECTION_LINE_NODE_RADIUS, 4)
   })
