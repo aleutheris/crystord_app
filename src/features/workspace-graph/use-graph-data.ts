@@ -78,6 +78,10 @@ export function useGraphData(): GraphData {
     constants: nuclearies.constants,
   }), [])
 
+  const stripSystemBonds = useCallback((bonds: Atom['bonds']) =>
+    bonds.filter((bond) => bond.name !== 'OP_DEPENDENCY'),
+  [])
+
   const updateAtom = useCallback(async (uuid: string, atom: Atom) => {
     await client.mutate({
       mutation: UPDATE_ATOM_MUTATION,
@@ -85,13 +89,13 @@ export function useGraphData(): GraphData {
         selector: { uuid },
         inputs: [{
           labels: atom.labels,
-          bonds: atom.bonds.map((b) => ({ uuid: b.uuid, name: b.name, direction: b.direction })),
+          bonds: stripSystemBonds(atom.bonds).map((b) => ({ uuid: b.uuid, name: b.name, direction: b.direction })),
           properties: { nuclearies: toNucleariesInput(atom.properties.nuclearies) },
         }],
       },
     })
     await fetchAtoms()
-  }, [client, fetchAtoms, toNucleariesInput])
+  }, [client, fetchAtoms, stripSystemBonds, toNucleariesInput])
 
   const deleteAtom = useCallback(async (uuid: string) => {
     await client.mutate({
@@ -107,10 +111,10 @@ export function useGraphData(): GraphData {
 
     const updated: Atom = {
       ...source,
-      bonds: [...source.bonds, { uuid: targetUuid, name: bondName, direction: 'from' }],
+      bonds: [...stripSystemBonds(source.bonds), { uuid: targetUuid, name: bondName, direction: 'from' }],
     }
     await updateAtom(sourceUuid, updated)
-  }, [atoms, updateAtom])
+  }, [atoms, updateAtom, stripSystemBonds])
 
   const removeBond = useCallback(async (sourceUuid: string, targetUuid: string, bondName: string) => {
     const source = atoms.find((a) => a.properties.shellies.uuid === sourceUuid)
@@ -118,12 +122,12 @@ export function useGraphData(): GraphData {
 
     const updated: Atom = {
       ...source,
-      bonds: source.bonds.filter(
+      bonds: stripSystemBonds(source.bonds).filter(
         (b) => !(b.uuid === targetUuid && b.name === bondName && b.direction === 'from'),
       ),
     }
     await updateAtom(sourceUuid, updated)
-  }, [atoms, updateAtom])
+  }, [atoms, updateAtom, stripSystemBonds])
 
   return { atoms, loading, error, refetch: fetchAtoms, search: fetchAtoms, createAtom, updateAtom, deleteAtom, addBond, removeBond }
 }

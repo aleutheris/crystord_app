@@ -133,6 +133,41 @@ describe('useGraphData bond mutations', () => {
     })
   })
 
+  it('updateAtom omits OP_DEPENDENCY bonds from the backend payload', async () => {
+    const atom = {
+      labels: ['Math'],
+      bonds: [
+        { uuid: 'op1', name: 'OP_DEPENDENCY', direction: 'from' },
+        { uuid: 'u2', name: 'depends_on', direction: 'from' },
+      ],
+      properties: {
+        shellies: { uuid: 'u1' },
+        nuclearies: {
+          __typename: 'NucleariesOutput',
+          title: 'var1',
+          description: '',
+          content: '1',
+          operation: '',
+          constants: {},
+        },
+      },
+    }
+    mockQuery.mockResolvedValue({ data: { retrieve: [atom] } })
+    mockMutate.mockResolvedValue({ data: { change: ['u1'] } })
+    const { result } = renderHook(() => useGraphData())
+
+    await act(() => result.current.search(['Math']))
+    await act(() => result.current.updateAtom('u1', atom as any))
+
+    const updateCall = mockMutate.mock.calls.find(
+      ([args]) => args.mutation === UPDATE_ATOM_MUTATION,
+    )
+    expect(updateCall).toBeDefined()
+    expect(updateCall?.[0].variables.inputs[0].bonds).toEqual([
+      { uuid: 'u2', name: 'depends_on', direction: 'from' },
+    ])
+  })
+
   it('removeBond strips __typename from nuclearies mutation input', async () => {
     const atom = {
       labels: ['Project'],
