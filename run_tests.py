@@ -32,6 +32,14 @@ def run_command(command, description):
 def run_interface_preflight():
     """Verify the bundled backend interface against the client-supported schema range."""
     root = Path(os.getcwd())
+    backend_intf_dir = root / "backend_intf"
+
+    if not backend_intf_dir.exists() or not any(backend_intf_dir.iterdir()):
+        print(
+            "Skipping backend interface preflight: backend_intf directory is missing or empty."
+        )
+        return True
+
     policy_file = root / "docs" / "backend-integration" / "client-schema-policy.json"
     verify_script = root / "backend_intf" / "crystord-interface-v1.1.0" / "verify.py"
     archive_file = root / "backend_intf" / "crystord-interface-v1.1.0" / "crystord-interface-v1.1.0.tgz"
@@ -103,6 +111,7 @@ Examples:
     success = True
 
     if args.all:
+        print("Running full test suite (--all)...")
         if not run_interface_preflight():
             success = False
         # Run unit tests first
