@@ -50,9 +50,10 @@ When a requirement is deprecated, keep its row in this file and set `Status` to 
 | REQ-FR-260041 | Network View Drag-Time Target Snap Must Use Nearest-Boundary Geometry | FR | Accepted | ADR-260038, ADR-260033 | BI-260041 |
 | REQ-FR-260042 | Network View Selected-State Must Not Force Outer Initiation Ring Visibility | FR | Accepted | ADR-260038 | BI-260041 |
 | REQ-FR-260043 | Bond-Name Dialog Keyboard Input Must Not Trigger Canvas Deletion Flows | FR | Accepted | ADR-260015, ADR-260031 | BI-260042 |
-| REQ-FR-260044 | Flow View Directional Projection and Eligible-Bond Inclusion | FR | Accepted | ADR-260039 | BI-260044 |
+| REQ-FR-260044 | Flow View Directional Projection and Eligible-Bond Inclusion | FR | Deprecated | ADR-260039, ADR-260040 | BI-260044, BI-260045 |
 | REQ-FR-260045 | Flow View Relayout Control and State Preservation | FR | Accepted | ADR-260039 | BI-260044 |
 | REQ-FR-260046 | Flow View Edge and Handle Visual Grammar | FR | Accepted | ADR-260039 | BI-260044 |
+| REQ-FR-260047 | Flow View Projection Mode Toggle and Non-Flow Atom Inclusion | FR | Accepted | ADR-260040 | BI-260045 |
 | REQ-OR-260001 | MVP Demo Sign-In Operating Model | OR | Accepted | ADR-260002, ADR-260014 | BI-260002, BI-260011 |
 | REQ-OR-260002 | GraphQL Schema Stability and Versioning Contract | OR | Accepted | ADR-260013 | BI-260010 |
 | REQ-OR-260003 | Frontend Contract Stability and Breaking-Change Control | OR | Accepted | ADR-260018 | BI-260015 |
