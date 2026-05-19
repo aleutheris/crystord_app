@@ -50,6 +50,27 @@ export function atomsToNetworkEdges(atoms: Atom[]): Edge[] {
   }))
 }
 
+// Produces Flow-view edges filtered to the eligible-bond allowlist.
+// Labels are suppressed for readability; label seam retained via atomsToEdges base data (D5 / ADR-260039).
+export function atomsToFlowEdges(atoms: Atom[], eligibleBonds: ReadonlySet<string>): Edge[] {
+  const edges: Edge[] = []
+  for (const atom of atoms) {
+    const sourceId = atom.properties.shellies.uuid
+    for (const bond of atom.bonds) {
+      if (bond.direction === 'from' && eligibleBonds.has(bond.name)) {
+        edges.push({
+          id: `${sourceId}-${bond.uuid}-${bond.name}`,
+          source: sourceId,
+          target: bond.uuid,
+          label: undefined,
+          markerEnd: { type: MarkerType.ArrowClosed },
+        })
+      }
+    }
+  }
+  return edges
+}
+
 export function mergeNodePositions(
   newNodes: Node[],
   prevNodes: Node[],

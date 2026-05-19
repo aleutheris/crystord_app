@@ -1367,7 +1367,7 @@ describe('Network view anchoring wiring (D1-D2 / REQ-FR-260035)', () => {
   })
 })
 
-describe('Flow view unchanged — scope boundary preservation (D3 / ADR-260033)', () => {
+describe('Flow view scope boundary preservation (D3 / ADR-260033)', () => {
   it('GraphCanvas.tsx does not reference FloatingEdge or floating edge type', () => {
     const canvas = fs.readFileSync(
       path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
@@ -1376,11 +1376,11 @@ describe('Flow view unchanged — scope boundary preservation (D3 / ADR-260033)'
     expect(canvas).not.toContain("'floating'")
   })
 
-  it('GraphCanvas.tsx still uses atomsToEdges (Flow view behavior unchanged)', () => {
+  it('GraphCanvas.tsx uses atomsToFlowEdges for eligible-bond projection (BI-260044)', () => {
     const canvas = fs.readFileSync(
       path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
     )
-    expect(canvas).toContain('atomsToEdges')
+    expect(canvas).toContain('atomsToFlowEdges')
   })
 })
 
@@ -1823,11 +1823,11 @@ describe('Canonical selectedAtomId selection sync — Flow view (BI-260043 / REQ
     expect(canvas).toMatch(/selected:\s*n\.id\s*===\s*selectedAtomId/)
   })
 
-  it('GraphCanvas atoms effect lists selectedAtomId as a dependency', () => {
+  it('GraphCanvas atoms effect lists laidNodes and selectedAtomId as dependencies (BI-260044)', () => {
     const canvas = fs.readFileSync(
       path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
     )
-    expect(canvas).toMatch(/\[atoms,\s*renderMode,\s*selectedAtomId,\s*setNodes,\s*setEdges\]/)
+    expect(canvas).toMatch(/\[laidNodes,\s*selectedAtomId,\s*setNodes\]/)
   })
 })
 
@@ -1872,5 +1872,185 @@ describe('Detail-panel identity consistency (BI-260043 / REQ-QR-260004)', () => 
   it('SearchResultPanel onSelectAtom is wired to the canonical setSelectedAtomId', () => {
     const shell = fs.readFileSync(path.join(SRC, 'ui-shell', 'WorkspaceShell.tsx'), 'utf-8')
     expect(shell).toMatch(/SearchResultPanel[\s\S]{0,300}onSelectAtom=\{setSelectedAtomId\}/)
+  })
+})
+
+// --- BI-260044: Flow-view directional projection and relayout baseline (D1-D5 / ADR-260039) ---
+
+describe('Eligible-bond allowlist and extension seam (D1 / REQ-FR-260044)', () => {
+  it('flow-projection.ts exists and exports FLOW_ELIGIBLE_BONDS', () => {
+    expect(
+      fs.existsSync(path.join(FEATURES, 'workspace-graph', 'flow-projection.ts')),
+    ).toBe(true)
+    const proj = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'flow-projection.ts'), 'utf-8',
+    )
+    expect(proj).toContain('FLOW_ELIGIBLE_BONDS')
+  })
+
+  it('FLOW_ELIGIBLE_BONDS includes OP_DEPENDENCY as the baseline eligible bond', () => {
+    const proj = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'flow-projection.ts'), 'utf-8',
+    )
+    expect(proj).toContain('OP_DEPENDENCY')
+  })
+
+  it('FLOW_ELIGIBLE_BONDS is an exported constant (frontend extension seam)', () => {
+    const proj = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'flow-projection.ts'), 'utf-8',
+    )
+    expect(proj).toMatch(/export\s+const\s+FLOW_ELIGIBLE_BONDS/)
+  })
+
+  it('flow-projection.ts exports projectFlowAtoms', () => {
+    const proj = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'flow-projection.ts'), 'utf-8',
+    )
+    expect(proj).toContain('projectFlowAtoms')
+  })
+
+  it('flow-projection.ts has dedicated test coverage', () => {
+    expect(
+      fs.existsSync(path.join(FEATURES, 'workspace-graph', 'flow-projection.test.ts')),
+    ).toBe(true)
+  })
+})
+
+describe('atomsToFlowEdges in graph-types (D1/D5 / REQ-FR-260044, REQ-FR-260046)', () => {
+  it('graph-types.ts exports atomsToFlowEdges', () => {
+    const types = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'graph-types.ts'), 'utf-8',
+    )
+    expect(types).toContain('atomsToFlowEdges')
+  })
+
+  it('atomsToFlowEdges sets markerEnd for directional arrowheads (REQ-FR-260046)', () => {
+    const types = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'graph-types.ts'), 'utf-8',
+    )
+    expect(types).toContain('atomsToFlowEdges')
+    expect(types).toContain('markerEnd')
+    expect(types).toContain('MarkerType.ArrowClosed')
+  })
+
+  it('atomsToFlowEdges suppresses labels (label seam retained in atomsToEdges — REQ-FR-260046)', () => {
+    const types = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'graph-types.ts'), 'utf-8',
+    )
+    // atomsToFlowEdges block sets label: undefined
+    expect(types).toMatch(/atomsToFlowEdges[\s\S]{0,500}label:\s*undefined/)
+  })
+})
+
+describe('GraphCanvas uses flow projection and LR layout (D1-D2 / REQ-FR-260044)', () => {
+  it('GraphCanvas imports projectFlowAtoms from flow-projection', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).toContain('projectFlowAtoms')
+    expect(canvas).toContain('flow-projection')
+  })
+
+  it('GraphCanvas imports applyFlowLayout from use-flow-layout', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).toContain('applyFlowLayout')
+    expect(canvas).toContain('use-flow-layout')
+  })
+
+  it('GraphCanvas imports atomsToFlowEdges from graph-types', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).toContain('atomsToFlowEdges')
+    expect(canvas).toContain('graph-types')
+  })
+})
+
+describe('Flow view relayout control (D3 / REQ-FR-260045)', () => {
+  it('GraphCanvas exposes a Re-layout button', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).toContain('Re-layout')
+    expect(canvas).toContain('handleRelayout')
+  })
+
+  it('GraphCanvas relayout preserves selectedAtomId (selection continuity — REQ-FR-260045)', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
+    )
+    // handleRelayout maps selectedAtomId onto nodes
+    expect(canvas).toMatch(/handleRelayout[\s\S]{0,200}selectedAtomId/)
+  })
+
+  it('GraphCanvas uses mergeNodePositions for drag-position preservation (REQ-FR-260045)', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).toContain('mergeNodePositions')
+  })
+})
+
+describe('Flow node handle grammar — left/right universal handles (D5 / REQ-FR-260046)', () => {
+  it('AtomNode uses Position.Left for target handle', () => {
+    const node = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'AtomNode.tsx'), 'utf-8',
+    )
+    expect(node).toContain('Position.Left')
+    expect(node).not.toContain('Position.Top')
+  })
+
+  it('AtomNode uses Position.Right for source handle', () => {
+    const node = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'AtomNode.tsx'), 'utf-8',
+    )
+    expect(node).toContain('Position.Right')
+    expect(node).not.toContain('Position.Bottom')
+  })
+})
+
+describe('use-flow-layout module (D1/D2 / ADR-260039)', () => {
+  it('use-flow-layout.ts exists and exports applyFlowLayout', () => {
+    expect(
+      fs.existsSync(path.join(FEATURES, 'workspace-graph', 'use-flow-layout.ts')),
+    ).toBe(true)
+    const layout = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'use-flow-layout.ts'), 'utf-8',
+    )
+    expect(layout).toContain('applyFlowLayout')
+  })
+
+  it('use-flow-layout.ts has dedicated test coverage', () => {
+    expect(
+      fs.existsSync(path.join(FEATURES, 'workspace-graph', 'use-flow-layout.test.ts')),
+    ).toBe(true)
+  })
+})
+
+describe('Network view scope boundary — Flow changes do not affect Network (ADR-260039)', () => {
+  it('NetworkCanvas still uses applyForceLayout — not applyFlowLayout', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'NetworkCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).toContain('applyForceLayout')
+    expect(canvas).not.toContain('applyFlowLayout')
+  })
+
+  it('NetworkCanvas still uses atomsToNetworkEdges — not atomsToFlowEdges', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'NetworkCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).toContain('atomsToNetworkEdges')
+    expect(canvas).not.toContain('atomsToFlowEdges')
+  })
+
+  it('NetworkCanvas does not import projectFlowAtoms or FLOW_ELIGIBLE_BONDS', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'NetworkCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).not.toContain('projectFlowAtoms')
+    expect(canvas).not.toContain('FLOW_ELIGIBLE_BONDS')
   })
 })

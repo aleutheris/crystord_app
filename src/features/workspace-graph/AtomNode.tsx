@@ -14,7 +14,7 @@ export function AtomNode({ data, selected }: NodeProps) {
 
   return (
     <>
-      <Handle type="target" position={Position.Top} />
+      <Handle type="target" position={Position.Left} />
       <div
         title={tooltip}
         aria-label={tooltip}
@@ -35,7 +35,7 @@ export function AtomNode({ data, selected }: NodeProps) {
           </div>
         )}
       </div>
-      <Handle type="source" position={Position.Bottom} />
+      <Handle type="source" position={Position.Right} />
     </>
   )
 }

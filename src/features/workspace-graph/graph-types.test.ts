@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { atomsToNodes, atomsToEdges, atomsToNetworkEdges, mergeNodePositions } from './graph-types'
+import { atomsToNodes, atomsToEdges, atomsToNetworkEdges, atomsToFlowEdges, mergeNodePositions } from './graph-types'
 import type { Atom } from '../../api-contract/graph-queries'
 import type { Node } from '@xyflow/react'
 
@@ -80,6 +80,59 @@ describe('atomsToNetworkEdges', () => {
     ]
     const raw = atomsToEdges(atoms)
     expect(raw[0]!.label).toBe('RELATES_TO')
+  })
+})
+
+describe('atomsToFlowEdges', () => {
+  const eligibleBonds = new Set(['OP_DEPENDENCY'])
+
+  it('includes only bonds matching the eligible-bond allowlist', () => {
+    const atoms = [
+      makeAtom('a1', 'Alpha', [], [
+        { uuid: 'a2', name: 'OP_DEPENDENCY', direction: 'from' },
+        { uuid: 'a3', name: 'OTHER_BOND', direction: 'from' },
+      ]),
+      makeAtom('a2', 'Beta'),
+      makeAtom('a3', 'Gamma'),
+    ]
+    const edges = atomsToFlowEdges(atoms, eligibleBonds)
+    expect(edges).toHaveLength(1)
+    expect(edges[0]!.source).toBe('a1')
+    expect(edges[0]!.target).toBe('a2')
+  })
+
+  it('renders edges with arrowhead marker (REQ-FR-260046)', () => {
+    const atoms = [
+      makeAtom('a1', 'Alpha', [], [{ uuid: 'a2', name: 'OP_DEPENDENCY', direction: 'from' }]),
+      makeAtom('a2', 'Beta'),
+    ]
+    const edges = atomsToFlowEdges(atoms, eligibleBonds)
+    expect(edges[0]!.markerEnd).toMatchObject({ type: 'arrowclosed' })
+  })
+
+  it('suppresses bond labels for Flow view (REQ-FR-260046)', () => {
+    const atoms = [
+      makeAtom('a1', 'Alpha', [], [{ uuid: 'a2', name: 'OP_DEPENDENCY', direction: 'from' }]),
+      makeAtom('a2', 'Beta'),
+    ]
+    const edges = atomsToFlowEdges(atoms, eligibleBonds)
+    expect(edges[0]!.label).toBeUndefined()
+  })
+
+  it('returns empty array for atoms without eligible bonds', () => {
+    const atoms = [
+      makeAtom('a1', 'Alpha', [], [{ uuid: 'a2', name: 'RELATES_TO', direction: 'from' }]),
+      makeAtom('a2', 'Beta'),
+    ]
+    expect(atomsToFlowEdges(atoms, eligibleBonds)).toHaveLength(0)
+  })
+
+  it('ignores bonds with direction "to"', () => {
+    const atoms = [
+      makeAtom('a1', 'Alpha', [], [{ uuid: 'a2', name: 'OP_DEPENDENCY', direction: 'to' }]),
+      makeAtom('a2', 'Beta'),
+    ]
+    expect(atomsToFlowEdges(atoms, eligibleBonds)).toHaveLength(0)
   })
 })
 
