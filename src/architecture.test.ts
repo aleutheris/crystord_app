@@ -1943,11 +1943,11 @@ describe('atomsToFlowEdges in graph-types (D1/D5 / REQ-FR-260044, REQ-FR-260046)
 })
 
 describe('GraphCanvas uses flow projection and LR layout (D1-D2 / REQ-FR-260044)', () => {
-  it('GraphCanvas imports projectFlowAtoms from flow-projection', () => {
+  it('GraphCanvas imports getFlowParticipantIds from flow-projection', () => {
     const canvas = fs.readFileSync(
       path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
     )
-    expect(canvas).toContain('projectFlowAtoms')
+    expect(canvas).toContain('getFlowParticipantIds')
     expect(canvas).toContain('flow-projection')
   })
 
@@ -2052,5 +2052,129 @@ describe('Network view scope boundary — Flow changes do not affect Network (AD
     )
     expect(canvas).not.toContain('projectFlowAtoms')
     expect(canvas).not.toContain('FLOW_ELIGIBLE_BONDS')
+  })
+})
+
+// --- BI-260045: Flow-view projection mode toggle and non-flow atom inclusion (D1-D5 / ADR-260040) ---
+
+describe('Projection mode toggle — default and state semantics (D1/D2 / REQ-FR-260047)', () => {
+  it('GraphCanvas exports FlowProjectionMode type', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).toContain('FlowProjectionMode')
+  })
+
+  it('GraphCanvas flowMode state defaults to focused mode (D2 / ADR-260040)', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).toContain("useState<FlowProjectionMode>('focused')")
+  })
+
+  it('GraphCanvas has toggleFlowMode control that switches between focused and include (D1)', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).toContain('toggleFlowMode')
+    expect(canvas).toContain("'include'")
+    expect(canvas).toContain("'focused'")
+  })
+
+  it('GraphCanvas renders toggle button with aria-pressed for accessibility', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).toContain('aria-pressed')
+    expect(canvas).toMatch(/aria-pressed=\{flowMode\s*===\s*'include'\}/)
+  })
+})
+
+describe('Include mode — non-flow atom visibility and visual distinction (D4 / REQ-FR-260047)', () => {
+  it('GraphCanvas passes isNonFlowAtom flag into node data for include mode', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).toContain('isNonFlowAtom')
+    expect(canvas).toMatch(/isNonFlowAtom:\s*flowMode\s*===\s*'include'/)
+  })
+
+  it('GraphCanvas uses getFlowParticipantIds to identify non-flow atoms', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).toContain('getFlowParticipantIds')
+    expect(canvas).toContain('participantIds')
+  })
+
+  it('flow-projection.ts exports getFlowParticipantIds', () => {
+    const proj = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'flow-projection.ts'), 'utf-8',
+    )
+    expect(proj).toContain('getFlowParticipantIds')
+    expect(proj).toMatch(/export\s+function\s+getFlowParticipantIds/)
+  })
+
+  it('AtomNode handles isNonFlowAtom flag for visual distinction (D4 / REQ-FR-260047)', () => {
+    const node = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'AtomNode.tsx'), 'utf-8',
+    )
+    expect(node).toContain('isNonFlowAtom')
+    expect(node).toContain('dashed')
+  })
+
+  it('AtomNode uses opacity for non-flow visual distinction — not color alone (branding constraint)', () => {
+    const node = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'AtomNode.tsx'), 'utf-8',
+    )
+    expect(node).toContain('opacity')
+    expect(node).toContain('isNonFlowAtom')
+  })
+})
+
+describe('Include mode — flow edges remain eligible-bond only (D4 / REQ-FR-260046)', () => {
+  it('GraphCanvas flowEdges are derived from atomsToFlowEdges in both modes', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).toContain('atomsToFlowEdges')
+    // flowEdges is always from eligible bonds — not mode-gated
+    expect(canvas).not.toMatch(/flowMode\s*===\s*'include'[\s\S]{0,100}atomsToFlowEdges/)
+  })
+})
+
+describe('Relayout continuity in both modes (D3 / REQ-FR-260045)', () => {
+  it('GraphCanvas handleRelayout uses applyFlowLayout in both modes', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).toContain('handleRelayout')
+    expect(canvas).toContain('applyFlowLayout')
+  })
+
+  it('GraphCanvas re-layout button is rendered regardless of flowMode', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).toContain('Re-layout')
+    // Re-layout button must not be conditional on flowMode
+    expect(canvas).not.toMatch(/flowMode[\s\S]{0,50}Re-layout/)
+  })
+})
+
+describe('Network view scope boundary unchanged (D5 / ADR-260040)', () => {
+  it('NetworkCanvas does not import getFlowParticipantIds or FlowProjectionMode', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'NetworkCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).not.toContain('getFlowParticipantIds')
+    expect(canvas).not.toContain('FlowProjectionMode')
+  })
+
+  it('NetworkCanvas does not use isNonFlowAtom in node data', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'NetworkCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).not.toContain('isNonFlowAtom')
   })
 })

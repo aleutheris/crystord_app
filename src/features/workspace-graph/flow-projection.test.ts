@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { FLOW_ELIGIBLE_BONDS, projectFlowAtoms } from './flow-projection'
+import { FLOW_ELIGIBLE_BONDS, projectFlowAtoms, getFlowParticipantIds } from './flow-projection'
 import type { Atom } from '../../api-contract/graph-queries'
 
 function makeAtom(uuid: string, bonds: Atom['bonds'] = []): Atom {
@@ -20,6 +20,38 @@ describe('FLOW_ELIGIBLE_BONDS', () => {
 
   it('is a non-empty readonly array (extension seam)', () => {
     expect(FLOW_ELIGIBLE_BONDS.length).toBeGreaterThan(0)
+  })
+})
+
+describe('getFlowParticipantIds', () => {
+  const eligibleSet = new Set(['OP_DEPENDENCY'])
+
+  it('returns empty set when no eligible bonds exist', () => {
+    const atoms = [makeAtom('a1', [{ uuid: 'a2', name: 'OTHER', direction: 'from' }]), makeAtom('a2')]
+    expect(getFlowParticipantIds(atoms, eligibleSet).size).toBe(0)
+  })
+
+  it('includes source atom UUID for eligible outgoing bond', () => {
+    const atoms = [makeAtom('a1', [{ uuid: 'a2', name: 'OP_DEPENDENCY', direction: 'from' }]), makeAtom('a2')]
+    expect(getFlowParticipantIds(atoms, eligibleSet).has('a1')).toBe(true)
+  })
+
+  it('includes target atom UUID for eligible outgoing bond', () => {
+    const atoms = [makeAtom('a1', [{ uuid: 'a2', name: 'OP_DEPENDENCY', direction: 'from' }]), makeAtom('a2')]
+    expect(getFlowParticipantIds(atoms, eligibleSet).has('a2')).toBe(true)
+  })
+
+  it('does not include atoms with no eligible bonds', () => {
+    const atoms = [
+      makeAtom('a1', [{ uuid: 'a2', name: 'OP_DEPENDENCY', direction: 'from' }]),
+      makeAtom('a2'),
+      makeAtom('a3'),
+    ]
+    expect(getFlowParticipantIds(atoms, eligibleSet).has('a3')).toBe(false)
+  })
+
+  it('returns empty set for empty atom list', () => {
+    expect(getFlowParticipantIds([], eligibleSet).size).toBe(0)
   })
 })
 

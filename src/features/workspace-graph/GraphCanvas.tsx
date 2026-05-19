@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   ReactFlow,
   Background,
@@ -11,13 +11,15 @@ import '@xyflow/react/dist/style.css'
 import type { Node, Edge } from '@xyflow/react'
 import type { GraphData } from './use-graph-data'
 import { atomsToNodes, atomsToFlowEdges, mergeNodePositions } from './graph-types'
-import { FLOW_ELIGIBLE_BONDS, projectFlowAtoms } from './flow-projection'
+import { FLOW_ELIGIBLE_BONDS, getFlowParticipantIds } from './flow-projection'
 import { applyFlowLayout } from './use-flow-layout'
 import { AtomNode } from './AtomNode'
 import { DeleteConfirmDialog } from './DeleteConfirmDialog'
 import { UndoNotification } from './UndoNotification'
 import { BondNameDialog } from './BondNameDialog'
 import { useCanvasInteractions } from './use-canvas-interactions'
+
+export type FlowProjectionMode = 'focused' | 'include'
 
 export interface GraphCanvasProps {
   data: GraphData
@@ -31,14 +33,41 @@ const nodeTypes = { atom: AtomNode }
 export function GraphCanvas({ data, selectedAtomId, onSelectAtom }: GraphCanvasProps) {
   const { atoms, loading, error, createAtom, deleteAtom, addBond, removeBond } = data
 
-  // Project to eligible flow bonds only; memoized so layout reruns only when atoms change (D1 / REQ-FR-260044)
-  const eligibleSet = useMemo(() => new Set(FLOW_ELIGIBLE_BONDS), [])
-  const projectedAtoms = useMemo(() => projectFlowAtoms(atoms, eligibleSet), [atoms, eligibleSet])
-  const flowEdges = useMemo(() => atomsToFlowEdges(projectedAtoms, eligibleSet), [projectedAtoms, eligibleSet])
+  // Default is Focused mode (eligible-bond projection only — D1/D2 / ADR-260040)
+  const [flowMode, setFlowMode] = useState<FlowProjectionMode>('focused')
 
-  // Memoize LR layout so applyFlowLayout only reruns when projected atoms change,
-  // not on every selectedAtomId change (D3 / REQ-FR-260045).
-  const rawNodes = useMemo(() => atomsToNodes(projectedAtoms), [projectedAtoms])
+  const eligibleSet = useMemo(() => new Set(FLOW_ELIGIBLE_BONDS), [])
+
+  // Participant IDs used for focused filtering and non-flow visual marking in include mode
+  const participantIds = useMemo(
+    () => getFlowParticipantIds(atoms, eligibleSet),
+    [atoms, eligibleSet],
+  )
+
+  // Focused mode: eligible-bond participants only. Include mode: full search dataset (D1 / REQ-FR-260047)
+  const visibleAtoms = useMemo(
+    () => flowMode === 'focused'
+      ? atoms.filter((a) => participantIds.has(a.properties.shellies.uuid))
+      : atoms,
+    [atoms, participantIds, flowMode],
+  )
+
+  // Edges always from eligible bonds — non-flow atoms have no eligible bonds to contribute (D4 / ADR-260040)
+  const flowEdges = useMemo(() => atomsToFlowEdges(atoms, eligibleSet), [atoms, eligibleSet])
+
+  // Non-flow atoms in include mode carry isNonFlowAtom=true for visual distinction (D4 / REQ-FR-260047)
+  const rawNodes = useMemo(
+    () => atomsToNodes(visibleAtoms).map((n) => ({
+      ...n,
+      data: {
+        ...n.data,
+        isNonFlowAtom: flowMode === 'include' && !participantIds.has(n.id),
+      },
+    })),
+    [visibleAtoms, participantIds, flowMode],
+  )
+
+  // LR layout memoized per rawNodes so it doesn't rerun on selectedAtomId changes (D3 / REQ-FR-260045)
   const laidNodes = useMemo(() => applyFlowLayout(rawNodes, flowEdges), [rawNodes, flowEdges])
 
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
@@ -48,7 +77,6 @@ export function GraphCanvas({ data, selectedAtomId, onSelectAtom }: GraphCanvasP
     setEdges(flowEdges)
   }, [flowEdges, setEdges])
 
-  // Merges drag-preserved positions and syncs selected state without re-running layout (D3 / REQ-FR-260045)
   useEffect(() => {
     setNodes((prev) => {
       const merged = mergeNodePositions(laidNodes, prev)
@@ -56,12 +84,16 @@ export function GraphCanvas({ data, selectedAtomId, onSelectAtom }: GraphCanvasP
     })
   }, [laidNodes, selectedAtomId, setNodes])
 
-  // Relayout preserves selectedAtomId and allows manual repositioning afterward (D3 / REQ-FR-260045)
+  // Relayout preserves selectedAtomId and drag-repositioned nodes remain moveable afterward (D3 / REQ-FR-260045)
   function handleRelayout() {
     setNodes(
       applyFlowLayout(rawNodes, flowEdges)
         .map((n) => ({ ...n, selected: n.id === selectedAtomId })),
     )
+  }
+
+  function toggleFlowMode() {
+    setFlowMode((m) => (m === 'focused' ? 'include' : 'focused'))
   }
 
   const ix = useCanvasInteractions({ atoms, edges, selectedAtomId, onSelectAtom, deleteAtom, createAtom, addBond, removeBond })
@@ -102,9 +134,18 @@ export function GraphCanvas({ data, selectedAtomId, onSelectAtom }: GraphCanvasP
             type="button"
             onClick={handleRelayout}
             aria-label="Re-layout flow graph"
-            style={{ padding: '0.25rem 0.5rem', cursor: 'pointer' }}
+            style={{ padding: '0.25rem 0.5rem', cursor: 'pointer', marginRight: '0.25rem' }}
           >
             Re-layout
+          </button>
+          <button
+            type="button"
+            aria-pressed={flowMode === 'include'}
+            onClick={toggleFlowMode}
+            aria-label="Toggle non-flow atom inclusion"
+            style={{ padding: '0.25rem 0.5rem', cursor: 'pointer' }}
+          >
+            Include all
           </button>
         </Panel>
       </ReactFlow>
