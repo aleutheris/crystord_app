@@ -1812,3 +1812,65 @@ describe('Selected-state ring suppression (D1 / REQ-FR-260042)', () => {
     expect(src).not.toMatch(/ringVisible\s*=.*selected/)
   })
 })
+
+// --- BI-260043: Align graph visual selection with detail-panel selected atom state ---
+
+describe('Canonical selectedAtomId selection sync — Flow view (BI-260043 / REQ-FR-260032)', () => {
+  it('GraphCanvas atoms effect derives node selected flag from selectedAtomId', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).toMatch(/selected:\s*n\.id\s*===\s*selectedAtomId/)
+  })
+
+  it('GraphCanvas atoms effect lists selectedAtomId as a dependency', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'GraphCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).toMatch(/\[atoms,\s*renderMode,\s*selectedAtomId,\s*setNodes,\s*setEdges\]/)
+  })
+})
+
+describe('Canonical selectedAtomId selection sync — Network view (BI-260043 / REQ-FR-260032)', () => {
+  it('NetworkCanvas nodes effect derives node selected flag from selectedAtomId', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'NetworkCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).toMatch(/selected:\s*n\.id\s*===\s*selectedAtomId/)
+  })
+
+  it('NetworkCanvas nodes effect lists laidNodes and selectedAtomId as dependencies', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'NetworkCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).toMatch(/\[laidNodes,\s*selectedAtomId,\s*setNodes\]/)
+  })
+
+  it('NetworkCanvas uses useMemo to cache force layout independent of selectedAtomId', () => {
+    const canvas = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'NetworkCanvas.tsx'), 'utf-8',
+    )
+    expect(canvas).toContain('useMemo')
+    expect(canvas).toContain('laidNodes')
+    // The useMemo wrapping applyForceLayout must not list selectedAtomId in its dep array
+    expect(canvas).not.toMatch(/useMemo\s*\([\s\S]{0,400}applyForceLayout[\s\S]{0,200}\[[\w\s,]*selectedAtomId[\w\s,]*\]/)
+  })
+})
+
+describe('Detail-panel identity consistency (BI-260043 / REQ-QR-260004)', () => {
+  it('WorkspaceShell resolves selectedAtom by looking up selectedAtomId in atoms', () => {
+    const shell = fs.readFileSync(path.join(SRC, 'ui-shell', 'WorkspaceShell.tsx'), 'utf-8')
+    expect(shell).toMatch(/selectedAtom\s*=\s*graphData\.atoms\.find/)
+    expect(shell).toMatch(/selectedAtomId/)
+  })
+
+  it('DetailPanel renders only when selectedAtom is non-null', () => {
+    const shell = fs.readFileSync(path.join(SRC, 'ui-shell', 'WorkspaceShell.tsx'), 'utf-8')
+    expect(shell).toMatch(/selectedAtom\s*&&/)
+  })
+
+  it('SearchResultPanel onSelectAtom is wired to the canonical setSelectedAtomId', () => {
+    const shell = fs.readFileSync(path.join(SRC, 'ui-shell', 'WorkspaceShell.tsx'), 'utf-8')
+    expect(shell).toMatch(/SearchResultPanel[\s\S]{0,300}onSelectAtom=\{setSelectedAtomId\}/)
+  })
+})

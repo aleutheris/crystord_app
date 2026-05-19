@@ -32,10 +32,13 @@ export function GraphCanvas({ data, selectedAtomId, onSelectAtom, renderMode = '
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
 
   useEffect(() => {
-    setNodes((prev) => mergeNodePositions(atomsToNodes(atoms), prev))
+    setNodes((prev) => {
+      const merged = mergeNodePositions(atomsToNodes(atoms), prev)
+      return merged.map((n) => ({ ...n, selected: n.id === selectedAtomId }))
+    })
     const rawEdges = atomsToEdges(atoms)
     setEdges(renderMode === 'reduced' ? rawEdges.map((e) => ({ ...e, label: undefined })) : rawEdges)
-  }, [atoms, renderMode, setNodes, setEdges])
+  }, [atoms, renderMode, selectedAtomId, setNodes, setEdges])
 
   const ix = useCanvasInteractions({ atoms, edges, selectedAtomId, onSelectAtom, deleteAtom, createAtom, addBond, removeBond })
 

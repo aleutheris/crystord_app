@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import {
   ReactFlow,
   Background,
@@ -53,15 +53,32 @@ export function NetworkCanvas({ data, selectedAtomId, onSelectAtom }: NetworkCan
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
 
+  // Memoize layout so applyForceLayout (300 D3 ticks) only reruns when atoms change,
+  // not on every selectedAtomId change.
+  const networkEdges = useMemo(() => atomsToNetworkEdges(atoms), [atoms])
+  const laidNodes = useMemo(
+    () => applyForceLayout(atomsToNetworkNodes(atoms), networkEdges),
+    [atoms, networkEdges],
+  )
+
   useEffect(() => {
-    const networkEdges = atomsToNetworkEdges(atoms)
-    const laidOut = applyForceLayout(atomsToNetworkNodes(atoms), networkEdges)
-    setNodes((prev) => mergeNodePositions(laidOut, prev))
     setEdges(networkEdges)
-  }, [atoms, setNodes, setEdges])
+  }, [networkEdges, setEdges])
+
+  // Runs when atoms change (laidNodes ref changes) or selectedAtomId changes.
+  // mergeNodePositions preserves user-dragged positions over the laid-out base.
+  useEffect(() => {
+    setNodes((prev) => {
+      const merged = mergeNodePositions(laidNodes, prev)
+      return merged.map((n) => ({ ...n, selected: n.id === selectedAtomId }))
+    })
+  }, [laidNodes, selectedAtomId, setNodes])
 
   function handleRelayout() {
-    setNodes(applyForceLayout(atomsToNetworkNodes(atoms), atomsToNetworkEdges(atoms)))
+    setNodes(
+      applyForceLayout(atomsToNetworkNodes(atoms), networkEdges)
+        .map((n) => ({ ...n, selected: n.id === selectedAtomId })),
+    )
   }
 
   const ix = useCanvasInteractions({ atoms, edges, selectedAtomId, onSelectAtom, deleteAtom, createAtom, addBond, removeBond })
