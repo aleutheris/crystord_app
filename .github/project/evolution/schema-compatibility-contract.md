@@ -19,7 +19,7 @@ Defines the canonical frontend-backend compatibility handshake for GraphQL schem
 3. If incompatible, stop normal API flow and show explicit compatibility error.
 
 Example policy:
-- Supported range: `^1.0.0`
+- Supported range: `^2.0.0`
 - Behavior on mismatch: fail fast, block graph workspace operations, present recovery guidance.
 
 ## Compatibility Policy

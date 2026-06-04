@@ -44,10 +44,24 @@ export const UPDATE_ATOM_MUTATION = gql`
 `
 
 export const DESTROY_ATOMS_MUTATION = gql`
-  mutation DestroyAtoms($selector: Selector!) {
-    destroy(selector: $selector)
+  mutation DestroyAtoms($selector: DestroySelector!) {
+    destroy(selector: $selector) {
+      requested
+      deleted
+      notFound
+    }
   }
 `
+
+export interface DestroyOutcome {
+  requested: string[]
+  deleted: string[]
+  notFound: string[]
+}
+
+export interface DestroyResponse {
+  destroy: DestroyOutcome
+}
 
 export interface AtomBond {
   uuid: string

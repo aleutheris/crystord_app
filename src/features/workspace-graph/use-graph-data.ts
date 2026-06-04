@@ -8,6 +8,7 @@ import {
 } from '../../api-contract/graph-queries'
 import type {
   Atom,
+  DestroyResponse,
   RetrieveResponse,
 } from '../../api-contract/graph-queries'
 
@@ -98,10 +99,15 @@ export function useGraphData(): GraphData {
   }, [client, fetchAtoms, stripSystemBonds, toNucleariesInput])
 
   const deleteAtom = useCallback(async (uuid: string) => {
-    await client.mutate({
+    const result = await client.mutate<DestroyResponse>({
       mutation: DESTROY_ATOMS_MUTATION,
       variables: { selector: { uuids: [uuid] } },
     })
+    const deleted = result.data?.destroy?.deleted ?? []
+    if (deleted.length === 0) {
+      await fetchAtoms()
+      return
+    }
     await fetchAtoms()
   }, [client, fetchAtoms])
 

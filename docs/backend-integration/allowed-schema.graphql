@@ -46,6 +46,10 @@ mutation ChangeAtoms($selector: Selector, $inputs: [AtomInput]!) {
   change(selector: $selector, inputs: $inputs)
 }
 
-mutation DestroyAtoms($selector: Selector!) {
-  destroy(selector: $selector)
+mutation DestroyAtoms($selector: DestroySelector!) {
+  destroy(selector: $selector) {
+    requested
+    deleted
+    notFound
+  }
 }

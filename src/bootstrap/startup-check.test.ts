@@ -30,26 +30,26 @@ describe('runStartupCompatibilityCheck', () => {
 
   it('returns compatible when schema version matches range', async () => {
     const client = createMockClient({
-      schemaInfo: { schemaVersion: '1.2.0', schemaHash: 'abc', releasedAt: '2026-04-13T00:00:00Z' },
+      schemaInfo: { schemaVersion: '2.0.1', schemaHash: 'abc', releasedAt: '2026-05-27T00:00:00Z' },
     })
 
-    const result = await runStartupCompatibilityCheck(client, '^1.0.0')
+    const result = await runStartupCompatibilityCheck(client, '^2.0.0')
     expect(result.compatible).toBe(true)
-    expect(result.schemaVersion).toBe('1.2.0')
+    expect(result.schemaVersion).toBe('2.0.1')
   })
 
   it('returns incompatible when schema version is outside range', async () => {
     const client = createMockClient({
-      schemaInfo: { schemaVersion: '2.0.0', schemaHash: 'abc', releasedAt: '2026-04-13T00:00:00Z' },
+      schemaInfo: { schemaVersion: '1.9.0', schemaHash: 'abc', releasedAt: '2026-05-14T00:00:00Z' },
     })
 
-    const result = await runStartupCompatibilityCheck(client, '^1.0.0')
+    const result = await runStartupCompatibilityCheck(client, '^2.0.0')
     expect(result.compatible).toBe(false)
     expect(result.message).toContain('outside supported range')
   })
 
   it('propagates network errors', async () => {
     const client = createFailingClient(new Error('Network error'))
-    await expect(runStartupCompatibilityCheck(client, '^1.0.0')).rejects.toThrow('Network error')
+    await expect(runStartupCompatibilityCheck(client, '^2.0.0')).rejects.toThrow('Network error')
   })
 })

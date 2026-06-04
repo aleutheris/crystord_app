@@ -32,17 +32,24 @@ def run_command(command, description):
 def run_interface_preflight():
     """Verify the bundled backend interface against the client-supported schema range."""
     root = Path(os.getcwd())
-    backend_intf_dir = root / "backend_intf"
-
-    if not backend_intf_dir.exists() or not any(backend_intf_dir.iterdir()):
-        print(
-            "Skipping backend interface preflight: backend_intf directory is missing or empty."
-        )
-        return True
+    canonical_bundle_dir = root / "docs" / "backend-integration" / "crystord-interface-v2.0.0"
+    legacy_docs_bundle_dir = root / "docs" / "crystord-interface-v2.0.0"
 
     policy_file = root / "docs" / "backend-integration" / "client-schema-policy.json"
-    verify_script = root / "backend_intf" / "crystord-interface-v1.1.0" / "verify.py"
-    archive_file = root / "backend_intf" / "crystord-interface-v1.1.0" / "crystord-interface-v1.1.0.tgz"
+
+    if canonical_bundle_dir.exists():
+        verify_script = canonical_bundle_dir / "verify.py"
+        archive_file = canonical_bundle_dir / "crystord-interface-v2.0.0.tgz"
+    elif legacy_docs_bundle_dir.exists():
+        verify_script = legacy_docs_bundle_dir / "verify.py"
+        archive_file = legacy_docs_bundle_dir / "crystord-interface-v2.0.0.tgz"
+    else:
+        print(
+            "Skipping backend interface preflight: no interface bundle found "
+            "at docs/backend-integration/crystord-interface-v2.0.0 "
+            "or docs/crystord-interface-v2.0.0."
+        )
+        return True
 
     if not policy_file.exists():
         print(f"Interface preflight failed: missing policy file at {policy_file}")

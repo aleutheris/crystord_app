@@ -40,7 +40,13 @@ function mockGraphQL(page: import('@playwright/test').Page) {
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          data: { schemaInfo: { schemaVersion: '1.0.0', schemaHash: 'abc', releasedAt: '2025-01-01T00:00:00Z' } },
+          data: {
+            schemaInfo: {
+              schemaVersion: '2.0.0',
+              schemaHash: '6e1c4572d4a6d485702dc8a3c46491d51b8fc1fb34c032474f4e54e8a4ba01b8',
+              releasedAt: '2026-05-27T00:00:00Z',
+            },
+          },
         }),
       })
     }
@@ -285,7 +291,15 @@ test.describe('Search and discoverability', () => {
       if (query.includes('schemaInfo')) {
         return route.fulfill({
           status: 200, contentType: 'application/json',
-          body: JSON.stringify({ data: { schemaInfo: { schemaVersion: '1.0.0', schemaHash: 'abc', releasedAt: '2025-01-01T00:00:00Z' } } }),
+          body: JSON.stringify({
+            data: {
+              schemaInfo: {
+                schemaVersion: '2.0.0',
+                schemaHash: '6e1c4572d4a6d485702dc8a3c46491d51b8fc1fb34c032474f4e54e8a4ba01b8',
+                releasedAt: '2026-05-27T00:00:00Z',
+              },
+            },
+          }),
         })
       }
       if (query.includes('signin')) {
@@ -385,7 +399,15 @@ test.describe('Search and discoverability', () => {
       if (query.includes('schemaInfo')) {
         return route.fulfill({
           status: 200, contentType: 'application/json',
-          body: JSON.stringify({ data: { schemaInfo: { schemaVersion: '1.0.0', schemaHash: 'abc', releasedAt: '2025-01-01T00:00:00Z' } } }),
+          body: JSON.stringify({
+            data: {
+              schemaInfo: {
+                schemaVersion: '2.0.0',
+                schemaHash: '6e1c4572d4a6d485702dc8a3c46491d51b8fc1fb34c032474f4e54e8a4ba01b8',
+                releasedAt: '2026-05-27T00:00:00Z',
+              },
+            },
+          }),
         })
       }
       if (query.includes('signin')) {

@@ -5,7 +5,7 @@ import App from './App'
 vi.mock('./config', () => ({
   getConfig: () => ({
     graphqlEndpoint: 'http://localhost:5665/graphql',
-    supportedSchemaRange: '^1.0.0',
+    supportedSchemaRange: '^2.0.0',
   }),
 }))
 
@@ -46,9 +46,9 @@ describe('App', () => {
   it('shows sign-in page on compatible schema', async () => {
     mockStartupCheck.mockResolvedValue({
       compatible: true,
-      schemaVersion: '1.2.0',
-      supportedRange: '^1.0.0',
-      message: 'Schema version 1.2.0 is compatible.',
+      schemaVersion: '2.0.1',
+      supportedRange: '^2.0.0',
+      message: 'Schema version 2.0.1 is compatible.',
     })
 
     render(<App />)
@@ -58,14 +58,14 @@ describe('App', () => {
   it('shows error screen on incompatible schema', async () => {
     mockStartupCheck.mockResolvedValue({
       compatible: false,
-      schemaVersion: '2.0.0',
-      supportedRange: '^1.0.0',
-      message: 'Backend schema version 2.0.0 is outside supported range ^1.0.0.',
+      schemaVersion: '1.9.0',
+      supportedRange: '^2.0.0',
+      message: 'Backend schema version 1.9.0 is outside supported range ^2.0.0.',
     })
 
     render(<App />)
     expect(await screen.findByText(/incompatible backend/i)).toBeInTheDocument()
-    expect(await screen.findByRole('alert')).toHaveTextContent('2.0.0')
+    expect(await screen.findByRole('alert')).toHaveTextContent('1.9.0')
   })
 
   it('shows startup error on network failure', async () => {
