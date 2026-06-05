@@ -25,12 +25,13 @@ export interface GraphCanvasProps {
   data: GraphData
   selectedAtomId: string | null
   onSelectAtom: (id: string | null) => void
+  onCreateAtom: () => void
   renderMode?: 'full' | 'reduced'
 }
 
 const nodeTypes = { atom: AtomNode }
 
-export function GraphCanvas({ data, selectedAtomId, onSelectAtom }: GraphCanvasProps) {
+export function GraphCanvas({ data, selectedAtomId, onSelectAtom, onCreateAtom }: GraphCanvasProps) {
   const { atoms, loading, error, createAtom, deleteAtom, addBond, removeBond } = data
 
   // Default is Focused mode (eligible-bond projection only — D1/D2 / ADR-260040)
@@ -123,13 +124,20 @@ export function GraphCanvas({ data, selectedAtomId, onSelectAtom }: GraphCanvasP
         onConnect={ix.onConnect}
         onNodeClick={ix.onNodeClick}
         onPaneClick={ix.onPaneClick}
-        onDoubleClick={ix.handleDoubleClick}
         fitView
         deleteKeyCode={null}
       >
         <Background />
         <Controls />
         <Panel position="top-right">
+          <button
+            type="button"
+            onClick={onCreateAtom}
+            aria-label="Create atom"
+            style={{ padding: '0.25rem 0.75rem', cursor: 'pointer', marginRight: '0.5rem', background: '#0066CC', color: '#fff', border: 'none', borderRadius: 4, fontWeight: 600 }}
+          >
+            Create Atom
+          </button>
           <button
             type="button"
             onClick={handleRelayout}

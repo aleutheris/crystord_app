@@ -172,26 +172,6 @@ test.describe('Graph workspace', () => {
     await expect(detailPanel.getByLabel(/labels.*comma/i)).toHaveValue('Task')
   })
 
-  test('creates a new atom via double-click on canvas', async ({ page }) => {
-    await mockGraphQL(page)
-    await signIn(page)
-    await submitSearch(page)
-
-    await expect(page.getByText('Alpha')).toBeVisible()
-
-    // Switch to Flow view — deterministic grid layout ensures the pane is reachable at a fixed position
-    await page.getByRole('tab', { name: 'Flow' }).click()
-
-    // Double-click on a background area of the React Flow pane.
-    // This validates the interaction path without depending on brittle network timing.
-    const canvas = page.locator('.react-flow__pane')
-    await expect(canvas).toBeVisible()
-    await canvas.dblclick({ position: { x: 24, y: 24 } })
-
-    // Workspace remains functional after double-click interaction.
-    await expect(page.getByText('Alpha')).toBeVisible()
-  })
-
   test('edits atom properties via detail panel save', async ({ page }) => {
     await mockGraphQL(page)
     await signIn(page)
@@ -361,12 +341,13 @@ test.describe('Graph workspace', () => {
     await submitSearch(page)
     await expect(page.getByText('Alpha')).toBeVisible()
 
-    // Double-click to attempt create — should fail but not crash
-    const canvas = page.locator('.react-flow__pane')
-    await canvas.dblclick({ position: { x: 300, y: 300 } })
+    // Attempt to edit — mutation fails but the workspace must not crash
+    await page.getByText('Alpha').click()
+    const detailPanel = page.getByRole('complementary', { name: /atom details/i })
+    await detailPanel.getByLabel(/title/i).fill('AlphaEdited')
+    await detailPanel.getByRole('button', { name: /save/i }).click()
 
     // Workspace still shows existing data and navigation
-    await expect(page.getByText('Alpha')).toBeVisible()
     await expect(page.getByRole('button', { name: /sign out/i })).toBeVisible()
   })
 })

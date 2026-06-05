@@ -3,52 +3,66 @@ import type { FormEvent } from 'react'
 import type { Atom } from '../../api-contract/graph-queries'
 
 interface DetailPanelProps {
-  atom: Atom
-  onUpdate: (uuid: string, atom: Atom) => Promise<void>
-  onDelete: (uuid: string) => void
+  atom?: Atom
+  isCreationMode?: boolean
+  onCreate?: (title: string, labels: string[], description: string, content: string) => Promise<void>
+  onUpdate?: (uuid: string, atom: Atom) => Promise<void>
+  onDelete?: (uuid: string) => void
   onClose: () => void
 }
 
-export function DetailPanel({ atom, onUpdate, onDelete, onClose }: DetailPanelProps) {
-  const uuid = atom.properties.shellies.uuid
-  const [title, setTitle] = useState(atom.properties.nuclearies.title)
-  const [description, setDescription] = useState(atom.properties.nuclearies.description)
-  const [content, setContent] = useState(atom.properties.nuclearies.content)
-  const [labels, setLabels] = useState(atom.labels.join(', '))
+export function DetailPanel({ atom, isCreationMode, onCreate, onUpdate, onDelete, onClose }: DetailPanelProps) {
+  const uuid = atom?.properties.shellies.uuid ?? ''
+  const [title, setTitle] = useState(atom?.properties.nuclearies.title ?? '')
+  const [description, setDescription] = useState(atom?.properties.nuclearies.description ?? '')
+  const [content, setContent] = useState(atom?.properties.nuclearies.content ?? '')
+  const [labels, setLabels] = useState(atom?.labels.join(', ') ?? '')
   const [saving, setSaving] = useState(false)
 
   async function handleSave(e: FormEvent) {
     e.preventDefault()
     setSaving(true)
     try {
-      const updated: Atom = {
-        ...atom,
-        labels: labels.split(',').map((l) => l.trim()).filter(Boolean),
-        properties: {
-          ...atom.properties,
-          nuclearies: { ...atom.properties.nuclearies, title, description, content },
-        },
+      const parsedLabels = labels.split(',').map((l) => l.trim()).filter(Boolean)
+      if (isCreationMode && onCreate) {
+        await onCreate(title, parsedLabels, description, content)
+      } else if (atom && onUpdate) {
+        const updated: Atom = {
+          ...atom,
+          labels: parsedLabels,
+          properties: {
+            ...atom.properties,
+            nuclearies: { ...atom.properties.nuclearies, title, description, content },
+          },
+        }
+        await onUpdate(uuid, updated)
       }
-      await onUpdate(uuid, updated)
     } finally {
       setSaving(false)
     }
   }
 
+  const panelLabel = isCreationMode ? 'Create atom' : 'Atom details'
+
   return (
     <aside
-      aria-label="Atom details"
+      aria-label={panelLabel}
       style={{
         width: 320,
+        height: isCreationMode ? '100%' : undefined,
         borderLeft: '1px solid #ddd',
         padding: '1rem',
         overflowY: 'auto',
         display: 'flex',
         flexDirection: 'column',
+        background: '#fff',
+        boxSizing: 'border-box',
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h2 style={{ margin: 0, fontSize: '1rem' }}>Atom Details</h2>
+        <h2 style={{ margin: 0, fontSize: '1rem' }}>
+          {isCreationMode ? 'Create New Atom' : 'Atom Details'}
+        </h2>
         <button type="button" onClick={onClose} aria-label="Close panel" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem' }}>✕</button>
       </div>
 
@@ -72,21 +86,25 @@ export function DetailPanel({ atom, onUpdate, onDelete, onClose }: DetailPanelPr
 
         <div style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto' }}>
           <button type="submit" disabled={saving} style={{ padding: '0.4rem 1rem' }}>
-            {saving ? 'Saving…' : 'Save'}
+            {saving ? (isCreationMode ? 'Creating…' : 'Saving…') : (isCreationMode ? 'Create' : 'Save')}
           </button>
-          <button
-            type="button"
-            onClick={() => onDelete(uuid)}
-            style={{ padding: '0.4rem 1rem', color: '#d93025', marginLeft: 'auto' }}
-          >
-            Delete
-          </button>
+          {!isCreationMode && onDelete && (
+            <button
+              type="button"
+              onClick={() => onDelete(uuid)}
+              style={{ padding: '0.4rem 1rem', color: '#d93025', marginLeft: 'auto' }}
+            >
+              Delete
+            </button>
+          )}
         </div>
       </form>
 
-      <div style={{ fontSize: '0.7rem', color: '#888', marginTop: '0.75rem' }}>
-        UUID: {uuid}
-      </div>
+      {!isCreationMode && uuid && (
+        <div style={{ fontSize: '0.7rem', color: '#888', marginTop: '0.75rem' }}>
+          UUID: {uuid}
+        </div>
+      )}
     </aside>
   )
 }

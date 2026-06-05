@@ -102,13 +102,6 @@ export function useCanvasInteractions({
     } catch { /* best-effort undo */ }
   }, [createAtom, addBond])
 
-  const handleDoubleClick = useCallback(async () => {
-    try {
-      const id = await createAtom('New Atom', ['Node'])
-      if (id) onSelectAtom(id)
-    } catch { /* error visible via refetch */ }
-  }, [createAtom, onSelectAtom])
-
   const onKeyDown = useCallback((event: React.KeyboardEvent) => {
     if (isEditableTarget(event.target)) return
 
@@ -165,7 +158,6 @@ export function useCanvasInteractions({
     handleBondConfirm,
     handleDeleteConfirm,
     handleUndo,
-    handleDoubleClick,
     setPendingConnection,
     setConfirmDelete,
     setUndoEntry,

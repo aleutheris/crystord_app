@@ -25,6 +25,7 @@ export interface NetworkCanvasProps {
   data: GraphData
   selectedAtomId: string | null
   onSelectAtom: (id: string | null) => void
+  onCreateAtom: () => void
   renderMode?: 'full' | 'reduced'
 }
 
@@ -47,7 +48,7 @@ function atomsToNetworkNodes(atoms: Atom[]): Node[] {
   }))
 }
 
-export function NetworkCanvas({ data, selectedAtomId, onSelectAtom }: NetworkCanvasProps) {
+export function NetworkCanvas({ data, selectedAtomId, onSelectAtom, onCreateAtom }: NetworkCanvasProps) {
   const { atoms, loading, error, createAtom, deleteAtom, addBond, removeBond } = data
 
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
@@ -109,7 +110,6 @@ export function NetworkCanvas({ data, selectedAtomId, onSelectAtom }: NetworkCan
         onConnect={ix.onConnect}
         onNodeClick={ix.onNodeClick}
         onPaneClick={ix.onPaneClick}
-        onDoubleClick={ix.handleDoubleClick}
         connectionRadius={CIRCLE_DROP_RADIUS}
         connectionLineComponent={NetworkConnectionLine}
         fitView
@@ -118,6 +118,14 @@ export function NetworkCanvas({ data, selectedAtomId, onSelectAtom }: NetworkCan
         <Background />
         <Controls />
         <Panel position="top-right">
+          <button
+            type="button"
+            onClick={onCreateAtom}
+            aria-label="Create atom"
+            style={{ padding: '0.25rem 0.75rem', cursor: 'pointer', marginRight: '0.5rem', background: '#0066CC', color: '#fff', border: 'none', borderRadius: 4, fontWeight: 600 }}
+          >
+            Create Atom
+          </button>
           <button
             type="button"
             onClick={handleRelayout}

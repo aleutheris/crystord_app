@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { ReactFlowProvider } from '@xyflow/react'
 import { useAuth } from '../features/auth-entry'
 import { GraphCanvas, NetworkCanvas, useGraphData, DeleteConfirmDialog, useGraphDegrade } from '../features/workspace-graph'
-import { DetailPanel } from '../features/workspace-details'
+import { DetailPanel, CreationNotification } from '../features/workspace-details'
 import { SearchBar, QuerySummary, SearchResultPanel, useSearch, useRecommendedLabels } from '../features/workspace-search'
 import { GraphViewTabs } from './GraphViewTabs'
 import { GraphRenderGate } from './GraphRenderGate'
@@ -19,6 +19,8 @@ export function WorkspaceShell() {
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
   const [activeView, setActiveView] = useState<GraphView>(networkViewEnabled ? 'network' : 'flow')
   const { mode: renderMode, confirmRender } = useGraphDegrade(graphData.atoms.length)
+  const [isCreatingAtom, setIsCreatingAtom] = useState(false)
+  const [creationSuccessMsg, setCreationSuccessMsg] = useState<string | null>(null)
   const canvasMode = renderMode === 'full' ? 'full' : 'reduced'
 
   const selectedAtom = graphData.atoms.find(
@@ -35,6 +37,12 @@ export function WorkspaceShell() {
     setPendingDeleteId(null)
     setSelectedAtomId(null)
     void graphData.deleteAtom(id)
+  }
+
+  async function handleCreateAtom(title: string, labels: string[], description: string, content: string) {
+    await graphData.createAtom(title, labels, { description, content })
+    setIsCreatingAtom(false)
+    setCreationSuccessMsg(`Atom "${title}" created successfully.`)
   }
 
   return (
@@ -75,6 +83,7 @@ export function WorkspaceShell() {
                     data={graphData}
                     selectedAtomId={selectedAtomId}
                     onSelectAtom={setSelectedAtomId}
+                    onCreateAtom={() => setIsCreatingAtom(true)}
                     renderMode={canvasMode}
                   />
                 ) : (
@@ -82,6 +91,7 @@ export function WorkspaceShell() {
                     data={graphData}
                     selectedAtomId={selectedAtomId}
                     onSelectAtom={setSelectedAtomId}
+                    onCreateAtom={() => setIsCreatingAtom(true)}
                     renderMode={canvasMode}
                   />
                 )}
@@ -105,6 +115,27 @@ export function WorkspaceShell() {
           atomTitle={pendingDeleteAtom.properties.nuclearies.title}
           onConfirm={handleDeleteConfirm}
           onCancel={() => setPendingDeleteId(null)}
+        />
+      )}
+      {isCreatingAtom && (
+        <>
+          <div
+            aria-hidden="true"
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 1000 }}
+          />
+          <div style={{ position: 'fixed', right: 0, top: 0, height: '100%', zIndex: 1001, display: 'flex' }}>
+            <DetailPanel
+              isCreationMode={true}
+              onCreate={handleCreateAtom}
+              onClose={() => setIsCreatingAtom(false)}
+            />
+          </div>
+        </>
+      )}
+      {creationSuccessMsg && (
+        <CreationNotification
+          message={creationSuccessMsg}
+          onExpire={() => setCreationSuccessMsg(null)}
         />
       )}
     </div>

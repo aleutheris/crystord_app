@@ -12,13 +12,18 @@ import type {
   RetrieveResponse,
 } from '../../api-contract/graph-queries'
 
+export interface AtomCreationOptions {
+  description?: string
+  content?: string
+}
+
 export interface GraphData {
   atoms: Atom[]
   loading: boolean
   error: string | null
   refetch: () => Promise<void>
   search: (labels: string[]) => Promise<void>
-  createAtom: (title: string, labels: string[]) => Promise<string | null>
+  createAtom: (title: string, labels: string[], options?: AtomCreationOptions) => Promise<string | null>
   updateAtom: (uuid: string, atom: Atom) => Promise<void>
   deleteAtom: (uuid: string) => Promise<void>
   addBond: (sourceUuid: string, targetUuid: string, bondName: string) => Promise<void>
@@ -54,14 +59,14 @@ export function useGraphData(): GraphData {
     }
   }, [client])
 
-  const createAtom = useCallback(async (title: string, labels: string[]): Promise<string | null> => {
+  const createAtom = useCallback(async (title: string, labels: string[], options?: AtomCreationOptions): Promise<string | null> => {
     const result = await client.mutate({
       mutation: CREATE_ATOMS_MUTATION,
       variables: {
         inputs: [{
           labels,
           properties: {
-            nuclearies: { title, description: '', content: '', operation: '', constants: {} },
+            nuclearies: { title, description: options?.description ?? '', content: options?.content ?? '', operation: '', constants: {} },
           },
         }],
       },
