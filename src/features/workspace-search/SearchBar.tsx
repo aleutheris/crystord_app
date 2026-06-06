@@ -1,5 +1,17 @@
 import { useCallback } from 'react'
 import type { SearchState } from './use-search'
+import {
+  C_BORDER,
+  C_CARD_BG,
+  C_CHIP_BG,
+  C_CHIP_BORDER,
+  C_CHIP_TEXT,
+  C_CHIP_INACTIVE_BG,
+  C_CHIP_INACTIVE_BORDER,
+  C_CHIP_INACTIVE_TEXT,
+  C_PRIMARY,
+  C_TEXT_SECONDARY,
+} from '../../styles/tokens'
 
 interface SearchBarProps {
   search: SearchState
@@ -35,10 +47,10 @@ export function SearchBar({ search, recommendedLabels = [] }: SearchBarProps) {
           flexWrap: 'wrap',
           gap: '0.25rem',
           padding: '0.2rem 0.4rem',
-          border: '1px solid #ccc',
+          border: `1px solid ${C_BORDER}`,
           borderRadius: 4,
           minWidth: 180,
-          background: '#fff',
+          background: C_CARD_BG,
         }}
       >
         {search.filters.selectedLabels.map((label) => (
@@ -50,9 +62,9 @@ export function SearchBar({ search, recommendedLabels = [] }: SearchBarProps) {
               gap: '0.2rem',
               padding: '0.1rem 0.4rem',
               borderRadius: 12,
-              background: '#e8f0fe',
-              border: '1px solid #1a73e8',
-              color: '#1a73e8',
+              background: C_CHIP_BG,
+              border: `1px solid ${C_CHIP_BORDER}`,
+              color: C_CHIP_TEXT,
               fontSize: '0.75rem',
             }}
           >
@@ -66,7 +78,7 @@ export function SearchBar({ search, recommendedLabels = [] }: SearchBarProps) {
                 border: 'none',
                 cursor: 'pointer',
                 padding: 0,
-                color: '#1a73e8',
+                color: C_CHIP_TEXT,
                 fontSize: '0.75rem',
                 lineHeight: 1,
               }}
@@ -104,9 +116,9 @@ export function SearchBar({ search, recommendedLabels = [] }: SearchBarProps) {
           alignItems: 'center',
           justifyContent: 'center',
           borderRadius: 0,
-          border: '1px solid #1a73e8',
-          background: '#1a73e8',
-          color: '#fff',
+          border: `1px solid ${C_PRIMARY}`,
+          background: C_PRIMARY,
+          color: C_CARD_BG,
           cursor: 'pointer',
           fontSize: '1rem',
           fontWeight: 700,
@@ -129,9 +141,9 @@ export function SearchBar({ search, recommendedLabels = [] }: SearchBarProps) {
                   padding: '0.15rem 0.5rem',
                   fontSize: '0.75rem',
                   borderRadius: 12,
-                  border: active ? '1px solid #1a73e8' : '1px solid #ccc',
-                  background: active ? '#e8f0fe' : '#f5f5f5',
-                  color: active ? '#1a73e8' : '#333',
+                  border: active ? `1px solid ${C_CHIP_BORDER}` : `1px solid ${C_CHIP_INACTIVE_BORDER}`,
+                  background: active ? C_CHIP_BG : C_CHIP_INACTIVE_BG,
+                  color: active ? C_CHIP_TEXT : C_CHIP_INACTIVE_TEXT,
                   cursor: 'pointer',
                 }}
               >
@@ -146,7 +158,7 @@ export function SearchBar({ search, recommendedLabels = [] }: SearchBarProps) {
           type="button"
           onClick={search.clearFilters}
           aria-label="Clear search"
-          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: '#666' }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: C_TEXT_SECONDARY }}
         >
           ✕
         </button>

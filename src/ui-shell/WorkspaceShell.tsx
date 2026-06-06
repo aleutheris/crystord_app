@@ -9,6 +9,8 @@ import { GraphRenderGate } from './GraphRenderGate'
 import { GraphLegend } from './GraphLegend'
 import type { GraphView } from './GraphViewTabs'
 import { networkViewEnabled } from '../feature-flags'
+import { ThemeToggle } from '../styles/ThemeToggle'
+import { C_BORDER, C_OVERLAY } from '../styles/tokens'
 
 export function WorkspaceShell() {
   const { signOut } = useAuth()
@@ -47,12 +49,15 @@ export function WorkspaceShell() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <header style={{ padding: '0.5rem 1rem', borderBottom: '1px solid #ddd', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
+      <header style={{ padding: '0.5rem 1rem', borderBottom: `1px solid ${C_BORDER}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
         <h1 style={{ margin: 0, fontSize: '1.25rem', flexShrink: 0 }}>Crystord</h1>
         <SearchBar search={search} recommendedLabels={recommendedLabels} />
-        <button type="button" onClick={signOut} style={{ padding: '0.25rem 0.75rem', flexShrink: 0 }}>
-          Sign Out
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+          <ThemeToggle />
+          <button type="button" onClick={signOut} style={{ padding: '0.25rem 0.75rem' }}>
+            Sign Out
+          </button>
+        </div>
       </header>
       <QuerySummary summary={search.querySummary} resultCount={graphData.atoms.length} />
       <ReactFlowProvider>
@@ -121,7 +126,7 @@ export function WorkspaceShell() {
         <>
           <div
             aria-hidden="true"
-            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 1000 }}
+            style={{ position: 'fixed', inset: 0, background: C_OVERLAY, zIndex: 1000 }}
           />
           <div style={{ position: 'fixed', right: 0, top: 0, height: '100%', zIndex: 1001, display: 'flex' }}>
             <DetailPanel

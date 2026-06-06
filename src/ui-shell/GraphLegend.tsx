@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { GraphView } from './GraphViewTabs'
+import { C_BG, C_BORDER, C_TEXT, C_TEXT_SECONDARY } from '../styles/tokens'
 
 interface GraphLegendProps {
   view: GraphView
@@ -21,11 +22,11 @@ export function GraphLegend({ view }: GraphLegendProps) {
         bottom: 12,
         right: 12,
         zIndex: 10,
-        background: '#FAFBFC',
-        border: '1px solid #D6DEE5',
+        background: C_BG,
+        border: `1px solid ${C_BORDER}`,
         borderRadius: 6,
         fontSize: '0.75rem',
-        color: '#17202A',
+        color: C_TEXT,
         boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
         minWidth: 180,
       }}
@@ -44,7 +45,7 @@ export function GraphLegend({ view }: GraphLegendProps) {
           textAlign: 'left',
           fontWeight: 600,
           fontSize: '0.75rem',
-          color: '#5B6B7A',
+          color: C_TEXT_SECONDARY,
           display: 'flex',
           justifyContent: 'space-between',
         }}
@@ -58,20 +59,20 @@ export function GraphLegend({ view }: GraphLegendProps) {
           id="graph-legend-body"
           style={{ margin: 0, padding: '0 0.6rem 0.5rem', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0.15rem 0.5rem' }}
         >
-          <dt style={{ fontWeight: 600, color: '#5B6B7A', whiteSpace: 'nowrap' }}>Node</dt>
+          <dt style={{ fontWeight: 600, color: C_TEXT_SECONDARY, whiteSpace: 'nowrap' }}>Node</dt>
           <dd style={{ margin: 0 }}>{NODE_LABEL[view]}</dd>
 
-          <dt style={{ fontWeight: 600, color: '#5B6B7A' }}>Edge</dt>
+          <dt style={{ fontWeight: 600, color: C_TEXT_SECONDARY }}>Edge</dt>
           <dd style={{ margin: 0 }}>Line = bond (relationship)</dd>
 
           {view === 'network' && (
             <>
-              <dt style={{ fontWeight: 600, color: '#5B6B7A', whiteSpace: 'nowrap' }}>Blue dot</dt>
+              <dt style={{ fontWeight: 600, color: C_TEXT_SECONDARY, whiteSpace: 'nowrap' }}>Blue dot</dt>
               <dd style={{ margin: 0 }}>Drag to create a relationship</dd>
             </>
           )}
 
-          <dt style={{ fontWeight: 600, color: '#5B6B7A' }}>Selected</dt>
+          <dt style={{ fontWeight: 600, color: C_TEXT_SECONDARY }}>Selected</dt>
           <dd style={{ margin: 0 }}>Bold outline + highlighted background</dd>
         </dl>
       )}

@@ -1,3 +1,5 @@
+import { C_BORDER, C_SURFACE, C_PRIMARY, C_TEXT_SECONDARY } from '../styles/tokens'
+
 export type GraphView = 'network' | 'flow'
 
 interface GraphViewTabsProps {
@@ -29,8 +31,8 @@ export function GraphViewTabs({ activeView, onViewChange }: GraphViewTabsProps) 
       onKeyDown={handleKeyDown}
       style={{
         display: 'flex',
-        borderBottom: '1px solid #D6DEE5',
-        backgroundColor: '#F3F6F8',
+        borderBottom: `1px solid ${C_BORDER}`,
+        backgroundColor: C_SURFACE,
         padding: '0 0.5rem',
         flexShrink: 0,
       }}
@@ -48,15 +50,15 @@ export function GraphViewTabs({ activeView, onViewChange }: GraphViewTabsProps) 
           style={{
             padding: '0.4rem 1rem',
             border: 'none',
-            borderBottom: activeView === view ? '2px solid #0066CC' : '2px solid transparent',
+            borderBottom: activeView === view ? `2px solid ${C_PRIMARY}` : '2px solid transparent',
             background: 'transparent',
-            color: activeView === view ? '#0066CC' : '#5B6B7A',
+            color: activeView === view ? C_PRIMARY : C_TEXT_SECONDARY,
             fontWeight: activeView === view ? 600 : 400,
             cursor: 'pointer',
             fontSize: '0.85rem',
             outline: 'none',
           }}
-          onFocus={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 2px #0066CC' }}
+          onFocus={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = `0 0 0 2px ${C_PRIMARY}` }}
           onBlur={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}
         >
           {LABELS[view]}

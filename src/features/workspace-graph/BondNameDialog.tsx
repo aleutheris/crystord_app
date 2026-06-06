@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { C_OVERLAY, C_CARD_BG, C_CARD_SHADOW, C_TEXT_SECONDARY } from '../../styles/tokens'
 
 interface BondNameDialogProps {
   sourceTitle: string
@@ -26,16 +27,16 @@ export function BondNameDialog({ sourceTitle, targetTitle, onConfirm, onCancel }
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'rgba(0,0,0,0.3)',
+        background: C_OVERLAY,
         zIndex: 1000,
       }}
     >
       <form
         onSubmit={handleSubmit}
-        style={{ background: '#fff', borderRadius: 8, padding: '1.5rem', maxWidth: 400, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
+        style={{ background: C_CARD_BG, borderRadius: 8, padding: '1.5rem', maxWidth: 400, boxShadow: `0 4px 12px ${C_CARD_SHADOW}` }}
       >
         <h3 style={{ margin: '0 0 0.5rem' }}>Name this Bond</h3>
-        <p style={{ margin: '0 0 1rem', fontSize: '0.85rem', color: '#555' }}>
+        <p style={{ margin: '0 0 1rem', fontSize: '0.85rem', color: C_TEXT_SECONDARY }}>
           {sourceTitle} → {targetTitle}
         </p>
         <input

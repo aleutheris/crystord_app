@@ -6,6 +6,7 @@ import { createApolloClient } from './api-contract'
 import type { CompatibilityResult } from './api-contract'
 import { runStartupCompatibilityCheck } from './bootstrap'
 import { getConfig } from './config'
+import { ThemeProvider } from './styles/ThemeProvider'
 import { AuthProvider, AuthGuard, SignInPage } from './features/auth-entry'
 import { AdminPlaceholder } from './features/admin'
 import { LoadingScreen } from './ui-shell/LoadingScreen'
@@ -64,6 +65,7 @@ export default function App() {
       return <StartupErrorScreen error={state.message} />
     case 'compatible':
       return (
+        <ThemeProvider>
         <ApolloProvider client={state.client}>
           <AuthProvider>
             <BrowserRouter>
@@ -77,6 +79,7 @@ export default function App() {
             </BrowserRouter>
           </AuthProvider>
         </ApolloProvider>
+        </ThemeProvider>
       )
   }
 }

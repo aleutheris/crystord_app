@@ -1,5 +1,6 @@
 import { Handle, Position } from '@xyflow/react'
 import type { NodeProps } from '@xyflow/react'
+import { C_PRIMARY, C_BORDER, C_SELECTION_BG, C_BG, C_TEXT, C_TEXT_SECONDARY } from '../../styles/tokens'
 
 interface AtomNodeData {
   title: string
@@ -13,7 +14,7 @@ export function AtomNode({ data, selected }: NodeProps) {
   const labelList = labels.join(', ')
   const tooltip = labelList ? `${title} [${labelList}]` : title
 
-  const borderColor = selected ? '#0066CC' : '#D6DEE5'
+  const borderColor = selected ? C_PRIMARY : C_BORDER
   const borderWidth = selected ? 2 : 1
   const borderStyle = isNonFlowAtom ? 'dashed' : 'solid'
 
@@ -27,16 +28,16 @@ export function AtomNode({ data, selected }: NodeProps) {
           padding: '8px 14px',
           borderRadius: 6,
           border: `${borderWidth}px ${borderStyle} ${borderColor}`,
-          background: selected ? '#E8F4FF' : '#FAFBFC',
+          background: selected ? C_SELECTION_BG : C_BG,
           minWidth: 100,
           textAlign: 'center',
           cursor: 'grab',
           opacity: isNonFlowAtom ? 0.55 : 1,
         }}
       >
-        <div style={{ fontWeight: selected ? 700 : 600, fontSize: '0.85rem', color: '#17202A' }}>{title}</div>
+        <div style={{ fontWeight: selected ? 700 : 600, fontSize: '0.85rem', color: C_TEXT }}>{title}</div>
         {labels.length > 0 && (
-          <div style={{ fontSize: '0.7rem', color: '#5B6B7A', marginTop: 2 }}>
+          <div style={{ fontSize: '0.7rem', color: C_TEXT_SECONDARY, marginTop: 2 }}>
             {labelList}
           </div>
         )}

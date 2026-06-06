@@ -2180,3 +2180,109 @@ describe('Network view scope boundary unchanged (D5 / ADR-260040)', () => {
     expect(canvas).not.toContain('isNonFlowAtom')
   })
 })
+
+// --- BI-260047: New brand identity — CSS token system and dark mode (ADR-260047) ---
+
+describe('Brand token system files exist (BI-260047)', () => {
+  it('src/styles/tokens.css exists with brand color variables', () => {
+    const cssPath = path.join(SRC, 'styles', 'tokens.css')
+    expect(fs.existsSync(cssPath)).toBe(true)
+    const css = fs.readFileSync(cssPath, 'utf-8')
+    expect(css).toContain('--color-primary')
+    expect(css).toContain('--color-control')
+    expect(css).toContain('--color-accent')
+    expect(css).toContain('data-theme="dark"')
+    expect(css).toContain('prefers-color-scheme: dark')
+  })
+
+  it('src/styles/tokens.ts exists and exports primary brand token constants', () => {
+    const tsPath = path.join(SRC, 'styles', 'tokens.ts')
+    expect(fs.existsSync(tsPath)).toBe(true)
+    const ts = fs.readFileSync(tsPath, 'utf-8')
+    expect(ts).toContain('C_PRIMARY')
+    expect(ts).toContain('C_CONTROL')
+    expect(ts).toContain('C_ACCENT')
+    expect(ts).toContain('var(--color-primary)')
+  })
+
+  it('src/styles/ThemeProvider.tsx exists and exports ThemeProvider and useTheme', () => {
+    const providerPath = path.join(SRC, 'styles', 'ThemeProvider.tsx')
+    expect(fs.existsSync(providerPath)).toBe(true)
+    const src = fs.readFileSync(providerPath, 'utf-8')
+    expect(src).toContain('ThemeProvider')
+    expect(src).toContain('useTheme')
+    expect(src).toContain('localStorage')
+    expect(src).toContain('data-theme')
+  })
+
+  it('src/styles/ThemeToggle.tsx exists and exports ThemeToggle', () => {
+    const togglePath = path.join(SRC, 'styles', 'ThemeToggle.tsx')
+    expect(fs.existsSync(togglePath)).toBe(true)
+    const src = fs.readFileSync(togglePath, 'utf-8')
+    expect(src).toContain('ThemeToggle')
+    expect(src).toContain('useTheme')
+  })
+})
+
+describe('Token system integration wiring (BI-260047)', () => {
+  it('main.tsx imports tokens.css', () => {
+    const main = fs.readFileSync(path.join(SRC, 'main.tsx'), 'utf-8')
+    expect(main).toContain('tokens.css')
+  })
+
+  it('App.tsx wraps the app with ThemeProvider', () => {
+    const app = fs.readFileSync(path.join(SRC, 'App.tsx'), 'utf-8')
+    expect(app).toContain('ThemeProvider')
+    expect(app).toContain('ThemeProvider')
+  })
+
+  it('WorkspaceShell renders ThemeToggle in header', () => {
+    const shell = fs.readFileSync(path.join(SRC, 'ui-shell', 'WorkspaceShell.tsx'), 'utf-8')
+    expect(shell).toContain('ThemeToggle')
+  })
+})
+
+describe('No-hardcoded-hex ESLint rule (BI-260047)', () => {
+  it('eslint.config.js contains a no-restricted-syntax rule targeting hex color literals', () => {
+    const eslintConfig = fs.readFileSync(path.join(ROOT, 'eslint.config.js'), 'utf-8')
+    expect(eslintConfig).toContain('no-restricted-syntax')
+    expect(eslintConfig).toMatch(/#\[0-9A-Fa-f\]|hex.*color|color.*hex/i)
+  })
+
+  it('network-tokens.ts is excluded from the hex-color ESLint rule', () => {
+    const eslintConfig = fs.readFileSync(path.join(ROOT, 'eslint.config.js'), 'utf-8')
+    expect(eslintConfig).toContain('network-tokens')
+  })
+})
+
+describe('Core components use token references not hardcoded hex (BI-260047)', () => {
+  const HEX_RE = /#[0-9A-Fa-f]{3,8}(?![0-9A-Fa-f])/
+
+  it('AtomNode.tsx has no hardcoded hex color literals', () => {
+    const src = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'AtomNode.tsx'), 'utf-8',
+    )
+    expect(src).not.toMatch(HEX_RE)
+  })
+
+  it('UndoNotification.tsx has no hardcoded hex color literals', () => {
+    const src = fs.readFileSync(
+      path.join(FEATURES, 'workspace-graph', 'UndoNotification.tsx'), 'utf-8',
+    )
+    expect(src).not.toMatch(HEX_RE)
+  })
+
+  it('DetailPanel.tsx has no hardcoded hex color literals', () => {
+    const src = fs.readFileSync(
+      path.join(FEATURES, 'workspace-details', 'DetailPanel.tsx'), 'utf-8',
+    )
+    expect(src).not.toMatch(HEX_RE)
+  })
+
+  it('GraphViewTabs.tsx has no hardcoded hex color literals', () => {
+    const src = fs.readFileSync(
+      path.join(SRC, 'ui-shell', 'GraphViewTabs.tsx'), 'utf-8',
+    )
+    expect(src).not.toMatch(HEX_RE)
+  })
+})

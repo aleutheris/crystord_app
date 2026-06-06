@@ -1,0 +1,137 @@
+/* Brand design tokens — sourced from .github/project/branding.md (REQ-CR-260011 / ADR-260022) */
+/* Light mode: default. Dark mode: [data-theme="dark"] or prefers-color-scheme when no explicit preference. */
+
+:root {
+  /* Primary — Trust Blue: clarity, reliability, openness */
+  --color-primary: #0066CC;
+  --color-primary-dark: #004C99;
+
+  /* Control — Control Green: ownership, safe action, empowerment */
+  --color-control: #00A676;
+  --color-control-dark: #007A58;
+
+  /* Accent — Confidence Gold: positive attention (use sparingly) */
+  --color-accent: #FFB000;
+
+  /* Neutral backgrounds */
+  --color-bg: #FAFBFC;
+  --color-surface: #F3F6F8;
+  --color-surface-alt: #E7EDF2;
+
+  /* Text */
+  --color-text: #17202A;
+  --color-text-secondary: #5B6B7A;
+  --color-text-muted: #888888;
+
+  /* Borders */
+  --color-border: #D6DEE5;
+  --color-border-subtle: #EEEEEE;
+
+  /* State */
+  --color-success: #2E8B57;
+  --color-warning: #F39C12;
+  --color-error: #D64545;
+
+  /* Selection / interaction wash */
+  --color-selection-bg: #E8F4FF;
+
+  /* Card / elevated surface */
+  --color-card-bg: #ffffff;
+  --color-card-shadow: rgba(0, 0, 0, 0.15);
+
+  /* Overlay backdrop */
+  --color-overlay: rgba(0, 0, 0, 0.3);
+
+  /* Persistent notification (dark surface) */
+  --color-toast-bg: #323232;
+  --color-toast-text: #ffffff;
+  --color-toast-action: #5B9FE8;
+
+  /* Connection line (neutral) */
+  --color-connection-line: #b1b1b7;
+
+  /* Label chips */
+  --color-chip-bg: #E8F4FF;
+  --color-chip-border: #0066CC;
+  --color-chip-text: #0066CC;
+  --color-chip-inactive-bg: #F3F6F8;
+  --color-chip-inactive-border: #D6DEE5;
+  --color-chip-inactive-text: #5B6B7A;
+}
+
+/* Explicit dark theme */
+[data-theme="dark"] {
+  --color-primary: #4D9FE8;
+  --color-primary-dark: #3A85CC;
+  --color-control: #26C48E;
+  --color-control-dark: #1A9E72;
+  --color-accent: #FFB000;
+  --color-bg: #111827;
+  --color-surface: #1E2533;
+  --color-surface-alt: #2A3346;
+  --color-text: #E8EDF2;
+  --color-text-secondary: #9AABB6;
+  --color-text-muted: #6B7A8A;
+  --color-border: #3A4455;
+  --color-border-subtle: #2A3346;
+  --color-success: #3CB371;
+  --color-warning: #FFA926;
+  --color-error: #E05555;
+  --color-selection-bg: #1A2F4A;
+  --color-card-bg: #1E2533;
+  --color-card-shadow: rgba(0, 0, 0, 0.35);
+  --color-overlay: rgba(0, 0, 0, 0.55);
+  --color-toast-bg: #1A1A1A;
+  --color-toast-text: #E8EDF2;
+  --color-toast-action: #4D9FE8;
+  --color-connection-line: #6B7A8A;
+  --color-chip-bg: #1A2F4A;
+  --color-chip-border: #4D9FE8;
+  --color-chip-text: #4D9FE8;
+  --color-chip-inactive-bg: #2A3346;
+  --color-chip-inactive-border: #3A4455;
+  --color-chip-inactive-text: #9AABB6;
+}
+
+/* System-preference dark when no explicit data-theme is set */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-primary: #4D9FE8;
+    --color-primary-dark: #3A85CC;
+    --color-control: #26C48E;
+    --color-control-dark: #1A9E72;
+    --color-accent: #FFB000;
+    --color-bg: #111827;
+    --color-surface: #1E2533;
+    --color-surface-alt: #2A3346;
+    --color-text: #E8EDF2;
+    --color-text-secondary: #9AABB6;
+    --color-text-muted: #6B7A8A;
+    --color-border: #3A4455;
+    --color-border-subtle: #2A3346;
+    --color-success: #3CB371;
+    --color-warning: #FFA926;
+    --color-error: #E05555;
+    --color-selection-bg: #1A2F4A;
+    --color-card-bg: #1E2533;
+    --color-card-shadow: rgba(0, 0, 0, 0.35);
+    --color-overlay: rgba(0, 0, 0, 0.55);
+    --color-toast-bg: #1A1A1A;
+    --color-toast-text: #E8EDF2;
+    --color-toast-action: #4D9FE8;
+    --color-connection-line: #6B7A8A;
+    --color-chip-bg: #1A2F4A;
+    --color-chip-border: #4D9FE8;
+    --color-chip-text: #4D9FE8;
+    --color-chip-inactive-bg: #2A3346;
+    --color-chip-inactive-border: #3A4455;
+    --color-chip-inactive-text: #9AABB6;
+  }
+}
+
+/* Base page reset */
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+}

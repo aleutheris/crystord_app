@@ -1,5 +1,6 @@
 import type { RenderMode } from '../features/workspace-graph'
 import { BLOCKED_THRESHOLD } from '../features/workspace-graph'
+import { C_TEXT, C_PRIMARY, C_CARD_BG } from '../styles/tokens'
 
 interface GraphRenderGateProps {
   atomCount: number
@@ -24,7 +25,7 @@ export function GraphRenderGate({ atomCount, mode, onConfirm, children }: GraphR
           textAlign: 'center',
         }}
       >
-        <p style={{ color: '#17202A', fontSize: '0.95rem', maxWidth: 420, margin: 0 }}>
+        <p style={{ color: C_TEXT, fontSize: '0.95rem', maxWidth: 420, margin: 0 }}>
           This search returned <strong>{atomCount} nodes</strong>, which exceeds the{' '}
           {BLOCKED_THRESHOLD}-node threshold and may impact performance.
         </p>
@@ -33,8 +34,8 @@ export function GraphRenderGate({ atomCount, mode, onConfirm, children }: GraphR
           onClick={onConfirm}
           style={{
             padding: '0.5rem 1.25rem',
-            background: '#0066CC',
-            color: '#fff',
+            background: C_PRIMARY,
+            color: C_CARD_BG,
             border: 'none',
             borderRadius: 4,
             cursor: 'pointer',

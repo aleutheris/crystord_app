@@ -18,6 +18,7 @@ import { DeleteConfirmDialog } from './DeleteConfirmDialog'
 import { UndoNotification } from './UndoNotification'
 import { BondNameDialog } from './BondNameDialog'
 import { useCanvasInteractions } from './use-canvas-interactions'
+import { C_PRIMARY, C_CARD_BG, C_ERROR } from '../../styles/tokens'
 
 export type FlowProjectionMode = 'focused' | 'include'
 
@@ -104,7 +105,7 @@ export function GraphCanvas({ data, selectedAtomId, onSelectAtom, onCreateAtom }
   }
 
   if (error) {
-    return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'red' }}>{error}</div>
+    return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: C_ERROR }}>{error}</div>
   }
 
   return (
@@ -134,7 +135,7 @@ export function GraphCanvas({ data, selectedAtomId, onSelectAtom, onCreateAtom }
             type="button"
             onClick={onCreateAtom}
             aria-label="Create atom"
-            style={{ padding: '0.25rem 0.75rem', cursor: 'pointer', marginRight: '0.5rem', background: '#0066CC', color: '#fff', border: 'none', borderRadius: 4, fontWeight: 600 }}
+            style={{ padding: '0.25rem 0.75rem', cursor: 'pointer', marginRight: '0.5rem', background: C_PRIMARY, color: C_CARD_BG, border: 'none', borderRadius: 4, fontWeight: 600 }}
           >
             Create Atom
           </button>

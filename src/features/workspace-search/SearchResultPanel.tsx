@@ -1,5 +1,6 @@
 import { useReactFlow } from '@xyflow/react'
 import type { Atom } from '../../api-contract/graph-queries'
+import { C_BORDER, C_BORDER_SUBTLE, C_SURFACE, C_TEXT_SECONDARY, C_TEXT_MUTED, C_SELECTION_BG } from '../../styles/tokens'
 
 interface SearchResultPanelProps {
   atoms: Atom[]
@@ -20,14 +21,14 @@ export function SearchResultPanel({ atoms, selectedAtomId, onSelectAtom }: Searc
       aria-label="Search results"
       style={{
         width: 220,
-        borderRight: '1px solid #ddd',
+        borderRight: `1px solid ${C_BORDER}`,
         overflowY: 'auto',
-        background: '#fafafa',
+        background: C_SURFACE,
         display: 'flex',
         flexDirection: 'column',
       }}
     >
-      <h3 style={{ margin: 0, padding: '0.5rem 0.75rem', fontSize: '0.8rem', fontWeight: 600, color: '#555', borderBottom: '1px solid #eee' }}>
+      <h3 style={{ margin: 0, padding: '0.5rem 0.75rem', fontSize: '0.8rem', fontWeight: 600, color: C_TEXT_SECONDARY, borderBottom: `1px solid ${C_BORDER_SUBTLE}` }}>
         Results
       </h3>
       <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
@@ -45,8 +46,8 @@ export function SearchResultPanel({ atoms, selectedAtomId, onSelectAtom }: Searc
                   textAlign: 'left',
                   padding: '0.5rem 0.75rem',
                   border: 'none',
-                  borderBottom: '1px solid #eee',
-                  background: isSelected ? '#e8f0fe' : 'transparent',
+                  borderBottom: `1px solid ${C_BORDER_SUBTLE}`,
+                  background: isSelected ? C_SELECTION_BG : 'transparent',
                   cursor: 'pointer',
                   display: 'block',
                 }}
@@ -55,7 +56,7 @@ export function SearchResultPanel({ atoms, selectedAtomId, onSelectAtom }: Searc
                   {atom.properties.nuclearies.title}
                 </div>
                 {atom.labels.length > 0 && (
-                  <div style={{ fontSize: '0.7rem', color: '#888', marginTop: 2 }}>
+                  <div style={{ fontSize: '0.7rem', color: C_TEXT_MUTED, marginTop: 2 }}>
                     {atom.labels.join(', ')}
                   </div>
                 )}
@@ -64,7 +65,7 @@ export function SearchResultPanel({ atoms, selectedAtomId, onSelectAtom }: Searc
           )
         })}
         {atoms.length === 0 && (
-          <li style={{ padding: '0.75rem', fontSize: '0.8rem', color: '#888', textAlign: 'center' }}>
+          <li style={{ padding: '0.75rem', fontSize: '0.8rem', color: C_TEXT_MUTED, textAlign: 'center' }}>
             No matching atoms
           </li>
         )}

@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router'
 import { SIGN_IN_QUERY } from '../../api-contract/sign-in-query'
 import type { SignInResponse } from '../../api-contract/sign-in-query'
 import { useAuth } from './AuthProvider'
+import { C_ERROR } from '../../styles/tokens'
 
 interface SignInPageProps {
   client: ApolloClient
@@ -77,7 +78,7 @@ export function SignInPage({ client }: SignInPageProps) {
           />
         </div>
         {error && (
-          <p role="alert" style={{ color: 'red' }}>{error}</p>
+          <p role="alert" style={{ color: C_ERROR }}>{error}</p>
         )}
         <button type="submit" disabled={loading} style={{ padding: '0.5rem 1.5rem' }}>
           {loading ? 'Signing in…' : 'Sign In'}

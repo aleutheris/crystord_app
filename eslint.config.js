@@ -20,4 +20,23 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    // Prevent hardcoded hex color values — use CSS custom properties from src/styles/tokens.ts
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: [
+      'src/**/network-tokens.ts',
+      'src/**/*.test.ts',
+      'src/**/*.test.tsx',
+      'src/styles/tokens.css',
+    ],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "Literal[value=/^#[0-9A-Fa-f]{3,8}$/]",
+          message: "Use CSS custom properties from src/styles/tokens.ts instead of hardcoded hex colors.",
+        },
+      ],
+    },
+  },
 ])

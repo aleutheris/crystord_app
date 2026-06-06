@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import type { Atom } from '../../api-contract/graph-queries'
+import { C_BORDER, C_CARD_BG, C_ERROR, C_TEXT_MUTED } from '../../styles/tokens'
 
 interface DetailPanelProps {
   atom?: Atom
@@ -50,12 +51,12 @@ export function DetailPanel({ atom, isCreationMode, onCreate, onUpdate, onDelete
       style={{
         width: 320,
         height: isCreationMode ? '100%' : undefined,
-        borderLeft: '1px solid #ddd',
+        borderLeft: `1px solid ${C_BORDER}`,
         padding: '1rem',
         overflowY: 'auto',
         display: 'flex',
         flexDirection: 'column',
-        background: '#fff',
+        background: C_CARD_BG,
         boxSizing: 'border-box',
       }}
     >
@@ -92,7 +93,7 @@ export function DetailPanel({ atom, isCreationMode, onCreate, onUpdate, onDelete
             <button
               type="button"
               onClick={() => onDelete(uuid)}
-              style={{ padding: '0.4rem 1rem', color: '#d93025', marginLeft: 'auto' }}
+              style={{ padding: '0.4rem 1rem', color: C_ERROR, marginLeft: 'auto' }}
             >
               Delete
             </button>
@@ -101,7 +102,7 @@ export function DetailPanel({ atom, isCreationMode, onCreate, onUpdate, onDelete
       </form>
 
       {!isCreationMode && uuid && (
-        <div style={{ fontSize: '0.7rem', color: '#888', marginTop: '0.75rem' }}>
+        <div style={{ fontSize: '0.7rem', color: C_TEXT_MUTED, marginTop: '0.75rem' }}>
           UUID: {uuid}
         </div>
       )}

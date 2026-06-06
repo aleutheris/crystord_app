@@ -1,4 +1,5 @@
 import type { ConnectionLineComponentProps } from '@xyflow/react'
+import { C_CONNECTION_LINE } from '../../styles/tokens'
 
 // Half of NODE_SIZE (80) — boundary radius for nearest-boundary snap geometry (D3 / ADR-260038, REQ-FR-260041)
 export const CONNECTION_LINE_NODE_RADIUS = 40
@@ -30,7 +31,7 @@ export function NetworkConnectionLine({
       d={`M ${fromX},${fromY} L ${endX},${endY}`}
       fill="none"
       strokeWidth={1.5}
-      stroke="#b1b1b7"
+      stroke={C_CONNECTION_LINE}
     />
   )
 }

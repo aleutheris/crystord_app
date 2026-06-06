@@ -59,6 +59,21 @@ The recommended palette uses a restrained hierarchy:
 | Warning | Review Orange | `#F39C12` | caution without panic | warnings, pending review |
 | Error | Privacy Red | `#D64545` | urgent issue | failures, access problems, destructive actions |
 
+### Dark Mode Adaptation
+
+For dark mode, the core brand colors (blues, greens, gold) remain the same, but the neutral surfaces and text colors are swapped to ensure readability and maintain a calm, low-glare interface.
+
+#### Dark Mode Brand Colors
+
+| Category | Token Name | Hex | Meaning | Typical Usage |
+|---|---|---|---|---|
+| Background | Deep Navy | `#1A2A3A` | calm, focused depth | page background |
+| Surface | Midnight Blue | `#2A3B4C` | quiet structure | cards, panels, tables |
+| Surface Alt | Slate Blue | `#3C4D5E` | hierarchy without noise | secondary panels, hover surfaces |
+| Text Primary | Cool White | `#F0F4F8` | clarity and serious readability | main copy, headings |
+| Text Secondary | Light Slate | `#A0B0C0` | secondary information | labels, helper text, metadata |
+| Border | Soft Dark Border | `#4A5B6C` | subtle structure | dividers, field outlines, cards |
+
 ## Color Categorization Rules
 
 ### Primary Identity Colors
@@ -153,17 +168,24 @@ brand:
       controlGreenDark: "#007A58"
     accent:
       confidenceGold: "#FFB000"
-    neutrals:
+    states:
+      success: "#2E8B57"
+      warning: "#F39C12"
+      error: "#D64545"
+    light:
       background: "#FAFBFC"
       surface: "#F3F6F8"
       surfaceAlt: "#E7EDF2"
       textPrimary: "#17202A"
       textSecondary: "#5B6B7A"
       border: "#D6DEE5"
-    states:
-      success: "#2E8B57"
-      warning: "#F39C12"
-      error: "#D64545"
+    dark:
+      background: "#1A2A3A"
+      surface: "#2A3B4C"
+      surfaceAlt: "#3C4D5E"
+      textPrimary: "#F0F4F8"
+      textSecondary: "#A0B0C0"
+      border: "#4A5B6C"
 ```
 
 ## Design Constraints
@@ -177,13 +199,13 @@ These constraints help preserve the intended meaning of the brand.
 
 ## Assumptions Challenged
 
-- **Assumption:** transparency should be branded with glassy or highly futuristic visuals.  
+- **Assumption:** transparency should be branded with glassy or highly futuristic visuals.
   **Challenge:** transparency is better conveyed through readability, clear hierarchy, and understandable system behavior than through visual gimmicks.
 
-- **Assumption:** control means aggressive, dark, security-heavy styling.  
+- **Assumption:** control means aggressive, dark, security-heavy styling.
   **Challenge:** user control is more effectively expressed with calm confidence, intelligible actions, and visible permissions rather than fear-based aesthetics.
 
-- **Assumption:** more colors make a product feel more advanced.  
+- **Assumption:** more colors make a product feel more advanced.
   **Challenge:** for data products, too many competing hues often reduce interpretability and trust.
 
 ## Recommended Brand Direction In One Sentence

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Atom, AtomBond } from '../../api-contract/graph-queries'
+import { C_TOAST_BG, C_TOAST_TEXT, C_TOAST_ACTION } from '../../styles/tokens'
 
 const UNDO_WINDOW_MS = 6000
 
@@ -48,8 +49,8 @@ export function UndoNotification({ entry, onUndo, onExpire }: UndoNotificationPr
         bottom: 24,
         left: '50%',
         transform: 'translateX(-50%)',
-        background: '#323232',
-        color: '#fff',
+        background: C_TOAST_BG,
+        color: C_TOAST_TEXT,
         padding: '0.75rem 1.25rem',
         borderRadius: 6,
         display: 'flex',
@@ -65,7 +66,7 @@ export function UndoNotification({ entry, onUndo, onExpire }: UndoNotificationPr
         onClick={() => onUndo(entry)}
         style={{
           background: 'transparent',
-          color: '#8ab4f8',
+          color: C_TOAST_ACTION,
           border: 'none',
           cursor: 'pointer',
           fontWeight: 600,

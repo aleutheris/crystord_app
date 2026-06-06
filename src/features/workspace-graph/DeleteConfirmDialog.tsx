@@ -1,3 +1,5 @@
+import { C_OVERLAY, C_CARD_BG, C_CARD_SHADOW, C_ERROR } from '../../styles/tokens'
+
 interface DeleteConfirmDialogProps {
   atomTitle: string
   onConfirm: () => void
@@ -15,11 +17,11 @@ export function DeleteConfirmDialog({ atomTitle, onConfirm, onCancel }: DeleteCo
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'rgba(0,0,0,0.3)',
+        background: C_OVERLAY,
         zIndex: 1000,
       }}
     >
-      <div style={{ background: '#fff', borderRadius: 8, padding: '1.5rem', maxWidth: 400, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
+      <div style={{ background: C_CARD_BG, borderRadius: 8, padding: '1.5rem', maxWidth: 400, boxShadow: `0 4px 12px ${C_CARD_SHADOW}` }}>
         <h3 style={{ margin: '0 0 0.75rem' }}>Delete Atom?</h3>
         <p style={{ margin: '0 0 1rem' }}>
           Are you sure you want to delete <strong>{atomTitle}</strong>?
@@ -32,7 +34,7 @@ export function DeleteConfirmDialog({ atomTitle, onConfirm, onCancel }: DeleteCo
           <button
             type="button"
             onClick={onConfirm}
-            style={{ padding: '0.4rem 1rem', background: '#d93025', color: '#fff', border: 'none', borderRadius: 4 }}
+            style={{ padding: '0.4rem 1rem', background: C_ERROR, color: C_CARD_BG, border: 'none', borderRadius: 4 }}
           >
             Delete
           </button>
