@@ -37,3 +37,5 @@ Status lifecycle used here: Proposed | Accepted | Superseded.
 | ADR-260046 | Explicit Atom Creation via Modal Sidebar | Accepted | 2026-06-05 | - | - | Replaces implicit double-click creation with a dedicated Create Atom button and modal DetailPanel creation mode. |
 | ADR-260047 | CSS Custom Property Token System and Dark Mode | Accepted | 2026-06-06 | - | - | Centralizes brand colors as CSS custom properties with light/dark theming, typed JS constants, ThemeProvider context, and ESLint hex-color guard. |
 | ADR-260048 | Token-Based Authentication and Session Management | Accepted | 2026-06-08 | - | - | Formalizes JWT auth with email/password, Google Sign-In, localStorage persistence, pub/sub 401 auto-signout, and env-var gateway for Google Client ID. |
+| ADR-260049 | Add Username/Password Authentication | Accepted | 2026-06-08 | - | - | Extends sign-in form to accept username or email via type="text" input; sends identifier as email param to backend as temporary compatibility shim. |
+| ADR-260049 | Add Username/Password Authentication | Accepted | 2026-06-08 | - | - | Adds username/password authentication to supplement Google Sign-In. |

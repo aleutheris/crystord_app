@@ -19,7 +19,9 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
   const { signIn } = useAuth()
   const navigate = useNavigate()
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
-  const [email, setEmail] = useState('')
+  // identifier holds username OR email for sign-in; always an email for sign-up
+  // sent as `email` param to the backend in both cases (REQ-OR-260013 compatibility shim)
+  const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -38,7 +40,7 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
       if (mode === 'signup') {
         const { data } = await client.query<SignUpResponse>({
           query: SIGN_UP_QUERY,
-          variables: { email, password },
+          variables: { email: identifier, password },
           fetchPolicy: 'network-only',
         })
         if (!data?.signup) {
@@ -49,7 +51,7 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
       } else {
         const { data } = await client.query<SignInResponse>({
           query: SIGN_IN_QUERY,
-          variables: { email, password },
+          variables: { email: identifier, password },
           fetchPolicy: 'network-only',
         })
         if (!data?.signin) {
@@ -73,15 +75,15 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
       <h2>{isSignUp ? 'Sign Up' : 'Sign In'}</h2>
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: '1rem' }}>
-          <label htmlFor="email">Email</label>
+          <label htmlFor="identifier">{isSignUp ? 'Email' : 'Username or Email'}</label>
           <br />
           <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            id="identifier"
+            type={isSignUp ? 'email' : 'text'}
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
             required
-            autoComplete="username"
+            autoComplete={isSignUp ? 'email' : 'username'}
             style={{ width: '100%', padding: '0.5rem' }}
           />
         </div>

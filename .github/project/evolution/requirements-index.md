@@ -54,6 +54,11 @@ When a requirement is deprecated, keep its row in this file and set `Status` to 
 | REQ-FR-260045 | Flow View Relayout Control and State Preservation | FR | Accepted | ADR-260039 | BI-260044 |
 | REQ-FR-260046 | Flow View Edge and Handle Visual Grammar | FR | Accepted | ADR-260039 | BI-260044 |
 | REQ-FR-260047 | Flow View Projection Mode Toggle and Non-Flow Atom Inclusion | FR | Accepted | ADR-260040 | BI-260045 |
+| REQ-FR-260054 | User Sign-Up with Email and Password | FR | Accepted | ADR-260048 | BI-260048 |
+| REQ-FR-260055 | User Sign-In with Email and Password | FR | Accepted | ADR-260048 | BI-260048 |
+| REQ-FR-260056 | Google Sign-In Button Must Use Official GIS SDK | FR | Accepted | ADR-260048 | BI-260048 |
+| REQ-FR-260057 | User Sign-In with Username or Email | FR | Proposed | ADR-260049 | BI-260049 |
+| REQ-FR-260058 | Password-Based Sign-In Form | FR | Proposed | ADR-260049 | BI-260049 |
 | REQ-OR-260001 | MVP Demo Sign-In Operating Model | OR | Accepted | ADR-260002, ADR-260014 | BI-260002, BI-260011 |
 | REQ-OR-260002 | GraphQL Schema Stability and Versioning Contract | OR | Accepted | ADR-260013 | BI-260010 |
 | REQ-OR-260003 | Frontend Contract Stability and Breaking-Change Control | OR | Accepted | ADR-260018 | BI-260015 |
@@ -65,6 +70,8 @@ When a requirement is deprecated, keep its row in this file and set `Status` to 
 | REQ-OR-260009 | Bond Mutation Client Contract Must Match the Schema Selector Type | OR | Accepted | ADR-260003, ADR-260015 | BI-260026 |
 | REQ-OR-260010 | Dual-View Mutation Reflection Must Be Centralized in Shared Graph State | OR | Accepted | ADR-260030 | BI-260031 |
 | REQ-OR-260011 | Dual-View Rollout Must Be Feature-Flag Controlled with Immediate Fallback | OR | Accepted | ADR-260032 | BI-260033 |
+| REQ-OR-260012 | Authentication Must Use JWTs Stored in localStorage | OR | Accepted | ADR-260048 | BI-260048 |
+| REQ-OR-260013 | Temporary Authentication Compatibility | OR | Proposed | ADR-260049 | BI-260049 |
 | REQ-CR-260001 | MVP Scope Exclusions for Graph Experience | CR | Accepted | ADR-260002 | BI-260002 |
 | REQ-CR-260002 | Backend Error Handling and Resilience Baseline | CR | Accepted | ADR-260003 | BI-260003 |
 | REQ-CR-260003 | Desktop-Only MVP and Minimal Placeholder Policy | CR | Accepted | ADR-260014 | BI-260011 |

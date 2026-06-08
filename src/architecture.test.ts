@@ -2375,6 +2375,38 @@ describe('Sign-up and Google sign-in wiring (BI-260048)', () => {
   })
 })
 
+// --- BI-260049: Username/password authentication (username-or-email sign-in field) ---
+
+describe('Username/password sign-in (BI-260049)', () => {
+  it('SignInPage sign-in mode uses "Username or Email" label (not email-only)', () => {
+    const src = fs.readFileSync(
+      path.join(FEATURES, 'auth-entry', 'SignInPage.tsx'), 'utf-8',
+    )
+    expect(src).toContain('Username or Email')
+  })
+
+  it('SignInPage identifier field uses type="text" in sign-in mode to allow plain usernames', () => {
+    const src = fs.readFileSync(
+      path.join(FEATURES, 'auth-entry', 'SignInPage.tsx'), 'utf-8',
+    )
+    expect(src).toContain("type={isSignUp ? 'email' : 'text'}")
+  })
+
+  it('SignInPage sends identifier as email param — REQ-OR-260013 compatibility shim', () => {
+    const src = fs.readFileSync(
+      path.join(FEATURES, 'auth-entry', 'SignInPage.tsx'), 'utf-8',
+    )
+    expect(src).toContain('email: identifier')
+  })
+
+  it('SignInPage sign-up mode enforces email format (type="email")', () => {
+    const src = fs.readFileSync(
+      path.join(FEATURES, 'auth-entry', 'SignInPage.tsx'), 'utf-8',
+    )
+    expect(src).toContain("isSignUp ? 'email' : 'text'")
+  })
+})
+
 describe('api-contract barrel exports BI-260048 symbols', () => {
   it('barrel re-exports new auth token helpers', () => {
     const barrel = fs.readFileSync(path.join(SRC, 'api-contract', 'index.ts'), 'utf-8')

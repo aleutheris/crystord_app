@@ -42,25 +42,34 @@ describe('SignInPage', () => {
     localStorage.clear()
   })
 
-  it('renders sign-in form with empty fields by default', () => {
+  it('renders sign-in form with "Username or Email" label by default', () => {
     const client = createMockClient({ data: { signin: 'token' } })
     renderSignIn(client)
 
-    expect(screen.getByLabelText(/email/i)).toHaveValue('')
+    expect(screen.getByLabelText(/username or email/i)).toHaveValue('')
     expect(screen.getByLabelText(/password/i)).toHaveValue('')
     expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument()
   })
 
-  it('calls sign-in query and redirects on success', async () => {
+  it('sign-in identifier field is type="text" to accept plain usernames', () => {
+    const client = createMockClient({ data: { signin: 'token' } })
+    renderSignIn(client)
+
+    expect(screen.getByLabelText(/username or email/i)).toHaveAttribute('type', 'text')
+  })
+
+  it('calls sign-in query and redirects on success with plain username', async () => {
     const user = userEvent.setup()
     const client = createMockClient({ data: { signin: 'test-token-123' } })
     renderSignIn(client)
 
-    await user.type(screen.getByLabelText(/email/i), 'user@example.com')
-    await user.type(screen.getByLabelText(/password/i), 'password')
+    await user.type(screen.getByLabelText(/username or email/i), 'demo')
+    await user.type(screen.getByLabelText(/password/i), 'demo')
     await user.click(screen.getByRole('button', { name: /sign in/i }))
 
     expect(client.query).toHaveBeenCalledOnce()
+    const firstCall = (client.query as ReturnType<typeof vi.fn>).mock.calls[0] as [{ variables: { email: string } }]
+    expect(firstCall[0].variables.email).toBe('demo')
   })
 
   it('shows error on sign-in failure', async () => {
@@ -68,7 +77,7 @@ describe('SignInPage', () => {
     const client = createMockClient({ error: new Error('Invalid credentials') })
     renderSignIn(client)
 
-    await user.type(screen.getByLabelText(/email/i), 'user@example.com')
+    await user.type(screen.getByLabelText(/username or email/i), 'someuser')
     await user.type(screen.getByLabelText(/password/i), 'wrongpass')
     await user.click(screen.getByRole('button', { name: /^sign in$/i }))
 
@@ -80,7 +89,7 @@ describe('SignInPage', () => {
     const client = createMockClient({ data: { signin: '' } })
     renderSignIn(client)
 
-    await user.type(screen.getByLabelText(/email/i), 'user@example.com')
+    await user.type(screen.getByLabelText(/username or email/i), 'someuser')
     await user.type(screen.getByLabelText(/password/i), 'anypass')
     await user.click(screen.getByRole('button', { name: /^sign in$/i }))
 
@@ -98,13 +107,23 @@ describe('SignInPage', () => {
     expect(screen.getByRole('button', { name: /^sign up$/i })).toBeInTheDocument()
   })
 
+  it('sign-up email field is type="email" to enforce email format', async () => {
+    const user = userEvent.setup()
+    const client = createMockClient({ data: { signup: 'token' } })
+    renderSignIn(client)
+
+    await user.click(screen.getByRole('button', { name: /sign up/i }))
+
+    expect(screen.getByLabelText(/^email$/i)).toHaveAttribute('type', 'email')
+  })
+
   it('calls sign-up query in sign-up mode on success', async () => {
     const user = userEvent.setup()
     const client = createMockClient({ data: { signup: 'signup-token' } })
     renderSignIn(client)
 
     await user.click(screen.getByRole('button', { name: /sign up/i }))
-    await user.type(screen.getByLabelText(/email/i), 'new@example.com')
+    await user.type(screen.getByLabelText(/^email$/i), 'new@example.com')
     await user.type(screen.getByLabelText(/password/i), 'newpass')
     await user.click(screen.getByRole('button', { name: /^sign up$/i }))
 
