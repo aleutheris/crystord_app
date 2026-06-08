@@ -157,6 +157,7 @@ describe('useGraphData bond mutations', () => {
     const { result } = renderHook(() => useGraphData())
 
     await act(() => result.current.search(['Math']))
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await act(() => result.current.updateAtom('u1', atom as any))
 
     const updateCall = mockMutate.mock.calls.find(

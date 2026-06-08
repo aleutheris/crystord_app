@@ -9,5 +9,7 @@ export function getConfig() {
     throw new Error('VITE_SUPPORTED_SCHEMA_RANGE is not configured.')
   }
 
-  return { graphqlEndpoint, supportedSchemaRange } as const
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined
+
+  return { graphqlEndpoint, supportedSchemaRange, googleClientId } as const
 }

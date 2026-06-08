@@ -7,6 +7,7 @@ import {
   SELECTION_BG_COLOR,
   DEFAULT_BORDER_COLOR,
 } from './network-tokens'
+import { C_BG, C_TEXT } from '../../styles/tokens'
 
 export const RING_THICKNESS = 8      // outer ring interactive thickness (px) — D1 / ADR-260036
 export const CLICK_DRAG_THRESHOLD = 4  // min pointer movement (px) to distinguish click from drag — D3 / ADR-260036
@@ -103,7 +104,7 @@ export function CircleAtomNode({ data, selected }: NodeProps) {
           height: NODE_SIZE,
           borderRadius: '50%',
           border: selected ? `3px solid ${SELECTION_BORDER_COLOR}` : `1px solid ${DEFAULT_BORDER_COLOR}`,
-          background: selected ? SELECTION_BG_COLOR : '#FAFBFC',
+          background: selected ? SELECTION_BG_COLOR : C_BG,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -117,7 +118,7 @@ export function CircleAtomNode({ data, selected }: NodeProps) {
           style={{
             fontWeight: selected ? 700 : 600,
             fontSize: '0.72rem',
-            color: '#17202A',
+            color: C_TEXT,
             wordBreak: 'break-word',
             lineHeight: 1.2,
             display: 'block',

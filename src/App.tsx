@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ApolloProvider } from '@apollo/client/react'
-import type { ApolloClient } from '@apollo/client'
+import { type ApolloClient } from '@apollo/client'
 import { BrowserRouter, Routes, Route } from 'react-router'
 import { createApolloClient } from './api-contract'
 import type { CompatibilityResult } from './api-contract'
@@ -16,7 +16,7 @@ import { WorkspaceShell } from './ui-shell/WorkspaceShell'
 
 type StartupState =
   | { phase: 'loading' }
-  | { phase: 'compatible'; client: ApolloClient }
+  | { phase: 'compatible'; client: ApolloClient; googleClientId?: string }
   | { phase: 'incompatible'; result: CompatibilityResult }
   | { phase: 'error'; message: string }
 
@@ -35,7 +35,7 @@ export default function App() {
         if (cancelled) return
 
         if (result.compatible) {
-          setState({ phase: 'compatible', client })
+          setState({ phase: 'compatible', client, googleClientId: config.googleClientId })
         } else {
           setState({ phase: 'incompatible', result })
         }
@@ -70,7 +70,7 @@ export default function App() {
           <AuthProvider>
             <BrowserRouter>
               <Routes>
-                <Route path="/sign-in" element={<SignInPage client={state.client} />} />
+                <Route path="/sign-in" element={<SignInPage client={state.client} googleClientId={state.googleClientId} />} />
                 <Route path="/admin" element={<AdminPlaceholder />} />
                 <Route element={<AuthGuard />}>
                   <Route path="/*" element={<WorkspaceShell />} />

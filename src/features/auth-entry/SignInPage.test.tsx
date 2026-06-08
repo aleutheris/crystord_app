@@ -6,8 +6,9 @@ import { ApolloClient, InMemoryCache, HttpLink } from '@apollo/client'
 import { AuthProvider } from './AuthProvider'
 import { SignInPage } from './SignInPage'
 import type { SignInResponse } from '../../api-contract/sign-in-query'
+import type { SignUpResponse } from '../../api-contract/auth-queries'
 
-function createMockClient(response: { data?: SignInResponse; error?: Error }) {
+function createMockClient(response: { data?: SignInResponse | SignUpResponse; error?: Error }) {
   const client = new ApolloClient({
     link: new HttpLink({ uri: 'http://test/graphql' }),
     cache: new InMemoryCache(),
@@ -22,11 +23,14 @@ function createMockClient(response: { data?: SignInResponse; error?: Error }) {
   return client
 }
 
-function renderSignIn(client: ApolloClient) {
+function renderSignIn(
+  client: ReturnType<typeof createMockClient>,
+  googleClientId?: string,
+) {
   return render(
     <MemoryRouter>
       <AuthProvider>
-        <SignInPage client={client} />
+        <SignInPage client={client} googleClientId={googleClientId} />
       </AuthProvider>
     </MemoryRouter>
   )
@@ -35,22 +39,25 @@ function renderSignIn(client: ApolloClient) {
 describe('SignInPage', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
+    localStorage.clear()
   })
 
-  it('renders sign-in form with pre-filled demo credentials', () => {
+  it('renders sign-in form with empty fields by default', () => {
     const client = createMockClient({ data: { signin: 'token' } })
     renderSignIn(client)
 
-    expect(screen.getByLabelText(/email/i)).toHaveValue('demo')
-    expect(screen.getByLabelText(/password/i)).toHaveValue('demo')
+    expect(screen.getByLabelText(/email/i)).toHaveValue('')
+    expect(screen.getByLabelText(/password/i)).toHaveValue('')
     expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument()
   })
 
-  it('calls sign-in and updates auth on success', async () => {
+  it('calls sign-in query and redirects on success', async () => {
     const user = userEvent.setup()
     const client = createMockClient({ data: { signin: 'test-token-123' } })
     renderSignIn(client)
 
+    await user.type(screen.getByLabelText(/email/i), 'user@example.com')
+    await user.type(screen.getByLabelText(/password/i), 'password')
     await user.click(screen.getByRole('button', { name: /sign in/i }))
 
     expect(client.query).toHaveBeenCalledOnce()
@@ -61,20 +68,53 @@ describe('SignInPage', () => {
     const client = createMockClient({ error: new Error('Invalid credentials') })
     renderSignIn(client)
 
-    await user.click(screen.getByRole('button', { name: /sign in/i }))
+    await user.type(screen.getByLabelText(/email/i), 'user@example.com')
+    await user.type(screen.getByLabelText(/password/i), 'wrongpass')
+    await user.click(screen.getByRole('button', { name: /^sign in$/i }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Invalid credentials')
   })
 
   it('shows error when no token returned', async () => {
     const user = userEvent.setup()
-    const client = createMockClient({
-      data: { signin: '' },
-    })
+    const client = createMockClient({ data: { signin: '' } })
     renderSignIn(client)
 
-    await user.click(screen.getByRole('button', { name: /sign in/i }))
+    await user.type(screen.getByLabelText(/email/i), 'user@example.com')
+    await user.type(screen.getByLabelText(/password/i), 'anypass')
+    await user.click(screen.getByRole('button', { name: /^sign in$/i }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent('no token returned')
+  })
+
+  it('switches to sign-up mode when clicking the sign-up link', async () => {
+    const user = userEvent.setup()
+    const client = createMockClient({ data: { signin: 'token' } })
+    renderSignIn(client)
+
+    await user.click(screen.getByRole('button', { name: /sign up/i }))
+
+    expect(screen.getByRole('heading', { name: /sign up/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^sign up$/i })).toBeInTheDocument()
+  })
+
+  it('calls sign-up query in sign-up mode on success', async () => {
+    const user = userEvent.setup()
+    const client = createMockClient({ data: { signup: 'signup-token' } })
+    renderSignIn(client)
+
+    await user.click(screen.getByRole('button', { name: /sign up/i }))
+    await user.type(screen.getByLabelText(/email/i), 'new@example.com')
+    await user.type(screen.getByLabelText(/password/i), 'newpass')
+    await user.click(screen.getByRole('button', { name: /^sign up$/i }))
+
+    expect(client.query).toHaveBeenCalledOnce()
+  })
+
+  it('does not render GoogleSignInButton when googleClientId is not provided', () => {
+    const client = createMockClient({ data: { signin: 'token' } })
+    renderSignIn(client)
+
+    expect(screen.queryByRole('button', { name: /google/i })).not.toBeInTheDocument()
   })
 })

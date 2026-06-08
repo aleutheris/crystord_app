@@ -4,20 +4,30 @@ import type { ApolloClient } from '@apollo/client'
 import { useNavigate } from 'react-router'
 import { SIGN_IN_QUERY } from '../../api-contract/sign-in-query'
 import type { SignInResponse } from '../../api-contract/sign-in-query'
+import { SIGN_UP_QUERY } from '../../api-contract/auth-queries'
+import type { SignUpResponse } from '../../api-contract/auth-queries'
 import { useAuth } from './AuthProvider'
+import { GoogleSignInButton } from './GoogleSignInButton'
 import { C_ERROR } from '../../styles/tokens'
 
 interface SignInPageProps {
   client: ApolloClient
+  googleClientId?: string
 }
 
-export function SignInPage({ client }: SignInPageProps) {
+export function SignInPage({ client, googleClientId }: SignInPageProps) {
   const { signIn } = useAuth()
   const navigate = useNavigate()
-  const [email, setEmail] = useState('demo')
-  const [password, setPassword] = useState('demo')
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+
+  function handleSuccess(token: string) {
+    signIn(token)
+    navigate('/', { replace: true })
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -25,38 +35,49 @@ export function SignInPage({ client }: SignInPageProps) {
     setLoading(true)
 
     try {
-      const { data } = await client.query<SignInResponse>({
-        query: SIGN_IN_QUERY,
-        variables: { email, password },
-        fetchPolicy: 'network-only',
-      })
-
-      if (!data?.signin) {
-        setError('Sign-in failed: no token returned.')
-        return
+      if (mode === 'signup') {
+        const { data } = await client.query<SignUpResponse>({
+          query: SIGN_UP_QUERY,
+          variables: { email, password },
+          fetchPolicy: 'network-only',
+        })
+        if (!data?.signup) {
+          setError('Sign-up failed: no token returned.')
+          return
+        }
+        handleSuccess(data.signup)
+      } else {
+        const { data } = await client.query<SignInResponse>({
+          query: SIGN_IN_QUERY,
+          variables: { email, password },
+          fetchPolicy: 'network-only',
+        })
+        if (!data?.signin) {
+          setError('Sign-in failed: no token returned.')
+          return
+        }
+        handleSuccess(data.signin)
       }
-
-      signIn(data.signin)
-      navigate('/', { replace: true })
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Sign-in failed.'
-      setError(message)
+      setError(err instanceof Error ? err.message : 'Authentication failed.')
     } finally {
       setLoading(false)
     }
   }
 
+  const isSignUp = mode === 'signup'
+
   return (
     <div style={{ padding: '2rem', maxWidth: '400px', margin: '4rem auto' }}>
       <h1>Crystord</h1>
-      <h2>Sign In</h2>
+      <h2>{isSignUp ? 'Sign Up' : 'Sign In'}</h2>
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: '1rem' }}>
           <label htmlFor="email">Email</label>
           <br />
           <input
             id="email"
-            type="text"
+            type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -73,7 +94,7 @@ export function SignInPage({ client }: SignInPageProps) {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            autoComplete="current-password"
+            autoComplete={isSignUp ? 'new-password' : 'current-password'}
             style={{ width: '100%', padding: '0.5rem' }}
           />
         </div>
@@ -81,9 +102,27 @@ export function SignInPage({ client }: SignInPageProps) {
           <p role="alert" style={{ color: C_ERROR }}>{error}</p>
         )}
         <button type="submit" disabled={loading} style={{ padding: '0.5rem 1.5rem' }}>
-          {loading ? 'Signing in…' : 'Sign In'}
+          {loading ? (isSignUp ? 'Signing up…' : 'Signing in…') : (isSignUp ? 'Sign Up' : 'Sign In')}
         </button>
       </form>
+      <p style={{ marginTop: '1rem' }}>
+        {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
+        <button
+          type="button"
+          onClick={() => { setMode(isSignUp ? 'signin' : 'signup'); setError(null) }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+        >
+          {isSignUp ? 'Sign in' : 'Sign up'}
+        </button>
+      </p>
+      {googleClientId && (
+        <GoogleSignInButton
+          client={client}
+          googleClientId={googleClientId}
+          onSuccess={handleSuccess}
+          onError={setError}
+        />
+      )}
     </div>
   )
 }

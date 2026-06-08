@@ -39,7 +39,8 @@ export function ThemeToggle() {
   const { mode, setMode } = useTheme()
 
   function handleClick() {
-    setMode(CYCLE[mode])
+    const next = CYCLE[mode]
+    if (next) setMode(next)
   }
 
   return (

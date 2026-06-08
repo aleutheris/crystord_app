@@ -235,7 +235,7 @@ describe('State partition checks (G2)', () => {
 
 describe('Contract stability — barrel export checks (G5)', () => {
   const EXPECTED_BARRELS: Record<string, string[]> = {
-    'auth-entry': ['AuthProvider', 'useAuth', 'SignInPage', 'AuthGuard'],
+    'auth-entry': ['AuthProvider', 'useAuth', 'SignInPage', 'AuthGuard', 'GoogleSignInButton'],
     'workspace-graph': ['GraphCanvas', 'useGraphData', 'GraphData'],
     'workspace-search': ['SearchBar', 'QuerySummary', 'SearchResultPanel', 'useSearch', 'SearchState', 'SearchFilters'],
     'workspace-details': ['DetailPanel'],
@@ -2284,5 +2284,114 @@ describe('Core components use token references not hardcoded hex (BI-260047)', (
       path.join(SRC, 'ui-shell', 'GraphViewTabs.tsx'), 'utf-8',
     )
     expect(src).not.toMatch(HEX_RE)
+  })
+})
+
+// --- BI-260048: Production-ready token-based authentication ---
+
+describe('Auth contract files exist (BI-260048)', () => {
+  it('session-expired.ts exists with onSessionExpired and triggerSessionExpired', () => {
+    const p = path.join(SRC, 'api-contract', 'session-expired.ts')
+    expect(fs.existsSync(p)).toBe(true)
+    const src = fs.readFileSync(p, 'utf-8')
+    expect(src).toContain('onSessionExpired')
+    expect(src).toContain('triggerSessionExpired')
+  })
+
+  it('auth-queries.ts exists with SIGN_UP_QUERY and SIGN_IN_GOOGLE_QUERY', () => {
+    const p = path.join(SRC, 'api-contract', 'auth-queries.ts')
+    expect(fs.existsSync(p)).toBe(true)
+    const src = fs.readFileSync(p, 'utf-8')
+    expect(src).toContain('SIGN_UP_QUERY')
+    expect(src).toContain('SIGN_IN_GOOGLE_QUERY')
+  })
+
+  it('auth-token.ts exports localStorage helpers', () => {
+    const src = fs.readFileSync(path.join(SRC, 'api-contract', 'auth-token.ts'), 'utf-8')
+    expect(src).toContain('readStoredToken')
+    expect(src).toContain('persistToken')
+    expect(src).toContain('clearStoredToken')
+    expect(src).toContain('localStorage')
+  })
+
+  it('apollo-client.ts intercepts 401 via error link', () => {
+    const src = fs.readFileSync(path.join(SRC, 'api-contract', 'apollo-client.ts'), 'utf-8')
+    expect(src).toMatch(/ErrorLink|onError/)
+    expect(src).toContain('triggerSessionExpired')
+    expect(src).toContain('401')
+    expect(src).toContain('UNAUTHENTICATED')
+  })
+})
+
+describe('AuthProvider persistence and session-expiry (BI-260048)', () => {
+  it('AuthProvider restores token from localStorage on mount', () => {
+    const src = fs.readFileSync(
+      path.join(FEATURES, 'auth-entry', 'AuthProvider.tsx'), 'utf-8',
+    )
+    expect(src).toContain('readStoredToken')
+    expect(src).toContain('persistToken')
+    expect(src).toContain('clearStoredToken')
+  })
+
+  it('AuthProvider registers onSessionExpired callback for auto sign-out', () => {
+    const src = fs.readFileSync(
+      path.join(FEATURES, 'auth-entry', 'AuthProvider.tsx'), 'utf-8',
+    )
+    expect(src).toContain('onSessionExpired')
+    expect(src).toContain('signOut')
+  })
+})
+
+describe('Sign-up and Google sign-in wiring (BI-260048)', () => {
+  it('SignInPage supports sign-up mode with SIGN_UP_QUERY', () => {
+    const src = fs.readFileSync(
+      path.join(FEATURES, 'auth-entry', 'SignInPage.tsx'), 'utf-8',
+    )
+    expect(src).toContain('SIGN_UP_QUERY')
+    expect(src).toContain('signup')
+    expect(src).toContain('mode')
+  })
+
+  it('GoogleSignInButton.tsx exists and uses VITE_GOOGLE_CLIENT_ID via prop', () => {
+    expect(
+      fs.existsSync(path.join(FEATURES, 'auth-entry', 'GoogleSignInButton.tsx')),
+    ).toBe(true)
+    const src = fs.readFileSync(
+      path.join(FEATURES, 'auth-entry', 'GoogleSignInButton.tsx'), 'utf-8',
+    )
+    expect(src).toContain('googleClientId')
+    expect(src).toContain('SIGN_IN_GOOGLE_QUERY')
+    expect(src).toContain('accounts.google.com/gsi/client')
+  })
+
+  it('auth-entry barrel exports GoogleSignInButton', () => {
+    const barrel = fs.readFileSync(path.join(FEATURES, 'auth-entry', 'index.ts'), 'utf-8')
+    expect(barrel).toContain('GoogleSignInButton')
+  })
+
+  it('config.ts exposes VITE_GOOGLE_CLIENT_ID as the approved env-var gateway', () => {
+    const config = fs.readFileSync(path.join(SRC, 'config.ts'), 'utf-8')
+    expect(config).toContain('VITE_GOOGLE_CLIENT_ID')
+  })
+})
+
+describe('api-contract barrel exports BI-260048 symbols', () => {
+  it('barrel re-exports new auth token helpers', () => {
+    const barrel = fs.readFileSync(path.join(SRC, 'api-contract', 'index.ts'), 'utf-8')
+    expect(barrel).toContain('readStoredToken')
+    expect(barrel).toContain('persistToken')
+    expect(barrel).toContain('clearStoredToken')
+  })
+
+  it('barrel re-exports session-expired module', () => {
+    const barrel = fs.readFileSync(path.join(SRC, 'api-contract', 'index.ts'), 'utf-8')
+    expect(barrel).toContain('onSessionExpired')
+    expect(barrel).toContain('triggerSessionExpired')
+  })
+
+  it('barrel re-exports new auth query operations', () => {
+    const barrel = fs.readFileSync(path.join(SRC, 'api-contract', 'index.ts'), 'utf-8')
+    expect(barrel).toContain('SIGN_UP_QUERY')
+    expect(barrel).toContain('SIGN_IN_GOOGLE_QUERY')
   })
 })

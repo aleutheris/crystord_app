@@ -1,5 +1,8 @@
 import { ApolloClient, InMemoryCache, HttpLink, ApolloLink } from '@apollo/client'
+import { ErrorLink } from '@apollo/client/link/error'
+import { CombinedGraphQLErrors } from '@apollo/client/errors'
 import { getAuthToken } from './auth-token'
+import { triggerSessionExpired } from './session-expired'
 
 export function createApolloClient(graphqlEndpoint: string): ApolloClient {
   const httpLink = new HttpLink({ uri: graphqlEndpoint })
@@ -14,15 +17,30 @@ export function createApolloClient(graphqlEndpoint: string): ApolloClient {
     return forward(operation)
   })
 
+  const errorLink = new ErrorLink(({ error }) => {
+    const statusCode = (error as { statusCode?: number }).statusCode
+    if (statusCode === 401) {
+      triggerSessionExpired()
+      return
+    }
+    if (CombinedGraphQLErrors.is(error)) {
+      const hasUnauthenticated = error.errors.some(
+        (e) => e.extensions?.['code'] === 'UNAUTHENTICATED',
+      )
+      if (hasUnauthenticated) {
+        triggerSessionExpired()
+      }
+    }
+  })
+
   return new ApolloClient({
-    link: authLink.concat(httpLink),
+    link: errorLink.concat(authLink.concat(httpLink)),
     cache: new InMemoryCache({
       typePolicies: {
         Query: {
           fields: {
             retrieve: {
               merge(_existing, incoming) {
-                // Simply replace the array since we always fetch fresh data
                 return incoming
               },
             },
