@@ -48,7 +48,7 @@ describe('SignInPage', () => {
 
     expect(screen.getByLabelText(/username or email/i)).toHaveValue('')
     expect(screen.getByLabelText(/password/i)).toHaveValue('')
-    expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^sign in$/i })).toBeInTheDocument()
   })
 
   it('sign-in identifier field is type="text" to accept plain usernames', () => {
@@ -65,7 +65,7 @@ describe('SignInPage', () => {
 
     await user.type(screen.getByLabelText(/username or email/i), 'demo')
     await user.type(screen.getByLabelText(/password/i), 'demo')
-    await user.click(screen.getByRole('button', { name: /sign in/i }))
+    await user.click(screen.getByRole('button', { name: /^sign in$/i }))
 
     expect(client.query).toHaveBeenCalledOnce()
     const firstCall = (client.query as ReturnType<typeof vi.fn>).mock.calls[0] as [{ variables: { email: string } }]
@@ -128,6 +128,37 @@ describe('SignInPage', () => {
     await user.click(screen.getByRole('button', { name: /^sign up$/i }))
 
     expect(client.query).toHaveBeenCalledOnce()
+  })
+
+  it('renders "Try a Demo" button', () => {
+    const client = createMockClient({ data: { signin: 'token' } })
+    renderSignIn(client)
+
+    expect(screen.getByRole('button', { name: /try a demo/i })).toBeInTheDocument()
+  })
+
+  it('"Try a Demo" sends hardcoded demo credentials and does not persist token', async () => {
+    const user = userEvent.setup()
+    const client = createMockClient({ data: { signin: 'demo-token' } })
+    renderSignIn(client)
+
+    await user.click(screen.getByRole('button', { name: /try a demo/i }))
+
+    expect(client.query).toHaveBeenCalledOnce()
+    const firstCall = (client.query as ReturnType<typeof vi.fn>).mock.calls[0] as [{ variables: { email: string; password: string } }]
+    expect(firstCall[0].variables.email).toBe('demo')
+    expect(firstCall[0].variables.password).toBe('demo')
+    expect(localStorage.getItem('crystord-auth-token')).toBeNull()
+  })
+
+  it('"Try a Demo" shows error on failure', async () => {
+    const user = userEvent.setup()
+    const client = createMockClient({ error: new Error('Demo unavailable') })
+    renderSignIn(client)
+
+    await user.click(screen.getByRole('button', { name: /try a demo/i }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Demo unavailable')
   })
 
   it('does not render GoogleSignInButton when googleClientId is not provided', () => {

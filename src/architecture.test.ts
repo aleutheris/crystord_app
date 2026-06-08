@@ -2427,3 +2427,54 @@ describe('api-contract barrel exports BI-260048 symbols', () => {
     expect(barrel).toContain('SIGN_IN_GOOGLE_QUERY')
   })
 })
+
+// --- BI-260050: Consolidated authentication experience with demo mode ---
+
+describe('Demo mode — "Try a Demo" one-click entry (BI-260050)', () => {
+  it('SignInPage has a "Try a Demo" button', () => {
+    const src = fs.readFileSync(
+      path.join(FEATURES, 'auth-entry', 'SignInPage.tsx'), 'utf-8',
+    )
+    expect(src).toContain('Try a Demo')
+    expect(src).toContain('signInAsDemoUser')
+  })
+
+  it('signInAsDemoUser sends hardcoded demo/demo credentials as email param', () => {
+    const src = fs.readFileSync(
+      path.join(FEATURES, 'auth-entry', 'SignInPage.tsx'), 'utf-8',
+    )
+    expect(src).toContain("email: 'demo'")
+    expect(src).toContain("password: 'demo'")
+  })
+
+  it('signInAsDemoUser calls signIn with demo=true to skip localStorage persistence', () => {
+    const src = fs.readFileSync(
+      path.join(FEATURES, 'auth-entry', 'SignInPage.tsx'), 'utf-8',
+    )
+    expect(src).toContain('handleSuccess(data.signin, true)')
+  })
+})
+
+describe('AuthProvider demo session state (BI-260050)', () => {
+  it('AuthProvider exposes isDemoSession in AuthState interface', () => {
+    const src = fs.readFileSync(
+      path.join(FEATURES, 'auth-entry', 'AuthProvider.tsx'), 'utf-8',
+    )
+    expect(src).toContain('isDemoSession')
+  })
+
+  it('AuthProvider signIn skips persistToken when demo=true', () => {
+    const src = fs.readFileSync(
+      path.join(FEATURES, 'auth-entry', 'AuthProvider.tsx'), 'utf-8',
+    )
+    expect(src).toContain('if (!demo)')
+    expect(src).toContain('persistToken')
+  })
+
+  it('AuthProvider signOut resets isDemoSession to false', () => {
+    const src = fs.readFileSync(
+      path.join(FEATURES, 'auth-entry', 'AuthProvider.tsx'), 'utf-8',
+    )
+    expect(src).toMatch(/signOut[\s\S]{0,100}setIsDemoSession\(false\)/)
+  })
+})

@@ -49,8 +49,9 @@ test.describe('Sign-in flow', () => {
     await mockGraphQL(page)
     await page.goto('/')
     await expect(page.getByRole('heading', { name: /sign in/i })).toBeVisible()
-    await expect(page.getByLabel(/email/i)).toHaveValue('demo')
-    await expect(page.getByLabel(/password/i)).toHaveValue('demo')
+    await expect(page.getByLabel(/username or email/i)).toHaveValue('')
+    await expect(page.getByLabel(/password/i)).toHaveValue('')
+    await expect(page.getByRole('button', { name: /try a demo/i })).toBeVisible()
   })
 
   test('signs in with demo credentials and reaches workspace', async ({ page }) => {
@@ -61,7 +62,7 @@ test.describe('Sign-in flow', () => {
     const responsePromise = page.waitForResponse((resp) =>
       resp.url().includes('/graphql') && resp.request().postData()?.includes('signin') === true
     )
-    await page.getByRole('button', { name: /sign in/i }).click()
+    await page.getByRole('button', { name: /try a demo/i }).click()
     await responsePromise
 
     await expect(page.getByRole('button', { name: /sign out/i })).toBeVisible()
@@ -75,7 +76,7 @@ test.describe('Sign-in flow', () => {
     const responsePromise = page.waitForResponse((resp) =>
       resp.url().includes('/graphql') && resp.request().postData()?.includes('signin') === true
     )
-    await page.getByRole('button', { name: /sign in/i }).click()
+    await page.getByRole('button', { name: /try a demo/i }).click()
     await responsePromise
 
     await expect(page.getByRole('button', { name: /sign out/i })).toBeVisible()

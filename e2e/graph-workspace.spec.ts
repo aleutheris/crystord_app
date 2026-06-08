@@ -93,7 +93,7 @@ async function signIn(page: import('@playwright/test').Page) {
   const responsePromise = page.waitForResponse((r) =>
     r.url().includes('/graphql') && r.request().postData()?.includes('signin') === true,
   )
-  await page.getByRole('button', { name: /sign in/i }).click()
+  await page.getByRole('button', { name: /try a demo/i }).click()
   await responsePromise
 }
 

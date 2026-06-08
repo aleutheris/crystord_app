@@ -95,3 +95,9 @@ When a requirement is deprecated, keep its row in this file and set `Status` to 
 | REQ-QR-260003 | Large-Graph Degrade Policy for Dual-View Rendering | QR | Accepted | ADR-260030 | BI-260031 |
 | REQ-QR-260004 | Dual-View Visual States Must Be Contrast-Safe and Non-Color-Only | QR | Accepted | ADR-260031 | BI-260032 |
 | REQ-QR-260005 | Dual-View Switch Performance Targets and Large-Render Gate Timing | QR | Accepted | ADR-260032 | BI-260033 |
+| REQ-FR-260059 | Credential-Based Sign-Up and Sign-In | FR | Proposed | ADR-260050 | BI-260050 |
+| REQ-FR-260060 | Passwordless Google Sign-In | FR | Proposed | ADR-260050 | BI-260050 |
+| REQ-FR-260061 | One-Click Demo Mode | FR | Proposed | ADR-260050 | BI-260050 |
+| REQ-OR-260014 | Authentication Backend Contract | OR | Proposed | ADR-260050 | BI-260050 |
+| REQ-CR-260020 | Unified Authentication UI | CR | Proposed | ADR-260050 | BI-260050 |
+| REQ-QR-260007 | Authentication Security and Reliability | QR | Proposed | ADR-260050 | BI-260050 |

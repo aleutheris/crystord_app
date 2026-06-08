@@ -6,23 +6,27 @@ import { onSessionExpired } from '../../api-contract/session-expired'
 
 interface AuthState {
   token: string | null
-  signIn: (token: string) => void
+  signIn: (token: string, demo?: boolean) => void
   signOut: () => void
   isAuthenticated: boolean
+  isDemoSession: boolean
 }
 
 const AuthContext = createContext<AuthState | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(() => readStoredToken())
+  const [isDemoSession, setIsDemoSession] = useState(false)
 
-  const signIn = useCallback((newToken: string) => {
-    persistToken(newToken)
+  const signIn = useCallback((newToken: string, demo = false) => {
+    if (!demo) persistToken(newToken)
+    setIsDemoSession(demo)
     setToken(newToken)
   }, [])
 
   const signOut = useCallback(() => {
     clearStoredToken()
+    setIsDemoSession(false)
     setToken(null)
   }, [])
 
@@ -39,7 +43,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signIn,
     signOut,
     isAuthenticated: token !== null,
-  }), [token, signIn, signOut])
+    isDemoSession,
+  }), [token, signIn, signOut, isDemoSession])
 
   return <AuthContext value={value}>{children}</AuthContext>
 }

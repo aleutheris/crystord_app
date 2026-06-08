@@ -25,9 +25,10 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [demoLoading, setDemoLoading] = useState(false)
 
-  function handleSuccess(token: string) {
-    signIn(token)
+  function handleSuccess(token: string, demo = false) {
+    signIn(token, demo)
     navigate('/', { replace: true })
   }
 
@@ -67,7 +68,29 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
     }
   }
 
+  async function signInAsDemoUser() {
+    setError(null)
+    setDemoLoading(true)
+    try {
+      const { data } = await client.query<SignInResponse>({
+        query: SIGN_IN_QUERY,
+        variables: { email: 'demo', password: 'demo' },
+        fetchPolicy: 'network-only',
+      })
+      if (!data?.signin) {
+        setError('Demo sign-in failed.')
+        return
+      }
+      handleSuccess(data.signin, true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Demo sign-in failed.')
+    } finally {
+      setDemoLoading(false)
+    }
+  }
+
   const isSignUp = mode === 'signup'
+  const busy = loading || demoLoading
 
   return (
     <div style={{ padding: '2rem', maxWidth: '400px', margin: '4rem auto' }}>
@@ -103,7 +126,7 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
         {error && (
           <p role="alert" style={{ color: C_ERROR }}>{error}</p>
         )}
-        <button type="submit" disabled={loading} style={{ padding: '0.5rem 1.5rem' }}>
+        <button type="submit" disabled={busy} style={{ padding: '0.5rem 1.5rem' }}>
           {loading ? (isSignUp ? 'Signing up…' : 'Signing in…') : (isSignUp ? 'Sign Up' : 'Sign In')}
         </button>
       </form>
@@ -121,10 +144,29 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
         <GoogleSignInButton
           client={client}
           googleClientId={googleClientId}
-          onSuccess={handleSuccess}
+          onSuccess={(token) => handleSuccess(token)}
           onError={setError}
         />
       )}
+      <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+        <button
+          type="button"
+          onClick={signInAsDemoUser}
+          disabled={busy}
+          aria-label="Try a Demo — sign in as the demo user"
+          style={{
+            background: 'none',
+            border: `1px solid var(--color-border)`,
+            borderRadius: '4px',
+            padding: '0.4rem 1rem',
+            cursor: 'pointer',
+            color: 'var(--color-text-secondary)',
+            fontSize: '0.875rem',
+          }}
+        >
+          {demoLoading ? 'Loading demo…' : 'Try a Demo'}
+        </button>
+      </div>
     </div>
   )
 }
