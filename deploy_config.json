@@ -1,5 +1,5 @@
 {
-  "active": "aleuhouse",
+  "active": "nucubuntunl",
   "servers": {
     "local": {
       "graphqlEndpoint": "http://localhost:5665/graphql",
@@ -10,7 +10,7 @@
       "supportedSchemaRange": "^3.0.0"
     },
     "nucubuntunl": {
-      "graphqlEndpoint": "http://nucubuntunl:5665/graphql",
+      "graphqlEndpoint": "http://crystord:5665/graphql",
       "supportedSchemaRange": "^3.0.0"
     }
   }

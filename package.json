@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "config": "node scripts/config.mjs",
-    "dev": "vite",
-    "build": "tsc -b && vite build",
+    "dev": "npm run config && vite",
+    "build": "npm run config && tsc -b && vite build",
     "lint": "eslint .",
     "typecheck": "tsc -b --noEmit",
     "test": "vitest run",
