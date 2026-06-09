@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react'
 import App from './App'
 
 vi.mock('./config', () => ({
-  getConfig: () => ({
+  loadConfig: () => Promise.resolve({
     graphqlEndpoint: 'http://localhost:5665/graphql',
     supportedSchemaRange: '^2.0.0',
   }),

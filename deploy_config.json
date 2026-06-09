@@ -1,0 +1,17 @@
+{
+  "active": "aleuhouse",
+  "servers": {
+    "local": {
+      "graphqlEndpoint": "http://localhost:5665/graphql",
+      "supportedSchemaRange": "^3.0.0"
+    },
+    "aleuhouse": {
+      "graphqlEndpoint": "http://aleuhouse:5665/graphql",
+      "supportedSchemaRange": "^3.0.0"
+    },
+    "nucubuntunl": {
+      "graphqlEndpoint": "http://nucubuntunl:5665/graphql",
+      "supportedSchemaRange": "^3.0.0"
+    }
+  }
+}

@@ -1,0 +1,4 @@
+{
+  "graphqlEndpoint": "http://localhost:5665/graphql",
+  "supportedSchemaRange": "^3.0.0"
+}

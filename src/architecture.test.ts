@@ -391,12 +391,14 @@ describe('CI gate scripts exist (H5)', () => {
 })
 
 describe('Environment separation (H5/H7)', () => {
-  it('config.ts reads from environment variables only', () => {
+  it('config.ts loads runtime config from config.json via fetch', () => {
     const config = fs.readFileSync(path.join(SRC, 'config.ts'), 'utf-8')
 
-    // Uses Vite env vars
-    expect(config).toContain('import.meta.env.VITE_GRAPHQL_ENDPOINT')
-    expect(config).toContain('import.meta.env.VITE_SUPPORTED_SCHEMA_RANGE')
+    // Uses runtime fetch, not build-time env vars
+    expect(config).toContain('fetch')
+    expect(config).toContain('config.json')
+    expect(config).toContain('graphqlEndpoint')
+    expect(config).toContain('supportedSchemaRange')
 
     // No hardcoded endpoints
     expect(config).not.toMatch(/https?:\/\/[a-zA-Z]/)
@@ -406,7 +408,7 @@ describe('Environment separation (H5/H7)', () => {
   it('no hardcoded API endpoints in source files', () => {
     const allFiles = collectTsFiles(SRC)
     for (const file of allFiles) {
-      // Skip config.ts which is the approved env-var gateway
+      // Skip config.ts which is the approved runtime-config gateway
       if (file.endsWith('config.ts')) continue
       const content = fs.readFileSync(file, 'utf-8')
       expect(content).not.toMatch(/https?:\/\/localhost/)
@@ -2369,9 +2371,9 @@ describe('Sign-up and Google sign-in wiring (BI-260048)', () => {
     expect(barrel).toContain('GoogleSignInButton')
   })
 
-  it('config.ts exposes VITE_GOOGLE_CLIENT_ID as the approved env-var gateway', () => {
+  it('config.ts exposes googleClientId as part of the runtime config loaded from config.json', () => {
     const config = fs.readFileSync(path.join(SRC, 'config.ts'), 'utf-8')
-    expect(config).toContain('VITE_GOOGLE_CLIENT_ID')
+    expect(config).toContain('googleClientId')
   })
 })
 

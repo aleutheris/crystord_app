@@ -5,7 +5,7 @@ import { BrowserRouter, Routes, Route } from 'react-router'
 import { createApolloClient } from './api-contract'
 import type { CompatibilityResult } from './api-contract'
 import { runStartupCompatibilityCheck } from './bootstrap'
-import { getConfig } from './config'
+import { loadConfig } from './config'
 import { ThemeProvider } from './styles/ThemeProvider'
 import { AuthProvider, AuthGuard, SignInPage } from './features/auth-entry'
 import { AdminPlaceholder } from './features/admin'
@@ -28,7 +28,7 @@ export default function App() {
 
     async function bootstrap() {
       try {
-        const config = getConfig()
+        const config = await loadConfig()
         const client = createApolloClient(config.graphqlEndpoint)
         const result = await runStartupCompatibilityCheck(client, config.supportedSchemaRange)
 
@@ -68,7 +68,7 @@ export default function App() {
         <ThemeProvider>
         <ApolloProvider client={state.client}>
           <AuthProvider>
-            <BrowserRouter>
+            <BrowserRouter basename={import.meta.env.BASE_URL}>
               <Routes>
                 <Route path="/sign-in" element={<SignInPage client={state.client} googleClientId={state.googleClientId} />} />
                 <Route path="/admin" element={<AdminPlaceholder />} />
