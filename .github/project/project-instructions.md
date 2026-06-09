@@ -11,11 +11,12 @@ Instantiated from `.github/generic/process/project-instructions.md`.
 
 ## 2. Architecture Instantiation
 
-- Major modules and responsibilities: `auth-entry` (demo sign-in and entry guard), `workspace-graph` (canvas interactions and graph rendering), `workspace-search` (bootstrap and label-driven scoping), `workspace-details` (side-panel edit flows), `api-contract` (GraphQL bindings/adapters/compatibility checks), `ui-shell` (routing/layout/navigation shell).
+- Major modules and responsibilities: `auth-entry` (demo sign-in and entry guard), `workspace-graph` (canvas interactions and graph rendering), `workspace-search` (bootstrap and label-driven scoping), `workspace-details` (side-panel edit flows), `api-contract` (GraphQL bindings/adapters/compatibility checks), `ui-shell` (routing/layout/navigation shell), `ui-primitives` (shared template library — typed prop contracts and barrel exports for reusable UI primitives).
 - Module ownership map: Repository owner owns all modules in MVP; ownership split can be introduced Post-MVP by module boundary.
-- Allowed dependency directions: `ui-shell` composes feature modules; feature modules may depend on shared utilities and `api-contract`; feature modules must not import other feature internals.
-- Boundary contract catalog: Backend API/schema contract, internal module APIs, configuration contracts.
-- Behavior-oriented slicing plan: Vertical slices by capability: entry/auth, graph interaction, search/discovery, details editing, API-contract integration.
+- Allowed dependency directions: `ui-shell` composes feature modules; feature modules may depend on `ui-primitives`, shared utilities, and `api-contract`; feature modules must not import other feature internals; `ui-primitives` must not import from any feature module.
+- Boundary contract catalog: Backend API/schema contract, internal module APIs, configuration contracts, `ui-primitives` prop contracts.
+- Behavior-oriented slicing plan: Vertical slices by capability: entry/auth, graph interaction, search/discovery, details editing, API-contract integration. Within each feature slice, `use-*.ts` hooks own behavior and components own presentation — established practice in `workspace-graph`, standard for all new slices.
+- UI Primitives template library: `src/ui-primitives/` hosts typed prop contracts for buttons, inputs, selection controls, feedback, layout, and typography. Path alias `@ui/*` resolves to this directory. New templates are added per the `CATALOG.md` convention guide (ADR-260051).
 
 ## 3. Interface Governance Instantiation
 
