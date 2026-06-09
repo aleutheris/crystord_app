@@ -32,22 +32,22 @@ def run_command(command, description):
 def run_interface_preflight():
     """Verify the bundled backend interface against the client-supported schema range."""
     root = Path(os.getcwd())
-    canonical_bundle_dir = root / "docs" / "backend-integration" / "crystord-interface-v2.0.0"
-    legacy_docs_bundle_dir = root / "docs" / "crystord-interface-v2.0.0"
+    canonical_bundle_dir = root / "docs" / "backend-integration" / "crystord-interface-v3.0.0"
+    legacy_docs_bundle_dir = root / "docs" / "crystord-interface-v3.0.0"
 
     policy_file = root / "docs" / "backend-integration" / "client-schema-policy.json"
 
     if canonical_bundle_dir.exists():
         verify_script = canonical_bundle_dir / "verify.py"
-        archive_file = canonical_bundle_dir / "crystord-interface-v2.0.0.tgz"
+        archive_file = canonical_bundle_dir / "crystord-interface-v3.0.0.tgz"
     elif legacy_docs_bundle_dir.exists():
         verify_script = legacy_docs_bundle_dir / "verify.py"
-        archive_file = legacy_docs_bundle_dir / "crystord-interface-v2.0.0.tgz"
+        archive_file = legacy_docs_bundle_dir / "crystord-interface-v3.0.0.tgz"
     else:
         print(
             "Skipping backend interface preflight: no interface bundle found "
-            "at docs/backend-integration/crystord-interface-v2.0.0 "
-            "or docs/crystord-interface-v2.0.0."
+            "at docs/backend-integration/crystord-interface-v3.0.0 "
+            "or docs/crystord-interface-v3.0.0."
         )
         return True
 

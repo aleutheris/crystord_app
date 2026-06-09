@@ -28,7 +28,7 @@ type OperationFunction {
 
 type Mutation {
     signup(email: String!, password: String!, username: String): String!
-    change(selector: Selector, inputs: [AtomInput]!): [String]!
+    change(selector: Selector, inputs: [AtomInput]!, remark: String): [String]!
     destroy(selector: DestroySelector!): DestroyOutcome!
 }
 
@@ -42,7 +42,7 @@ input Selector {
     labels: [String]
     uuid: String
     title: String
-    content: String
+    content: JSON
     description: String
     operation: String
     constants: JSON
@@ -75,14 +75,9 @@ input ShelliesInput {
     uuid: ID
 }
 
-input ChangeInput {
-    date: String
-    description: String
-}
-
 input NucleariesInput {
     title: String
-    content: String
+    content: JSON
     description: String
     operation: String
     constants: JSON
@@ -117,17 +112,33 @@ type PropertiesOutput {
 
 type ShelliesOutput {
     uuid: ID!
-    changes: [ChangeOutput!]
+    changes(limit: Int = 5, offset: Int = 0): [ChangeEvent!]
 }
 
-type ChangeOutput {
-    date: String
-    description: String!
+type ChangeEvent {
+    timestamp: String!
+    eventType: String!
+    userId: String!
+    propertyChanges: [PropertyChange!]!
+    remark: String
+}
+
+type PropertyChange {
+    field: String!
+    oldValue: JSON
+    newValue: JSON
+    metrics: PropertyChangeMetrics
+}
+
+type PropertyChangeMetrics {
+    removedCount: Int!
+    addedCount: Int!
+    totalMembersAfter: Int!
 }
 
 type NucleariesOutput {
     title: String!
-    content: String
+    content: JSON
     description: String
     operation: String
     constants: JSON
