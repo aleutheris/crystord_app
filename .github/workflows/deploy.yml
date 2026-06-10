@@ -44,6 +44,8 @@ jobs:
           echo "Deployed with server: $ACTIVE"
 
       - uses: actions/configure-pages@v5
+        with:
+          enablement: false
 
       - uses: actions/upload-pages-artifact@v3
         with:
