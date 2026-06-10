@@ -1,12 +1,15 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 export function useUrlTokenHandoff(signIn: (token: string) => void): void {
+  const signInRef = useRef(signIn)
+  signInRef.current = signIn
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const urlToken = params.get('token')
     if (!urlToken) return
 
-    signIn(urlToken)
+    signInRef.current(urlToken)
 
     params.delete('token')
     const remaining = params.toString()
@@ -15,5 +18,5 @@ export function useUrlTokenHandoff(signIn: (token: string) => void): void {
       (remaining ? `?${remaining}` : '') +
       window.location.hash
     window.history.replaceState(null, '', newUrl)
-  }, [signIn])
+  }, []) // intentionally empty — runs once on mount regardless of signIn reference stability
 }

@@ -28,7 +28,7 @@ function mockGraphQL(page: import('@playwright/test').Page) {
     },
   ]
 
-  return page.route('**/graphql', (route) => {
+  return page.route('**/api', (route) => {
     const postData = route.request().postData()
     if (!postData) return route.continue()
 
@@ -104,7 +104,7 @@ async function signIn(page: import('@playwright/test').Page) {
   await page.goto('/')
   await expect(page.getByRole('heading', { name: /sign in/i })).toBeVisible()
   const responsePromise = page.waitForResponse((r) =>
-    r.url().includes('/graphql') && r.request().postData()?.includes('signin') === true,
+    r.url().includes('/api') && r.request().postData()?.includes('signin') === true,
   )
   await page.getByRole('button', { name: /try a demo/i }).click()
   await responsePromise
@@ -112,7 +112,7 @@ async function signIn(page: import('@playwright/test').Page) {
 
 async function submitSearch(page: import('@playwright/test').Page) {
   const retrieveResponse = page.waitForResponse(
-    (r) => r.url().includes('/graphql') && r.request().postData()?.includes('retrieve') === true,
+    (r) => r.url().includes('/api') && r.request().postData()?.includes('retrieve') === true,
   )
   await page.getByRole('button', { name: /search/i }).click()
   await retrieveResponse
@@ -161,7 +161,7 @@ test.describe('Search and discoverability', () => {
     await page.keyboard.press(' ')
 
     const retrieveResponse = page.waitForResponse(
-      (r) => r.url().includes('/graphql') && r.request().postData()?.includes('retrieve') === true,
+      (r) => r.url().includes('/api') && r.request().postData()?.includes('retrieve') === true,
     )
     await page.keyboard.press('Enter')
     await retrieveResponse
@@ -182,7 +182,7 @@ test.describe('Search and discoverability', () => {
     await page.getByRole('button', { name: 'Task' }).click()
 
     const retrieveResponse = page.waitForResponse(
-      (r) => r.url().includes('/graphql') && r.request().postData()?.includes('retrieve') === true,
+      (r) => r.url().includes('/api') && r.request().postData()?.includes('retrieve') === true,
     )
     await page.getByLabel(/search labels/i).click()
     await page.keyboard.press('Enter')
@@ -203,7 +203,7 @@ test.describe('Search and discoverability', () => {
     await page.keyboard.press(' ')
 
     const retrieveResponse = page.waitForResponse(
-      (r) => r.url().includes('/graphql') && r.request().postData()?.includes('retrieve') === true,
+      (r) => r.url().includes('/api') && r.request().postData()?.includes('retrieve') === true,
     )
     await page.keyboard.press('Enter')
     await retrieveResponse
@@ -228,7 +228,7 @@ test.describe('Search and discoverability', () => {
     await page.keyboard.press(' ')
 
     const retrieveResponse = page.waitForResponse(
-      (r) => r.url().includes('/graphql') && r.request().postData()?.includes('retrieve') === true,
+      (r) => r.url().includes('/api') && r.request().postData()?.includes('retrieve') === true,
     )
     await page.keyboard.press('Enter')
     await retrieveResponse
@@ -281,7 +281,7 @@ test.describe('Search and discoverability', () => {
       },
     }
 
-    await page.route('**/graphql', (route) => {
+    await page.route('**/api', (route) => {
       const postData = route.request().postData()
       if (!postData) return route.continue()
       const body = JSON.parse(postData)
@@ -334,7 +334,7 @@ test.describe('Search and discoverability', () => {
     await page.keyboard.press(' ')
 
     const retrieveResponse = page.waitForResponse(
-      (r) => r.url().includes('/graphql') && r.request().postData()?.includes('retrieve') === true,
+      (r) => r.url().includes('/api') && r.request().postData()?.includes('retrieve') === true,
     )
     await page.keyboard.press('Enter')
     await retrieveResponse
@@ -352,7 +352,7 @@ test.describe('Search and discoverability', () => {
     await page.keyboard.type('Project')
 
     const retrieveResponse = page.waitForResponse(
-      (r) => r.url().includes('/graphql') && r.request().postData()?.includes('retrieve') === true,
+      (r) => r.url().includes('/api') && r.request().postData()?.includes('retrieve') === true,
     )
     await page.keyboard.press('Enter')
     await retrieveResponse
@@ -375,7 +375,7 @@ test.describe('Search and discoverability', () => {
     await page.keyboard.type('Task')
 
     const retrieveResponse = page.waitForResponse(
-      (r) => r.url().includes('/graphql') && r.request().postData()?.includes('retrieve') === true,
+      (r) => r.url().includes('/api') && r.request().postData()?.includes('retrieve') === true,
     )
     await page.keyboard.press('Enter')
     await retrieveResponse
@@ -387,7 +387,7 @@ test.describe('Search and discoverability', () => {
 
   test('repeated search with same labels triggers fresh backend query each time', async ({ page }) => {
     let retrieveCallCount = 0
-    await page.route('**/graphql', (route) => {
+    await page.route('**/api', (route) => {
       const postData = route.request().postData()
       if (!postData) return route.continue()
       const body = JSON.parse(postData)
@@ -438,13 +438,13 @@ test.describe('Search and discoverability', () => {
     // First search
     await searchInput.click()
     await page.keyboard.type('Project')
-    const first = page.waitForResponse((r) => r.url().includes('/graphql') && r.request().postData()?.includes('retrieve') === true)
+    const first = page.waitForResponse((r) => r.url().includes('/api') && r.request().postData()?.includes('retrieve') === true)
     await page.keyboard.press('Enter')
     await first
 
     // Second search with same label
     await page.keyboard.type('Project')
-    const second = page.waitForResponse((r) => r.url().includes('/graphql') && r.request().postData()?.includes('retrieve') === true)
+    const second = page.waitForResponse((r) => r.url().includes('/api') && r.request().postData()?.includes('retrieve') === true)
     await page.keyboard.press('Enter')
     await second
 

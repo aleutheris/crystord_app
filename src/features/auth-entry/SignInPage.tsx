@@ -7,7 +7,8 @@ import { SIGN_UP_QUERY } from '../../api-contract/auth-queries'
 import type { SignUpResponse } from '../../api-contract/auth-queries'
 import { useAuth } from './AuthProvider'
 import { GoogleSignInButton } from './GoogleSignInButton'
-import { C_ERROR } from '../../styles/tokens'
+import { DemoPanel } from './DemoPanel'
+import './sign-in-page.css'
 
 interface SignInPageProps {
   client: ApolloClient
@@ -90,79 +91,108 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
   const busy = loading || demoLoading
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '400px', margin: '4rem auto' }}>
-      <h1>Crystord</h1>
-      <h2>{isSignUp ? 'Sign Up' : 'Sign In'}</h2>
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '1rem' }}>
-          <label htmlFor="identifier">{isSignUp ? 'Email' : 'Username or Email'}</label>
-          <br />
-          <input
-            id="identifier"
-            type={isSignUp ? 'email' : 'text'}
-            value={identifier}
-            onChange={(e) => setIdentifier(e.target.value)}
-            required
-            autoComplete={isSignUp ? 'email' : 'username'}
-            style={{ width: '100%', padding: '0.5rem' }}
-          />
+    <div className="sign-in-page">
+      <div className="sign-in-page__grid">
+        <div className="sign-in-page__auth">
+          <div role="tablist" className="sign-in-page__tabs">
+            <button
+              role="tab"
+              aria-selected={!isSignUp}
+              className="sign-in-page__tab"
+              onClick={() => { setMode('signin'); setError(null) }}
+              type="button"
+            >
+              Sign In
+            </button>
+            <button
+              role="tab"
+              aria-selected={isSignUp}
+              className="sign-in-page__tab"
+              onClick={() => { setMode('signup'); setError(null) }}
+              type="button"
+            >
+              Sign Up
+            </button>
+          </div>
+
+          <div role="tabpanel">
+            <h2 className="sign-in-page__panel-title">
+              {isSignUp ? 'Create Account' : 'Sign In'}
+            </h2>
+            <p className="sign-in-page__panel-subtitle">
+              {isSignUp ? 'Create your account to get started' : 'Access your account to continue'}
+            </p>
+
+            <form onSubmit={handleSubmit} className="sign-in-page__form">
+              <div className="sign-in-page__field">
+                <label htmlFor="identifier" className="sign-in-page__label">
+                  {isSignUp ? 'Email' : 'Username or Email'}
+                </label>
+                <input
+                  id="identifier"
+                  className="sign-in-page__input"
+                  type={isSignUp ? 'email' : 'text'}
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  required
+                  autoComplete={isSignUp ? 'email' : 'username'}
+                />
+              </div>
+              <div className="sign-in-page__field">
+                <label htmlFor="password" className="sign-in-page__label">Password</label>
+                <input
+                  id="password"
+                  className="sign-in-page__input"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete={isSignUp ? 'new-password' : 'current-password'}
+                />
+              </div>
+
+              {error && (
+                <p role="alert" className="sign-in-page__error">{error}</p>
+              )}
+
+              <button type="submit" disabled={busy} className="sign-in-page__btn-primary">
+                {loading
+                  ? (isSignUp ? 'Signing up…' : 'Signing in…')
+                  : (isSignUp ? 'Sign Up' : 'Sign In')}
+              </button>
+            </form>
+
+            <div className="sign-in-page__divider">
+              <span>{isSignUp ? 'or sign up with' : 'or sign in with'}</span>
+            </div>
+
+            {googleClientId && (
+              <GoogleSignInButton
+                client={client}
+                googleClientId={googleClientId}
+                onSuccess={(token) => handleSuccess(token)}
+                onError={setError}
+              />
+            )}
+
+            <p className="sign-in-page__switch">
+              {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
+              <button
+                type="button"
+                className="sign-in-page__switch-btn"
+                onClick={() => { setMode(isSignUp ? 'signin' : 'signup'); setError(null) }}
+              >
+                {isSignUp ? 'Sign in' : 'Sign up'}
+              </button>
+            </p>
+          </div>
         </div>
-        <div style={{ marginBottom: '1rem' }}>
-          <label htmlFor="password">Password</label>
-          <br />
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            autoComplete={isSignUp ? 'new-password' : 'current-password'}
-            style={{ width: '100%', padding: '0.5rem' }}
-          />
-        </div>
-        {error && (
-          <p role="alert" style={{ color: C_ERROR }}>{error}</p>
-        )}
-        <button type="submit" disabled={busy} style={{ padding: '0.5rem 1.5rem' }}>
-          {loading ? (isSignUp ? 'Signing up…' : 'Signing in…') : (isSignUp ? 'Sign Up' : 'Sign In')}
-        </button>
-      </form>
-      <p style={{ marginTop: '1rem' }}>
-        {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
-        <button
-          type="button"
-          onClick={() => { setMode(isSignUp ? 'signin' : 'signup'); setError(null) }}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
-        >
-          {isSignUp ? 'Sign in' : 'Sign up'}
-        </button>
-      </p>
-      {googleClientId && (
-        <GoogleSignInButton
-          client={client}
-          googleClientId={googleClientId}
-          onSuccess={(token) => handleSuccess(token)}
-          onError={setError}
-        />
-      )}
-      <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
-        <button
-          type="button"
-          onClick={signInAsDemoUser}
+
+        <DemoPanel
+          onTryDemo={signInAsDemoUser}
+          loading={demoLoading}
           disabled={busy}
-          aria-label="Try a Demo — sign in as the demo user"
-          style={{
-            background: 'none',
-            border: `1px solid var(--color-border)`,
-            borderRadius: '4px',
-            padding: '0.4rem 1rem',
-            cursor: 'pointer',
-            color: 'var(--color-text-secondary)',
-            fontSize: '0.875rem',
-          }}
-        >
-          {demoLoading ? 'Loading demo…' : 'Try a Demo'}
-        </button>
+        />
       </div>
     </div>
   )

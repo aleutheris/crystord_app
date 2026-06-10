@@ -2430,12 +2430,20 @@ describe('api-contract barrel exports BI-260048 symbols', () => {
 // --- BI-260050: Consolidated authentication experience with demo mode ---
 
 describe('Demo mode — "Try a Demo" one-click entry (BI-260050)', () => {
-  it('SignInPage has a "Try a Demo" button', () => {
+  it('SignInPage wires signInAsDemoUser and passes it to DemoPanel', () => {
     const src = fs.readFileSync(
       path.join(FEATURES, 'auth-entry', 'SignInPage.tsx'), 'utf-8',
     )
-    expect(src).toContain('Try a Demo')
+    // "Try a Demo" label lives in DemoPanel (BI-260052 layout split); SignInPage owns the logic
     expect(src).toContain('signInAsDemoUser')
+    expect(src).toContain('<DemoPanel')
+  })
+
+  it('DemoPanel renders the "Try a Demo" button label', () => {
+    const src = fs.readFileSync(
+      path.join(FEATURES, 'auth-entry', 'DemoPanel.tsx'), 'utf-8',
+    )
+    expect(src).toContain('Try a Demo')
   })
 
   it('signInAsDemoUser sends hardcoded demo/demo credentials as email param', () => {
@@ -2475,5 +2483,78 @@ describe('AuthProvider demo session state (BI-260050)', () => {
       path.join(FEATURES, 'auth-entry', 'AuthProvider.tsx'), 'utf-8',
     )
     expect(src).toMatch(/signOut[\s\S]{0,100}setIsDemoSession\(false\)/)
+  })
+})
+
+// --- BI-260052: Two-column auth + demo panel layout (REQ-CR-260022 / ADR-260053) ---
+
+describe('Two-column auth + demo layout (BI-260052)', () => {
+  it('SignInPage imports DemoPanel sub-component', () => {
+    const src = fs.readFileSync(
+      path.join(FEATURES, 'auth-entry', 'SignInPage.tsx'), 'utf-8',
+    )
+    expect(src).toContain("from './DemoPanel'")
+    expect(src).toContain('<DemoPanel')
+  })
+
+  it('SignInPage imports sign-in-page.css', () => {
+    const src = fs.readFileSync(
+      path.join(FEATURES, 'auth-entry', 'SignInPage.tsx'), 'utf-8',
+    )
+    expect(src).toContain("'./sign-in-page.css'")
+  })
+
+  it('SignInPage uses ARIA tablist pattern for Sign In / Sign Up tabs', () => {
+    const src = fs.readFileSync(
+      path.join(FEATURES, 'auth-entry', 'SignInPage.tsx'), 'utf-8',
+    )
+    expect(src).toContain('role="tablist"')
+    expect(src).toContain('role="tab"')
+    expect(src).toContain('aria-selected=')
+    expect(src).toContain('role="tabpanel"')
+  })
+
+  it('SignInPage renders a divider for alternative sign-in method', () => {
+    const src = fs.readFileSync(
+      path.join(FEATURES, 'auth-entry', 'SignInPage.tsx'), 'utf-8',
+    )
+    expect(src).toContain('or sign in with')
+    expect(src).toContain('or sign up with')
+  })
+
+  it('DemoPanel file exists and exports DemoPanel', () => {
+    expect(fs.existsSync(path.join(FEATURES, 'auth-entry', 'DemoPanel.tsx'))).toBe(true)
+    const src = fs.readFileSync(
+      path.join(FEATURES, 'auth-entry', 'DemoPanel.tsx'), 'utf-8',
+    )
+    expect(src).toContain('export function DemoPanel')
+  })
+
+  it('DemoPanel renders feature list and "No registration required" note', () => {
+    const src = fs.readFileSync(
+      path.join(FEATURES, 'auth-entry', 'DemoPanel.tsx'), 'utf-8',
+    )
+    expect(src).toContain('No registration required')
+    expect(src).toContain('sign-in-page__feature-list')
+  })
+
+  it('sign-in-page.css exists with two-column grid and responsive breakpoint', () => {
+    expect(fs.existsSync(path.join(FEATURES, 'auth-entry', 'sign-in-page.css'))).toBe(true)
+    const css = fs.readFileSync(
+      path.join(FEATURES, 'auth-entry', 'sign-in-page.css'), 'utf-8',
+    )
+    expect(css).toContain('grid-template-columns: 1fr 1fr')
+    expect(css).toContain('max-width: 640px')
+    expect(css).toContain('grid-template-columns: 1fr')
+  })
+
+  it('sign-in-page.css uses only CSS custom property tokens — no hardcoded hex values', () => {
+    const css = fs.readFileSync(
+      path.join(FEATURES, 'auth-entry', 'sign-in-page.css'), 'utf-8',
+    )
+    // Strip comments and #ffffff (pure white is acceptable for button text — matches --color-card-bg)
+    const withoutComments = css.replace(/\/\*[\s\S]*?\*\//g, '')
+    const withoutWhite = withoutComments.replace(/#ffffff/gi, '')
+    expect(withoutWhite).not.toMatch(/#[0-9a-fA-F]{3,8}/)
   })
 })

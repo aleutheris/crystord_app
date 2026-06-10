@@ -33,7 +33,7 @@ function mockGraphQL(
   atomsAfterCreate?: typeof BASE_ATOMS,
 ) {
   let retrieveAtoms = BASE_ATOMS
-  return page.route('**/graphql', (route) => {
+  return page.route('**/api', (route) => {
     const postData = route.request().postData()
     if (!postData) return route.continue()
     const body = JSON.parse(postData)
@@ -91,7 +91,7 @@ async function signIn(page: import('@playwright/test').Page) {
   await page.goto('/')
   await expect(page.getByRole('heading', { name: /sign in/i })).toBeVisible()
   const responsePromise = page.waitForResponse((r) =>
-    r.url().includes('/graphql') && r.request().postData()?.includes('signin') === true,
+    r.url().includes('/api') && r.request().postData()?.includes('signin') === true,
   )
   await page.getByRole('button', { name: /try a demo/i }).click()
   await responsePromise
@@ -99,7 +99,7 @@ async function signIn(page: import('@playwright/test').Page) {
 
 async function submitSearch(page: import('@playwright/test').Page) {
   const retrieveResponse = page.waitForResponse(
-    (r) => r.url().includes('/graphql') && r.request().postData()?.includes('retrieve') === true,
+    (r) => r.url().includes('/api') && r.request().postData()?.includes('retrieve') === true,
   )
   await page.getByLabel(/search labels/i).click()
   await page.keyboard.press('Enter')
@@ -187,7 +187,7 @@ test.describe('Explicit atom creation', () => {
     await panel.getByLabel(/description/i).fill('New atom')
 
     const createResponse = page.waitForResponse(
-      (r) => r.url().includes('/graphql') && r.request().postData()?.includes('change') === true,
+      (r) => r.url().includes('/api') && r.request().postData()?.includes('change') === true,
     )
     await panel.getByRole('button', { name: /^create$/i }).click()
     await createResponse
@@ -206,7 +206,7 @@ test.describe('Explicit atom creation', () => {
     await panel.getByLabel(/title/i).fill('Gamma')
 
     const createResponse = page.waitForResponse(
-      (r) => r.url().includes('/graphql') && r.request().postData()?.includes('change') === true,
+      (r) => r.url().includes('/api') && r.request().postData()?.includes('change') === true,
     )
     await panel.getByRole('button', { name: /^create$/i }).click()
     await createResponse
@@ -227,7 +227,7 @@ test.describe('Explicit atom creation', () => {
     await panel.getByLabel(/labels.*comma/i).fill('Project')
 
     const retrieveResponse = page.waitForResponse(
-      (r) => r.url().includes('/graphql') && r.request().postData()?.includes('retrieve') === true,
+      (r) => r.url().includes('/api') && r.request().postData()?.includes('retrieve') === true,
     )
     await panel.getByRole('button', { name: /^create$/i }).click()
     await retrieveResponse
@@ -247,7 +247,7 @@ test.describe('Explicit atom creation', () => {
     await panel.getByLabel(/labels.*comma/i).fill('Other')
 
     const retrieveResponse = page.waitForResponse(
-      (r) => r.url().includes('/graphql') && r.request().postData()?.includes('retrieve') === true,
+      (r) => r.url().includes('/api') && r.request().postData()?.includes('retrieve') === true,
     )
     await panel.getByRole('button', { name: /^create$/i }).click()
     await retrieveResponse

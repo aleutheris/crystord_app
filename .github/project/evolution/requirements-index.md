@@ -104,3 +104,4 @@ When a requirement is deprecated, keep its row in this file and set `Status` to 
 | REQ-FR-260062 | Accept Platform Token from URL Parameter on Redirect | FR | Accepted | ADR-260052 | BI-260051 |
 | REQ-CR-260021 | URL Token Parameter Must Be Stripped from URL Immediately After Consumption | CR | Accepted | ADR-260052 | BI-260051 |
 | REQ-OR-260015 | URL Token Handoff Must Apply Regardless of Existing Session State | OR | Accepted | ADR-260052 | BI-260051 |
+| REQ-CR-260022 | Auth Entry Screen Must Use Two-Column Auth + Demo Panel Layout | CR | Accepted | ADR-260053 | BI-260052 |
