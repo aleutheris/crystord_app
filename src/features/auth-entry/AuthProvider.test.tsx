@@ -112,4 +112,82 @@ describe('AuthProvider', () => {
     expect(() => render(<TestConsumer />)).toThrow('useAuth must be used within AuthProvider')
     err.mockRestore()
   })
+
+  describe('URL token handoff', () => {
+    let replaceState: ReturnType<typeof vi.spyOn>
+
+    beforeEach(() => {
+      replaceState = vi.spyOn(window.history, 'replaceState').mockImplementation(() => {})
+    })
+
+    afterEach(() => {
+      Object.defineProperty(window, 'location', {
+        value: { ...window.location, search: '', pathname: '/', hash: '' },
+        writable: true,
+        configurable: true,
+      })
+    })
+
+    it('signs in automatically when ?token= is present in the URL', async () => {
+      Object.defineProperty(window, 'location', {
+        value: { ...window.location, search: '?token=platform-token', pathname: '/', hash: '' },
+        writable: true,
+        configurable: true,
+      })
+      renderProvider()
+      await vi.waitFor(() => {
+        expect(screen.getByTestId('auth')).toHaveTextContent('authed')
+        expect(screen.getByTestId('token')).toHaveTextContent('platform-token')
+      })
+    })
+
+    it('persists the URL token to localStorage', async () => {
+      Object.defineProperty(window, 'location', {
+        value: { ...window.location, search: '?token=platform-token', pathname: '/', hash: '' },
+        writable: true,
+        configurable: true,
+      })
+      renderProvider()
+      await vi.waitFor(() => {
+        expect(localStorage.getItem('crystord-auth-token')).toBe('platform-token')
+      })
+    })
+
+    it('strips the token param from the URL after consuming it', async () => {
+      Object.defineProperty(window, 'location', {
+        value: { ...window.location, search: '?token=platform-token', pathname: '/', hash: '' },
+        writable: true,
+        configurable: true,
+      })
+      renderProvider()
+      await vi.waitFor(() => {
+        expect(replaceState).toHaveBeenCalledWith(null, '', '/')
+      })
+    })
+
+    it('overrides an existing localStorage session with the URL token', async () => {
+      localStorage.setItem('crystord-auth-token', 'old-token')
+      Object.defineProperty(window, 'location', {
+        value: { ...window.location, search: '?token=new-token', pathname: '/', hash: '' },
+        writable: true,
+        configurable: true,
+      })
+      renderProvider()
+      await vi.waitFor(() => {
+        expect(screen.getByTestId('token')).toHaveTextContent('new-token')
+        expect(localStorage.getItem('crystord-auth-token')).toBe('new-token')
+      })
+    })
+
+    it('does not sign in or modify URL when no token param is present', () => {
+      Object.defineProperty(window, 'location', {
+        value: { ...window.location, search: '', pathname: '/', hash: '' },
+        writable: true,
+        configurable: true,
+      })
+      renderProvider()
+      expect(screen.getByTestId('auth')).toHaveTextContent('anon')
+      expect(replaceState).not.toHaveBeenCalled()
+    })
+  })
 })

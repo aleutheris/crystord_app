@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { setAuthToken } from '../../api-contract/auth-token'
 import { readStoredToken, persistToken, clearStoredToken } from '../../api-contract/auth-token'
 import { onSessionExpired } from '../../api-contract/session-expired'
+import { useUrlTokenHandoff } from './use-url-token-handoff'
 
 interface AuthState {
   token: string | null
@@ -37,6 +38,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     onSessionExpired(signOut)
   }, [signOut])
+
+  useUrlTokenHandoff(signIn)
 
   const value = useMemo<AuthState>(() => ({
     token,

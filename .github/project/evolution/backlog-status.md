@@ -47,6 +47,8 @@
 | BI-260049 | Implement Username/Password Authentication | Done | .github/project/evolution/backlog-items/BI-260049.md | REQ-FR-260057, REQ-FR-260058, REQ-OR-260013 | ADR-260049 | Implemented: SignInPage sign-in mode shows "Username or Email" label with type="text" input; identifier sent as `email` to backend (REQ-OR-260013 shim); sign-up mode unchanged (type="email"); 4 new architecture tests; 545 unit tests, TypeScript strict clean, ESLint clean, all quality gates pass. |
 | BI-260050 | Consolidate and Refine Authentication Experience | Done | .github/project/evolution/backlog-items/BI-260050.md | REQ-FR-260059, REQ-FR-260060, REQ-FR-260061, REQ-OR-260014, REQ-CR-260020, REQ-QR-260007 | ADR-260050 | Implemented: isDemoSession boolean on AuthContext; signIn(token, demo?) skips persistToken for demo sessions; SignInPage adds "Try a Demo" one-click button sending hardcoded demo/demo credentials with demo=true; demo token not written to localStorage; 11 SignInPage tests + 8 AuthProvider tests + 6 architecture tests; 556 unit tests, TypeScript strict clean, ESLint clean, all quality gates pass. |
 
+| BI-260051 | Implement Platform Token Handoff via URL Parameter | Done | .github/project/evolution/backlog-items/BI-260051.md | REQ-FR-260062, REQ-CR-260021, REQ-OR-260015 | ADR-260052 | Implemented: useUrlTokenHandoff hook reads ?token= on mount, calls signIn (persists to localStorage), strips param via history.replaceState; 6 hook unit tests + 5 AuthProvider integration tests; 567 unit tests, TypeScript strict clean, ESLint clean, all quality gates pass. |
+
 ## Workflow States
 
 - **Idea**: Candidate item, not yet refined.
