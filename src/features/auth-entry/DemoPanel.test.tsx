@@ -13,22 +13,9 @@ function renderPanel(overrides: Partial<Parameters<typeof DemoPanel>[0]> = {}) {
 }
 
 describe('DemoPanel', () => {
-  it('renders the "Try Demo" heading', () => {
-    renderPanel()
-    expect(screen.getByRole('heading', { name: /try demo/i })).toBeInTheDocument()
-  })
-
-  it('renders the subtitle', () => {
+  it('renders the demo description', () => {
     renderPanel()
     expect(screen.getByText(/explore all features with sample data/i)).toBeInTheDocument()
-  })
-
-  it('renders all four feature list items', () => {
-    renderPanel()
-    expect(screen.getByText('Interactive Graph Workspace')).toBeInTheDocument()
-    expect(screen.getByText('Atom and Bond Management')).toBeInTheDocument()
-    expect(screen.getByText('Search and Discovery')).toBeInTheDocument()
-    expect(screen.getByText('Real-time Data View')).toBeInTheDocument()
   })
 
   it('renders the "No registration required" note', () => {

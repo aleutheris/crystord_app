@@ -7,6 +7,7 @@ import { SIGN_UP_QUERY } from '../../api-contract/auth-queries'
 import type { SignUpResponse } from '../../api-contract/auth-queries'
 import { useAuth } from './AuthProvider'
 import { GoogleSignInButton } from './GoogleSignInButton'
+import { BrandPanel } from './BrandPanel'
 import { DemoPanel } from './DemoPanel'
 import './sign-in-page.css'
 
@@ -92,8 +93,9 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
 
   return (
     <div className="sign-in-page">
-      <div className="sign-in-page__grid">
-        <div className="sign-in-page__auth">
+      <BrandPanel />
+      <div className="sign-in-page__auth">
+        <div className="sign-in-page__form-wrap">
           <div role="tablist" className="sign-in-page__tabs">
             <button
               role="tab"
@@ -119,9 +121,6 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
             <h2 className="sign-in-page__panel-title">
               {isSignUp ? 'Create Account' : 'Sign In'}
             </h2>
-            <p className="sign-in-page__panel-subtitle">
-              {isSignUp ? 'Create your account to get started' : 'Access your account to continue'}
-            </p>
 
             <form onSubmit={handleSubmit} className="sign-in-page__form">
               <div className="sign-in-page__field">
@@ -155,11 +154,13 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
                 <p role="alert" className="sign-in-page__error">{error}</p>
               )}
 
-              <button type="submit" disabled={busy} className="sign-in-page__btn-primary">
-                {loading
-                  ? (isSignUp ? 'Signing up…' : 'Signing in…')
-                  : (isSignUp ? 'Sign Up' : 'Sign In')}
-              </button>
+              <div className="sign-in-page__actions">
+                <button type="submit" disabled={busy} className="sign-in-page__btn-primary">
+                  {loading
+                    ? (isSignUp ? 'Signing up…' : 'Signing in…')
+                    : (isSignUp ? 'Sign Up' : 'Sign In')}
+                </button>
+              </div>
             </form>
 
             <div className="sign-in-page__divider">
@@ -175,6 +176,12 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
               />
             )}
 
+            <DemoPanel
+              onTryDemo={signInAsDemoUser}
+              loading={demoLoading}
+              disabled={busy}
+            />
+
             <p className="sign-in-page__switch">
               {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
               <button
@@ -187,12 +194,6 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
             </p>
           </div>
         </div>
-
-        <DemoPanel
-          onTryDemo={signInAsDemoUser}
-          loading={demoLoading}
-          disabled={busy}
-        />
       </div>
     </div>
   )

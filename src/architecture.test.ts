@@ -2530,12 +2530,12 @@ describe('Two-column auth + demo layout (BI-260052)', () => {
     expect(src).toContain('export function DemoPanel')
   })
 
-  it('DemoPanel renders feature list and "No registration required" note', () => {
+  it('DemoPanel renders "No registration required" note and demo call-to-action', () => {
     const src = fs.readFileSync(
       path.join(FEATURES, 'auth-entry', 'DemoPanel.tsx'), 'utf-8',
     )
     expect(src).toContain('No registration required')
-    expect(src).toContain('sign-in-page__feature-list')
+    expect(src).toContain('Try a Demo')
   })
 
   it('sign-in-page.css exists with two-column grid and responsive breakpoint', () => {
@@ -2544,7 +2544,7 @@ describe('Two-column auth + demo layout (BI-260052)', () => {
       path.join(FEATURES, 'auth-entry', 'sign-in-page.css'), 'utf-8',
     )
     expect(css).toContain('grid-template-columns: 1fr 1fr')
-    expect(css).toContain('max-width: 640px')
+    expect(css).toContain('max-width: 768px')
     expect(css).toContain('grid-template-columns: 1fr')
   })
 

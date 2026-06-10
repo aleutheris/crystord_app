@@ -251,7 +251,7 @@ describe('SignInPage', () => {
     expect(screen.getByRole('tabpanel')).toBeInTheDocument()
   })
 
-  it('renders demo feature list with all feature items', () => {
+  it('renders feature highlights in brand panel', () => {
     const client = createMockClient({ data: { signin: 'token' } })
     renderSignIn(client)
 
