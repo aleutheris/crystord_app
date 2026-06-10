@@ -1,14 +1,12 @@
 import { useEffect, useState } from 'react'
 import { ApolloProvider } from '@apollo/client/react'
 import { type ApolloClient } from '@apollo/client'
-import { BrowserRouter, Routes, Route } from 'react-router'
 import { createApolloClient } from './api-contract'
 import type { CompatibilityResult } from './api-contract'
 import { runStartupCompatibilityCheck } from './bootstrap'
 import { loadConfig } from './config'
 import { ThemeProvider } from './styles/ThemeProvider'
-import { AuthProvider, AuthGuard, SignInPage } from './features/auth-entry'
-import { AdminPlaceholder } from './features/admin'
+import { AuthProvider, useAuth, SignInPage } from './features/auth-entry'
 import { LoadingScreen } from './ui-shell/LoadingScreen'
 import { SchemaErrorScreen } from './ui-shell/SchemaErrorScreen'
 import { StartupErrorScreen } from './ui-shell/StartupErrorScreen'
@@ -19,6 +17,21 @@ type StartupState =
   | { phase: 'compatible'; client: ApolloClient; googleClientId?: string }
   | { phase: 'incompatible'; result: CompatibilityResult }
   | { phase: 'error'; message: string }
+
+interface AppContentProps {
+  client: ApolloClient
+  googleClientId?: string
+}
+
+function AppContent({ client, googleClientId }: AppContentProps) {
+  const { isAuthenticated } = useAuth()
+
+  if (!isAuthenticated) {
+    return <SignInPage client={client} googleClientId={googleClientId} />
+  }
+
+  return <WorkspaceShell />
+}
 
 export default function App() {
   const [state, setState] = useState<StartupState>({ phase: 'loading' })
@@ -66,19 +79,11 @@ export default function App() {
     case 'compatible':
       return (
         <ThemeProvider>
-        <ApolloProvider client={state.client}>
-          <AuthProvider>
-            <BrowserRouter basename={import.meta.env.BASE_URL}>
-              <Routes>
-                <Route path="/sign-in" element={<SignInPage client={state.client} googleClientId={state.googleClientId} />} />
-                <Route path="/admin" element={<AdminPlaceholder />} />
-                <Route element={<AuthGuard />}>
-                  <Route path="/*" element={<WorkspaceShell />} />
-                </Route>
-              </Routes>
-            </BrowserRouter>
-          </AuthProvider>
-        </ApolloProvider>
+          <ApolloProvider client={state.client}>
+            <AuthProvider>
+              <AppContent client={state.client} googleClientId={state.googleClientId} />
+            </AuthProvider>
+          </ApolloProvider>
         </ThemeProvider>
       )
   }

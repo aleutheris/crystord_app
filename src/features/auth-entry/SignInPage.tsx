@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import type { ApolloClient } from '@apollo/client'
-import { useNavigate } from 'react-router'
 import { SIGN_IN_QUERY } from '../../api-contract/sign-in-query'
 import type { SignInResponse } from '../../api-contract/sign-in-query'
 import { SIGN_UP_QUERY } from '../../api-contract/auth-queries'
@@ -17,7 +16,6 @@ interface SignInPageProps {
 
 export function SignInPage({ client, googleClientId }: SignInPageProps) {
   const { signIn } = useAuth()
-  const navigate = useNavigate()
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
   // identifier holds username OR email for sign-in; always an email for sign-up
   // sent as `email` param to the backend in both cases (REQ-OR-260013 compatibility shim)
@@ -29,7 +27,6 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
 
   function handleSuccess(token: string, demo = false) {
     signIn(token, demo)
-    navigate('/', { replace: true })
   }
 
   async function handleSubmit(e: FormEvent) {

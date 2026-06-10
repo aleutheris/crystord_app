@@ -107,25 +107,17 @@ describe('Architecture boundary checks', () => {
   })
 })
 
-describe('Route boundary checks', () => {
-  it('App.tsx exposes /sign-in and /admin as public routes outside AuthGuard', async () => {
+describe('Auth boundary checks', () => {
+  it('App.tsx uses state-based auth rendering — SignInPage shown when unauthenticated', async () => {
     const appPath = path.join(SRC, 'App.tsx')
     const content = fs.readFileSync(appPath, 'utf-8')
 
-    // /sign-in is outside AuthGuard
-    expect(content).toMatch(/Route.*path="\/sign-in"/)
-    // /admin is outside AuthGuard
-    expect(content).toMatch(/Route.*path="\/admin"/)
-    // AuthGuard wraps the workspace catch-all
-    expect(content).toMatch(/Route.*element=\{<AuthGuard/)
-  })
-
-  it('AuthGuard redirects unauthenticated users to /sign-in', async () => {
-    const guardPath = path.join(SRC, 'features', 'auth-entry', 'AuthGuard.tsx')
-    const content = fs.readFileSync(guardPath, 'utf-8')
-
-    expect(content).toContain('Navigate to="/sign-in"')
+    // AppContent reads isAuthenticated and conditionally renders SignInPage or WorkspaceShell
     expect(content).toContain('isAuthenticated')
+    expect(content).toContain('SignInPage')
+    expect(content).toContain('WorkspaceShell')
+    // AuthProvider still wraps all app content
+    expect(content).toContain('AuthProvider')
   })
 })
 
@@ -235,7 +227,7 @@ describe('State partition checks (G2)', () => {
 
 describe('Contract stability — barrel export checks (G5)', () => {
   const EXPECTED_BARRELS: Record<string, string[]> = {
-    'auth-entry': ['AuthProvider', 'useAuth', 'SignInPage', 'AuthGuard', 'GoogleSignInButton'],
+    'auth-entry': ['AuthProvider', 'useAuth', 'SignInPage', 'GoogleSignInButton'],
     'workspace-graph': ['GraphCanvas', 'useGraphData', 'GraphData'],
     'workspace-search': ['SearchBar', 'QuerySummary', 'SearchResultPanel', 'useSearch', 'SearchState', 'SearchFilters'],
     'workspace-details': ['DetailPanel'],
@@ -444,14 +436,12 @@ describe('Auth adapter seam preservation (H8)', () => {
     expect(guard).not.toContain('sessionStorage')
   })
 
-  it('route structure does not embed auth implementation', () => {
+  it('App.tsx does not embed auth implementation — delegates to useAuth interface', () => {
     const app = fs.readFileSync(path.join(SRC, 'App.tsx'), 'utf-8')
 
-    // AuthProvider wraps routes (can be swapped)
+    // AuthProvider wraps app content (can be swapped)
     expect(app).toContain('AuthProvider')
-    // AuthGuard is a route element (can be replaced)
-    expect(app).toContain('AuthGuard')
-    // No inline auth logic in routing
+    // No inline auth logic
     expect(app).not.toContain('getAuthToken')
     expect(app).not.toContain('localStorage')
   })
@@ -739,12 +729,14 @@ describe('Placeholder and fallback trust constraints (I6 / REQ-CR-260009)', () =
     expect(admin).not.toContain('useMutation')
   })
 
-  it('admin placeholder has clear return path to workspace', () => {
+  it('admin placeholder is a self-contained dead-end — no navigation that could mislead', () => {
     const admin = fs.readFileSync(
       path.join(FEATURES, 'admin', 'AdminPlaceholder.tsx'), 'utf-8',
     )
-    // Link or navigation back to workspace
-    expect(admin).toMatch(/href="\/"|to="\/"/)
+    // No router imports (app uses state-based rendering, not URL routing)
+    expect(admin).not.toContain('react-router')
+    // No fake navigation controls
+    expect(admin).not.toContain('useNavigate')
   })
 
   it('placeholder routes do not import mutation operations', () => {
@@ -781,16 +773,21 @@ describe('Extension seam preservation (J1 / REQ-FR-260020)', () => {
   it('admin/governance is isolated behind its own seam for future expansion', () => {
     const barrel = fs.readFileSync(path.join(FEATURES, 'admin', 'index.ts'), 'utf-8')
     expect(barrel).toContain('AdminPlaceholder')
-    // Admin is a separate route — not embedded in workspace
-    const app = fs.readFileSync(path.join(SRC, 'App.tsx'), 'utf-8')
-    expect(app).toMatch(/Route.*path="\/admin"/)
+    // Admin feature module is self-contained — no cross-feature imports
+    const adminDir = path.join(FEATURES, 'admin')
+    const files = collectTsFiles(adminDir)
+    for (const file of files) {
+      const imports = extractImports(file)
+      for (const imp of imports) {
+        expect(imp).not.toMatch(/features\/(workspace-graph|workspace-search|workspace-details)/)
+      }
+    }
   })
 
   it('auth is context/adapter-based — ready for production auth replacement', () => {
     const barrel = fs.readFileSync(path.join(FEATURES, 'auth-entry', 'index.ts'), 'utf-8')
     expect(barrel).toContain('AuthProvider')
     expect(barrel).toContain('useAuth')
-    expect(barrel).toContain('AuthGuard')
 
     const provider = fs.readFileSync(path.join(FEATURES, 'auth-entry', 'AuthProvider.tsx'), 'utf-8')
     expect(provider).toContain('createContext')
