@@ -6,7 +6,7 @@
       "supportedSchemaRange": "^3.0.0"
     },
     "aleuhouse": {
-      "graphqlEndpoint": "http://aleuhouse:5665/graphql",
+      "graphqlEndpoint": "https://crystord.aleutheris.com/api",
       "supportedSchemaRange": "^3.0.0"
     },
     "nucubuntunl": {
