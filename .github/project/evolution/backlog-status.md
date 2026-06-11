@@ -50,6 +50,8 @@
 | BI-260051 | Implement Platform Token Handoff via URL Parameter | Done | .github/project/evolution/backlog-items/BI-260051.md | REQ-FR-260062, REQ-CR-260021, REQ-OR-260015 | ADR-260052 | Implemented: useUrlTokenHandoff hook reads ?token= on mount, calls signIn (persists to localStorage), strips param via history.replaceState; 6 hook unit tests + 5 AuthProvider integration tests; 567 unit tests, TypeScript strict clean, ESLint clean, all quality gates pass. |
 | BI-260052 | Port Two-Column Auth + Demo Layout from Platform | Done | .github/project/evolution/backlog-items/BI-260052.md | REQ-CR-260022 | ADR-260053 | Implemented: sign-in-page.css (two-column grid, responsive ≤640px); DemoPanel.tsx (feature list, "Try a Demo" CTA, "No registration required"); SignInPage rewritten with ARIA tablist, FormField-style inputs, and demo panel; 27 SignInPage tests + 10 DemoPanel tests + 7 architecture tests; 600 unit tests, TypeScript strict clean, ESLint clean, all quality gates pass. |
 
+| BI-260053 | Rename Project from crystord_web to crystord_app | Done | .github/project/evolution/backlog-items/BI-260053.md | — | — | 7 files: package.json, public/404.html, project-instructions.md, adr-index.md, product-backlog.md, requirements-index.md, src/ui-primitives/CATALOG.md; plus manual GitHub repo rename. |
+
 ## Workflow States
 
 - **Idea**: Candidate item, not yet refined.

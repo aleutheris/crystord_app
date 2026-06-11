@@ -1,6 +1,6 @@
 # Requirements Index
 
-Canonical index of all Crystord Web requirements.
+Canonical index of all Crystord App requirements.
 
 Status lifecycle used here: Accepted | Deprecated | Removed.
 When a requirement is deprecated, keep its row in this file and set `Status` to `Deprecated` instead of deleting it.

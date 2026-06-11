@@ -1,6 +1,6 @@
 # UI Primitives Catalog
 
-Shared template library for Crystord Web. All reusable UI primitives live here so feature modules can build against stable contracts rather than duplicating patterns.
+Shared template library for Crystord App. All reusable UI primitives live here so feature modules can build against stable contracts rather than duplicating patterns.
 
 ## Purpose
 

@@ -1,6 +1,6 @@
 # Product Backlog
 
-User-outcome-oriented backlog for Crystord Web.
+User-outcome-oriented backlog for Crystord App.
 
 ## Prioritized Items
 

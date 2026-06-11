@@ -1,6 +1,6 @@
 # ADR Index
 
-Canonical index of all Crystord Web architecture decision records.
+Canonical index of all Crystord App architecture decision records.
 
 Status lifecycle used here: Proposed | Accepted | Superseded.
 

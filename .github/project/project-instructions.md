@@ -4,7 +4,7 @@ Instantiated from `.github/generic/process/project-instructions.md`.
 
 ## 1. Project Profile
 
-- Project name: `Crystord Web`
+- Project name: `Crystord App`
 - Goal: Build a new frontend project from scratch against the existing backend contract.
 - Primary users: Data managers and domain operators who require transparent data and relationship visibility.
 - Constraints: Must honor the backend contract and domain guide while remaining independent from the current frontend implementation, and must apply branding policy defined in `.github/project/branding.md` for all UI/design-facing changes.
