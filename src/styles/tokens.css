@@ -59,6 +59,40 @@
   --color-chip-inactive-text: #5B6B7A;
 }
 
+/* Force light theme regardless of data-theme or prefers-color-scheme (ADR-260053) */
+.theme-force-light {
+  --color-primary: #0066CC;
+  --color-primary-dark: #004C99;
+  --color-control: #00A676;
+  --color-control-dark: #007A58;
+  --color-accent: #FFB000;
+  --color-bg: #FAFBFC;
+  --color-surface: #F3F6F8;
+  --color-surface-alt: #E7EDF2;
+  --color-text: #17202A;
+  --color-text-secondary: #5B6B7A;
+  --color-text-muted: #888888;
+  --color-border: #D6DEE5;
+  --color-border-subtle: #EEEEEE;
+  --color-success: #2E8B57;
+  --color-warning: #F39C12;
+  --color-error: #D64545;
+  --color-selection-bg: #E8F4FF;
+  --color-card-bg: #ffffff;
+  --color-card-shadow: rgba(0, 0, 0, 0.15);
+  --color-overlay: rgba(0, 0, 0, 0.3);
+  --color-toast-bg: #323232;
+  --color-toast-text: #ffffff;
+  --color-toast-action: #5B9FE8;
+  --color-connection-line: #b1b1b7;
+  --color-chip-bg: #E8F4FF;
+  --color-chip-border: #0066CC;
+  --color-chip-text: #0066CC;
+  --color-chip-inactive-bg: #F3F6F8;
+  --color-chip-inactive-border: #D6DEE5;
+  --color-chip-inactive-text: #5B6B7A;
+}
+
 /* Explicit dark theme */
 [data-theme="dark"] {
   --color-primary: #4D9FE8;

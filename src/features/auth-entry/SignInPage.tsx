@@ -92,7 +92,7 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
   const busy = loading || demoLoading
 
   return (
-    <div className="sign-in-page">
+    <div className="sign-in-page theme-force-light">
       <BrandPanel />
       <div className="sign-in-page__auth">
         <div className="sign-in-page__form-wrap">
