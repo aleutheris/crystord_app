@@ -8,6 +8,31 @@
   min-height: 100vh;
 }
 
+/* ── Always light — override inherited dark-mode tokens ─────────────────── */
+
+.sign-in-page {
+  --color-primary: #0066CC;
+  --color-primary-dark: #004C99;
+  --color-control: #00A676;
+  --color-control-dark: #007A58;
+  --color-accent: #FFB000;
+  --color-bg: #FAFBFC;
+  --color-surface: #F3F6F8;
+  --color-surface-alt: #E7EDF2;
+  --color-text: #17202A;
+  --color-text-secondary: #5B6B7A;
+  --color-text-muted: #888888;
+  --color-border: #D6DEE5;
+  --color-border-subtle: #EEEEEE;
+  --color-success: #2E8B57;
+  --color-warning: #F39C12;
+  --color-error: #D64545;
+  --color-selection-bg: #E8F4FF;
+  --color-card-bg: #ffffff;
+  --color-card-shadow: rgba(0, 0, 0, 0.15);
+  color-scheme: light;
+}
+
 /* ── Brand panel (left) ──────────────────────────────────────────────────── */
 
 .sign-in-page__brand {
@@ -20,8 +45,9 @@
 }
 
 .sign-in-page__logo {
-  height: 34px;
+  height: 50px;
   width: auto;
+  align-self: flex-start;
   filter: brightness(0) invert(1);
 }
 
@@ -113,7 +139,6 @@
 }
 
 .sign-in-page__tab {
-  flex: 1;
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
@@ -177,7 +202,7 @@
 
 .sign-in-page__actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
   margin-top: 0.25rem;
 }
 
