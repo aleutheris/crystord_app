@@ -3,15 +3,18 @@
   "servers": {
     "local": {
       "graphqlEndpoint": "http://localhost:5665/graphql",
-      "supportedSchemaRange": "^3.0.0"
+      "supportedSchemaRange": "^3.0.0",
+      "googleClientId": ""
     },
     "aleuhouse": {
       "graphqlEndpoint": "https://crystord.aleutheris.com/api",
-      "supportedSchemaRange": "^3.0.0"
+      "supportedSchemaRange": "^3.0.0",
+      "googleClientId": "175685736190-c27g99oqdvpdggp19b9sr21dunfs2j5k.apps.googleusercontent.com"
     },
     "nucubuntunl": {
       "graphqlEndpoint": "http://crystord:5665/graphql",
-      "supportedSchemaRange": "^3.0.0"
+      "supportedSchemaRange": "^3.0.0",
+      "googleClientId": "175685736190-4kj2n2fjnq5isofgpuf21sq3bc5qo32g.apps.googleusercontent.com"
     }
   }
 }

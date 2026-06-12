@@ -215,7 +215,7 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin: 1.25rem 0;
+  margin: 1.5rem 0;
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -251,9 +251,19 @@
   padding: 0;
 }
 
+/* ── Google button ───────────────────────────────────────────────────────── */
+
+.sign-in-page__google {
+  display: flex;
+  justify-content: center;
+}
+
 /* ── Demo section ────────────────────────────────────────────────────────── */
+/* Secondary tier: separated from the auth options above and visually quieter
+   so it reads as a "just exploring?" escape hatch, not a third login peer. */
 
 .sign-in-page__demo-section {
+  margin-top: 1.75rem;
   border: 1.5px solid var(--color-border);
   border-radius: 10px;
   padding: 1.1rem 1.25rem;

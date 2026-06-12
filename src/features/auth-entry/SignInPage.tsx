@@ -167,12 +167,14 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
             </div>
 
             {googleClientId && (
-              <GoogleSignInButton
-                client={client}
-                googleClientId={googleClientId}
-                onSuccess={(token) => handleSuccess(token)}
-                onError={setError}
-              />
+              <div className="sign-in-page__google">
+                <GoogleSignInButton
+                  client={client}
+                  googleClientId={googleClientId}
+                  onSuccess={(token) => handleSuccess(token)}
+                  onError={setError}
+                />
+              </div>
             )}
 
             <DemoPanel
