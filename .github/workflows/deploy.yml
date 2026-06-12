@@ -38,8 +38,14 @@ jobs:
       - name: Write runtime config
         run: |
           ACTIVE=$(jq -r '.active' deploy_config.json)
-          jq --arg s "$ACTIVE" '.servers[$s]' deploy_config.json > dist/config.json
-          echo "Deployed with server: $ACTIVE"
+          jq -e --arg p "$ACTIVE" '
+            .oauthClients as $clients
+            | (.profiles[$p] // error("unknown profile: " + $p)) as $profile
+            | $profile.oauthClient as $ref
+            | ($profile | del(.oauthClient))
+            | .googleClientId = (if $ref == null then "" else ($clients[$ref] // error("unknown oauthClient: " + $ref)) end)
+          ' deploy_config.json > dist/config.json
+          echo "Deployed with profile: $ACTIVE"
 
       - uses: actions/configure-pages@v6
         with:

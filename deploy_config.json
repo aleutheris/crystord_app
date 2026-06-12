@@ -1,20 +1,24 @@
 {
   "active": "aleuhouse",
-  "servers": {
+  "oauthClients": {
+    "production": "175685736190-puvsu0n35eocvmmff1btvu1n4hj9f2uo.apps.googleusercontent.com",
+    "development": "175685736190-14il352udjmdla5t2cvbpva47grhddt1.apps.googleusercontent.com"
+  },
+  "profiles": {
     "local": {
       "graphqlEndpoint": "http://localhost:5665/graphql",
       "backendSchemaRange": "^3.0.0",
-      "googleClientId": "175685736190-14il352udjmdla5t2cvbpva47grhddt1.apps.googleusercontent.com"
+      "oauthClient": "development"
     },
     "aleuhouse": {
       "graphqlEndpoint": "https://crystord.aleutheris.com/api",
       "backendSchemaRange": "^3.0.0",
-      "googleClientId": "175685736190-puvsu0n35eocvmmff1btvu1n4hj9f2uo.apps.googleusercontent.com"
+      "oauthClient": "production"
     },
     "nucubuntunl": {
       "graphqlEndpoint": "http://crystord:5665/graphql",
       "backendSchemaRange": "^3.0.0",
-      "googleClientId": ""
+      "oauthClient": null
     }
   }
 }
