@@ -15,10 +15,14 @@ function createMockClient(response: { data?: SignInResponse | SignUpResponse; er
   })
   if (response.error) {
     vi.spyOn(client, 'query').mockRejectedValue(response.error)
+    vi.spyOn(client, 'mutate').mockRejectedValue(response.error)
   } else {
     vi.spyOn(client, 'query').mockResolvedValue({
       data: response.data,
     } as Awaited<ReturnType<typeof client.query>>)
+    vi.spyOn(client, 'mutate').mockResolvedValue({
+      data: response.data,
+    } as Awaited<ReturnType<typeof client.mutate>>)
   }
   return client
 }
@@ -137,7 +141,7 @@ describe('SignInPage', () => {
     await user.type(screen.getByLabelText(/password/i), 'newpass')
     await user.click(screen.getByRole('button', { name: /^sign up$/i }))
 
-    expect(client.query).toHaveBeenCalledOnce()
+    expect(client.mutate).toHaveBeenCalledOnce()
   })
 
   it('shows error when sign-up returns no token', async () => {

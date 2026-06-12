@@ -11,7 +11,7 @@ export interface SignInGoogleResponse {
 }
 
 export const SIGN_UP_QUERY = gql`
-  query SignUp($email: String!, $password: String!) {
+  mutation SignUp($email: String!, $password: String!) {
     signup(email: $email, password: $password)
   }
 `

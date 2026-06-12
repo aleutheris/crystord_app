@@ -38,10 +38,9 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
 
     try {
       if (mode === 'signup') {
-        const { data } = await client.query<SignUpResponse>({
-          query: SIGN_UP_QUERY,
+        const { data } = await client.mutate<SignUpResponse>({
+          mutation: SIGN_UP_QUERY,
           variables: { email: identifier, password },
-          fetchPolicy: 'network-only',
         })
         if (!data?.signup) {
           setError('Sign-up failed: no token returned.')

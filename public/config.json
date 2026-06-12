@@ -1,4 +1,4 @@
 {
-  "graphqlEndpoint": "https://crystord.aleutheris.com/api",
+  "graphqlEndpoint": "http://crystord:5665/graphql",
   "supportedSchemaRange": "^3.0.0"
 }
