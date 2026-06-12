@@ -1,7 +1,10 @@
 import { readFileSync, writeFileSync } from 'fs'
 
 const deployConfig = JSON.parse(readFileSync('deploy_config.json', 'utf-8'))
-const active = deployConfig.active
+// CRYSTORD_PROFILE overrides the committed `active` profile. Local dev sets it
+// to "local" (see package.json "dev"); CI leaves it unset and falls back to
+// `active`, so GitHub deploys use the production profile.
+const active = process.env.CRYSTORD_PROFILE ?? deployConfig.active
 const profile = deployConfig.profiles[active]
 
 if (!profile) {

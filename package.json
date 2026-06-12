@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "config": "node scripts/config.mjs",
-    "dev": "npm run config && vite",
+    "dev": "CRYSTORD_PROFILE=local npm run config && vite",
     "build": "npm run config && tsc -b && vite build",
     "lint": "eslint .",
     "typecheck": "tsc -b --noEmit",
