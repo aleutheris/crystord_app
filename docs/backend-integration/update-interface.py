@@ -59,7 +59,7 @@ def verify_bundle(bundle_dir: Path) -> dict:
 
     try:
         policy = json.loads(policy_file.read_text(encoding="utf-8"))
-        supported_range = policy["supportedSchemaRange"]
+        supported_range = policy["backendSchemaRange"]
     except (json.JSONDecodeError, KeyError) as e:
         raise InterfaceUpdateError(f"Failed to read supported range from policy: {e}") from e
 

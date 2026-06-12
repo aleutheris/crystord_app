@@ -57,7 +57,7 @@ def run_interface_preflight():
 
     try:
         policy = json.loads(policy_file.read_text(encoding="utf-8"))
-        supported_range = policy["supportedSchemaRange"]
+        supported_range = policy["backendSchemaRange"]
     except (json.JSONDecodeError, KeyError) as exc:
         print(f"Interface preflight failed: invalid policy file ({exc})")
         return False

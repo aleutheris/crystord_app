@@ -43,7 +43,7 @@ export default function App() {
       try {
         const config = await loadConfig()
         const client = createApolloClient(config.graphqlEndpoint)
-        const result = await runStartupCompatibilityCheck(client, config.supportedSchemaRange)
+        const result = await runStartupCompatibilityCheck(client, config.backendSchemaRange)
 
         if (cancelled) return
 

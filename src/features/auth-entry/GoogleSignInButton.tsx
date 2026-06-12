@@ -15,8 +15,8 @@ declare global {
     google?: {
       accounts: {
         id: {
-          initialize: (config: { client_id: string; callback: (resp: { credential: string }) => void }) => void
-          renderButton: (element: HTMLElement, options: { theme: string; size: string }) => void
+          initialize: (config: { client_id: string; locale?: string; callback: (resp: { credential: string }) => void }) => void
+          renderButton: (element: HTMLElement, options: { theme: string; size: string; type?: string }) => void
         }
       }
     }
@@ -32,6 +32,7 @@ export function GoogleSignInButton({ client, googleClientId, onSuccess, onError 
 
       window.google.accounts.id.initialize({
         client_id: googleClientId,
+        locale: 'en',
         callback: async (response) => {
           try {
             const { data } = await client.query<SignInGoogleResponse>({
@@ -53,6 +54,7 @@ export function GoogleSignInButton({ client, googleClientId, onSuccess, onError 
       window.google.accounts.id.renderButton(containerRef.current, {
         theme: 'outline',
         size: 'large',
+        type: 'icon',
       })
     }
 

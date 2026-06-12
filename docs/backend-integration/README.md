@@ -22,7 +22,7 @@ Use this pack in two phases:
 ## How to use in a client project
 
 1. Copy this entire folder into the client repository.
-2. Set `supportedSchemaRange` in `client-schema-policy.json`.
+2. Set `backendSchemaRange` in `client-schema-policy.json`.
 3. Keep `allowed-schema.graphql` in sync with real client usage.
 4. On client startup, call:
 
@@ -36,7 +36,7 @@ query {
 }
 ```
 
-5. Compare `schemaInfo.schemaVersion` with `supportedSchemaRange`.
+5. Compare `schemaInfo.schemaVersion` with `backendSchemaRange`.
 6. If incompatible, block startup and show deterministic diagnostics.
 
 ## Governance guidance

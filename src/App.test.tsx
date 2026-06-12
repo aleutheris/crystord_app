@@ -5,7 +5,7 @@ import App from './App'
 vi.mock('./config', () => ({
   loadConfig: () => Promise.resolve({
     graphqlEndpoint: 'http://localhost:5665/graphql',
-    supportedSchemaRange: '^2.0.0',
+    backendSchemaRange: '^2.0.0',
   }),
 }))
 

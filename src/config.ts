@@ -1,6 +1,6 @@
 export interface AppConfig {
   graphqlEndpoint: string
-  supportedSchemaRange: string
+  backendSchemaRange: string
   googleClientId?: string
 }
 
@@ -16,12 +16,12 @@ export async function loadConfig(): Promise<AppConfig> {
     throw new Error('config.json: graphqlEndpoint is not configured.')
   }
 
-  const supportedSchemaRange = data['supportedSchemaRange']
-  if (!supportedSchemaRange || typeof supportedSchemaRange !== 'string') {
-    throw new Error('config.json: supportedSchemaRange is not configured.')
+  const backendSchemaRange = data['backendSchemaRange']
+  if (!backendSchemaRange || typeof backendSchemaRange !== 'string') {
+    throw new Error('config.json: backendSchemaRange is not configured.')
   }
 
   const googleClientId = typeof data['googleClientId'] === 'string' ? data['googleClientId'] : undefined
 
-  return { graphqlEndpoint, supportedSchemaRange, googleClientId }
+  return { graphqlEndpoint, backendSchemaRange, googleClientId }
 }

@@ -390,7 +390,7 @@ describe('Environment separation (H5/H7)', () => {
     expect(config).toContain('fetch')
     expect(config).toContain('config.json')
     expect(config).toContain('graphqlEndpoint')
-    expect(config).toContain('supportedSchemaRange')
+    expect(config).toContain('backendSchemaRange')
 
     // No hardcoded endpoints
     expect(config).not.toMatch(/https?:\/\/[a-zA-Z]/)
