@@ -24,7 +24,8 @@ Load these based on the task type as defined in `.github/copilot-instructions.md
 - `.github/project/evolution/requirements/*` — individual requirement files
 - `.github/project/evolution/adr/*` — individual ADR files
 - `.github/project/evolution/backlog-items/*` — individual backlog item files
-- `.github/project/learnings/*` — project learnings log
+- `.github/project/evolution/learnings/*` — individual learning records
+- `.github/project/evolution/learnings-index.md` — learnings index
 - `docs/backend-user-guide.md` — backend contract reference
 
 ## Scope Routing

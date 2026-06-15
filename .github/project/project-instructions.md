@@ -83,5 +83,6 @@ On-demand:
 - `.github/project/evolution/requirements/*`
 - `.github/project/evolution/adr/*`
 - `.github/project/evolution/backlog-items/*`
-- `.github/project/learnings/*`
+- `.github/project/evolution/learnings/*`
+- `.github/project/evolution/learnings-index.md`
 - `docs/backend-user-guide.md`
