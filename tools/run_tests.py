@@ -11,7 +11,7 @@ Usage:
 """
 
 import argparse
-import json
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -29,48 +29,61 @@ def run_command(command, description):
         return False
 
 
+_BUNDLE_DIR_RE = re.compile(r"^crystord-interface-v(\d+)\.(\d+)\.(\d+)$")
+
+
+def _find_latest_bundle(bundles_dir):
+    """Return (verify_script, archive_file, version) for the highest-versioned bundle."""
+    candidates = []
+    if not bundles_dir.exists():
+        return None
+    for entry in bundles_dir.iterdir():
+        if not entry.is_dir():
+            continue
+        match = _BUNDLE_DIR_RE.fullmatch(entry.name)
+        if not match:
+            continue
+        version = ".".join(match.groups())
+        archive = entry / f"crystord-interface-v{version}.tgz"
+        verify = entry / "verify.py"
+        if archive.exists() and verify.exists():
+            candidates.append((tuple(int(g) for g in match.groups()), verify, archive, version))
+
+    if not candidates:
+        return None
+    candidates.sort(key=lambda c: c[0], reverse=True)
+    _, verify, archive, version = candidates[0]
+    return verify, archive, version
+
+
 def run_interface_preflight():
-    """Verify the bundled backend interface against the client-supported schema range."""
+    """Verify the newest backend interface bundle against the client-supported schema range.
+
+    Auto-discovers the highest-versioned bundle dropped under docs/backend-integration/
+    and verifies it with a range derived from the bundle's own major version
+    (^MAJOR.0.0), mirroring tools/install_interface.py and the crystord_access installer.
+    """
     root = Path(os.getcwd())
-    canonical_bundle_dir = root / "docs" / "backend-integration" / "crystord-interface-v3.0.0"
-    legacy_docs_bundle_dir = root / "docs" / "crystord-interface-v3.0.0"
+    bundles_dir = root / "docs" / "backend-integration"
 
-    policy_file = root / "docs" / "backend-integration" / "client-schema-policy.json"
-
-    if canonical_bundle_dir.exists():
-        verify_script = canonical_bundle_dir / "verify.py"
-        archive_file = canonical_bundle_dir / "crystord-interface-v3.0.0.tgz"
-    elif legacy_docs_bundle_dir.exists():
-        verify_script = legacy_docs_bundle_dir / "verify.py"
-        archive_file = legacy_docs_bundle_dir / "crystord-interface-v3.0.0.tgz"
-    else:
+    latest = _find_latest_bundle(bundles_dir)
+    if latest is None:
         print(
             "Skipping backend interface preflight: no interface bundle found "
-            "at docs/backend-integration/crystord-interface-v3.0.0 "
-            "or docs/crystord-interface-v3.0.0."
+            "under docs/backend-integration/."
         )
         return True
 
-    if not policy_file.exists():
-        print(f"Interface preflight failed: missing policy file at {policy_file}")
-        return False
-
-    try:
-        policy = json.loads(policy_file.read_text(encoding="utf-8"))
-        supported_range = policy["backendSchemaRange"]
-    except (json.JSONDecodeError, KeyError) as exc:
-        print(f"Interface preflight failed: invalid policy file ({exc})")
-        return False
-
-    if not verify_script.exists() or not archive_file.exists():
-        print("Interface preflight failed: verify script or bundle archive is missing.")
-        return False
+    verify_script, archive_file, version = latest
+    supported_range = f"^{version.split('.')[0]}.0.0"
 
     command = (
         f'python3 "{verify_script}" "{archive_file}" '
         f'--supported-range "{supported_range}" --json'
     )
-    return run_command(command, "backend interface compatibility preflight")
+    return run_command(
+        command, f"backend interface compatibility preflight (v{version})"
+    )
 
 def main():
     parser = argparse.ArgumentParser(

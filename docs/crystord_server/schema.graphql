@@ -1,0 +1,257 @@
+schema {
+    query: Query
+    mutation: Mutation
+}
+
+scalar JSON
+
+type Query {
+    retrieve(labels: [String], uuid: String): [AtomOutput!]
+    getGoogleClientID: String!
+    signin(email: String!, password: String!): String!
+    signinGoogle(idToken: String!): String!
+    listLabels(labelsPrefix: String!): [String!]!
+    schemaInfo: SchemaInfo!
+    discoverOperations(prefix: String, limit: Int): [OperationFunction!]!
+    retrieveFacets(selector: FacetSelector): [FacetOutput!]!
+    retrieveCategories(selector: CategorySelector): [CategoryOutput!]!
+    listAtomGrants(atomUuid: ID!): [AtomGrantOutput!]!
+    listMyWorkspaces: [WorkspaceOutput!]!
+    listWorkspaceMembers(workspaceUuid: ID!): [WorkspaceMemberOutput!]!
+    retrieveWorkspace(selector: WorkspaceSelector!): WorkspaceOutput
+    listAtomsSharedToWorkspace(workspaceUuid: ID!): [ID!]!
+}
+
+# Access-control enums (ADR-260043). AccessLevel is what can be GRANTED (never OWNER);
+# EffectiveAccessLevel is what a caller HOLDS on an atom (includes OWNER).
+enum AccessLevel {
+    EDITOR
+    VIEWER
+}
+
+enum EffectiveAccessLevel {
+    OWNER
+    EDITOR
+    VIEWER
+}
+
+enum PrincipalType {
+    USER
+    WORKSPACE
+}
+
+enum WorkspaceRole {
+    ADMIN
+    EDITOR
+    VIEWER
+}
+
+type SchemaInfo {
+    schemaVersion: String!
+    schemaHash: String!
+    releasedAt: String!
+}
+
+type OperationFunction {
+    name: String!
+    description: String
+}
+
+type Mutation {
+    signup(email: String!, password: String!, username: String): String!
+    change(selector: Selector, inputs: [AtomInput]!, remark: String): [String]!
+    destroy(selector: DestroySelector!): DestroyOutcome!
+    transferAtomOwnership(atomUuid: ID!, toUserUuid: ID!): Boolean!
+    deleteMyAccount: Boolean!
+    shareAtom(atomUuid: ID!, principalUuid: ID!, principalType: PrincipalType!, level: AccessLevel!): Boolean!
+    revokeAtomAccess(atomUuid: ID!, principalUuid: ID!, principalType: PrincipalType!): Boolean!
+    createWorkspace(key: String!, name: String!, description: String): WorkspaceOutput!
+    updateWorkspace(uuid: ID!, name: String, description: String): WorkspaceOutput!
+    dissolveWorkspace(uuid: ID!): Boolean!
+    addWorkspaceMember(workspaceUuid: ID!, userUuid: ID!, role: WorkspaceRole!): Boolean!
+    removeWorkspaceMember(workspaceUuid: ID!, userUuid: ID!): Boolean!
+    updateWorkspaceMemberRole(workspaceUuid: ID!, userUuid: ID!, role: WorkspaceRole!): Boolean!
+    createFacet(key: String!, displayName: String!): FacetOutput!
+    createCategory(key: String!, displayName: String!, facetUuid: ID): CategoryOutput!
+    assignCategoryToFacet(categoryUuid: ID!, facetUuid: ID!): Boolean!
+}
+
+type DestroyOutcome {
+    requested: [String!]!
+    deleted: [String!]!
+    notFound: [String!]!
+}
+
+type AtomGrantOutput {
+    principalUuid: ID!
+    principalType: PrincipalType!
+    principalName: String!
+    level: AccessLevel!
+    grantedAt: String!
+    grantedBy: ID!
+}
+
+type WorkspaceOutput {
+    uuid: ID!
+    key: String!
+    name: String!
+    description: String
+    createdAt: String!
+    updatedAt: String!
+    memberCount: Int!
+}
+
+type WorkspaceMemberOutput {
+    userUuid: ID!
+    username: String!
+    email: String!
+    role: WorkspaceRole!
+    joinedAt: String!
+}
+
+input WorkspaceSelector {
+    uuid: ID
+    key: String
+}
+
+input Selector {
+    labels: [String]
+    uuid: String
+    title: String
+    content: JSON
+    description: String
+    operation: String
+    constants: JSON
+    uuids: [String]
+}
+
+input DestroySelector {
+    uuid: String
+    uuids: [String]
+}
+
+input AtomInput {
+    labels: [String!]!
+    bonds: [BondInput]
+    properties: PropertiesInput
+}
+
+input BondInput {
+    uuid: ID!
+    name: String!
+    direction: String!
+}
+
+input PropertiesInput {
+    shellies: ShelliesInput
+    nuclearies: NucleariesInput
+}
+
+input ShelliesInput {
+    uuid: ID
+}
+
+input NucleariesInput {
+    title: String
+    content: JSON
+    description: String
+    operation: String
+    constants: JSON
+    declaredType: String
+    typeMode: String
+}
+
+type AtomOutput {
+    labels: [String]
+    bonds: [BondOutput]
+    properties: PropertiesOutput
+    ownerUuid: ID!
+    accessLevel: EffectiveAccessLevel!
+    errorCode: String
+    evaluationStatus: String
+    cycleNodes: [String]
+    cycleEdges: JSON
+    originNodeUuid: String
+    affectedNodeUuid: String
+    causes: [String]
+}
+
+type BondOutput {
+    uuid: ID!
+    name: String!
+    direction: String!
+    required: Boolean
+}
+
+type PropertiesOutput {
+    shellies: ShelliesOutput
+    nuclearies: NucleariesOutput
+}
+
+type ShelliesOutput {
+    uuid: ID!
+    changes(limit: Int = 5, offset: Int = 0): [ChangeEvent!]
+}
+
+type ChangeEvent {
+    timestamp: String!
+    eventType: String!
+    userId: String!
+    propertyChanges: [PropertyChange!]!
+    remark: String
+}
+
+type PropertyChange {
+    field: String!
+    oldValue: JSON
+    newValue: JSON
+    metrics: PropertyChangeMetrics
+}
+
+type PropertyChangeMetrics {
+    removedCount: Int!
+    addedCount: Int!
+    totalMembersAfter: Int!
+}
+
+type NucleariesOutput {
+    title: String!
+    content: JSON
+    description: String
+    operation: String
+    constants: JSON
+    declaredType: String
+    effectiveType: String
+    typeMode: String
+    typeState: String
+}
+
+type FacetOutput {
+    uuid: ID!
+    key: String!
+    displayName: String!
+    createdAt: String!
+    updatedAt: String!
+    version: Int!
+}
+
+type CategoryOutput {
+    uuid: ID!
+    key: String!
+    displayName: String!
+    facetUuid: ID
+    createdAt: String!
+    updatedAt: String!
+    version: Int!
+}
+
+input FacetSelector {
+    uuid: ID
+    key: String
+}
+
+input CategorySelector {
+    uuid: ID
+    key: String
+    facetUuid: ID
+}

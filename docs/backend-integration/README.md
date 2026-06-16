@@ -1,30 +1,54 @@
-# Client Integration Pack
+# Backend Interface Bundles
 
-This folder is a portable integration bundle for client projects that consume Crystord GraphQL.
+This folder is the drop point for Crystord backend interface bundles and the
+home of the installer that unpacks them. It follows the same handoff mechanism
+used by the `crystord_access` project.
 
-Use this pack in two phases:
+## What a bundle is
 
-1. Development phase:
-- give AI agents and developers clear context about the API shape,
-- generate or validate client-side GraphQL operations,
-- document exactly which backend schema snapshot was adopted.
+Each release is a folder `crystord-interface-vX.Y.Z/` containing:
 
-2. Runtime phase:
-- validate backend compatibility at startup using the `schemaInfo` query,
-- fail fast when the backend schema version is outside the client-supported range.
+- `crystord-interface-vX.Y.Z.tgz` — the payload
+- `verify.py` — a self-contained integrity + compatibility verifier
+- `README-HANDOFF.txt` — handoff notes from the backend team
 
-## Files in this pack
+The `.tgz` contains a single top-level directory with:
 
-- `provided-schema.graphql`: schema snapshot copied from backend.
-- `client-schema-policy.json`: authoritative client-side compatibility policy and snapshot metadata.
-- `allowed-schema.graphql`: list of operations this client is allowed to use.
+- `crystord_server/schema.graphql` — backend GraphQL schema snapshot
+- `docs/user-guide.md`
+- `.github/project/evolution/contracts/schema-compatibility-contract.md`
+- `manifest.json` — `schemaVersion`, `schemaHash`, `releasedAt`, and a per-file
+  `sha256`/`sizeBytes` list
 
-## How to use in a client project
+## Installing a bundle
 
-1. Copy this entire folder into the client repository.
-2. Set `backendSchemaRange` in `client-schema-policy.json`.
-3. Keep `allowed-schema.graphql` in sync with real client usage.
-4. On client startup, call:
+1. Drop the new `crystord-interface-vX.Y.Z/` folder into this directory
+   (`docs/backend-integration/`).
+2. Run the installer from the project root:
+
+   ```bash
+   python3 tools/install_interface.py
+   ```
+
+The installer auto-discovers the **highest-versioned** bundle here, verifies it
+with the bundle's own `verify.py` against a range derived from its major version
+(`^MAJOR.0.0`), and extracts files into `docs/`:
+
+- `crystord_server/schema.graphql` → `docs/crystord_server/schema.graphql`
+- `docs/user-guide.md` → `docs/user-guide.md`
+- `.github/.../schema-compatibility-contract.md` → `docs/contracts/schema-compatibility-contract.md`
+
+The same newest-bundle verification runs automatically as a preflight in
+`tools/run_tests.py`.
+
+## Runtime compatibility
+
+The installed files are development-time references. The running frontend does
+**not** read them. At startup the app queries `schemaInfo` and compares the
+backend's `schemaVersion` against `backendSchemaRange` from the deployed
+`config.json` (see `src/config.ts`, `src/bootstrap/startup-check.ts`). When a
+new bundle changes the supported major version, update `backendSchemaRange` in
+`public/config.json` accordingly.
 
 ```graphql
 query {
@@ -35,36 +59,3 @@ query {
   }
 }
 ```
-
-5. Compare `schemaInfo.schemaVersion` with `backendSchemaRange`.
-6. If incompatible, block startup and show deterministic diagnostics.
-
-## Governance guidance
-
-- The schema file comment header is for human context.
-- Runtime `schemaInfo` is the policy authority for compatibility checks.
-- `schemaHash` is diagnostic integrity metadata, not compatibility policy authority.
-
-## Updating the Interface
-
-When a new backend interface is released:
-
-1. Copy the `crystord-interface-vX.Y.Z` folder into `docs/backend-integration/`
-2. Run the update orchestration:
-   ```bash
-  python3 docs/backend-integration/update-interface.py docs/backend-integration/crystord-interface-vX.Y.Z
-   ```
-3. Review the diff report and verify no breaking changes
-4. Run tests to confirm compatibility:
-   ```bash
-   npm run test
-  python3 run_tests.py --all
-   ```
-5. Commit the updated integration files
-6. The orchestration script will clean up the source folder and log the changes
-
-### Process properties
-- **Deterministic**: same input always produces same output
-- **Reversible**: git diff shows exactly what changed; easy to revert
-- **Auditable**: script logs every decision and file modification
-- **Automatable**: can be integrated into CI/CD workflows
