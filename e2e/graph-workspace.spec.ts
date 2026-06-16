@@ -20,7 +20,7 @@ function mockGraphQL(page: import('@playwright/test').Page) {
     },
   ]
 
-  return page.route('**/api', (route) => {
+  return page.route('**/{api,graphql}', (route) => {
     const postData = route.request().postData()
     if (!postData) return route.continue()
 
@@ -91,7 +91,7 @@ async function signIn(page: import('@playwright/test').Page) {
   await page.goto('/')
   await expect(page.getByRole('heading', { name: /sign in/i })).toBeVisible()
   const responsePromise = page.waitForResponse((r) =>
-    r.url().includes('/api') && r.request().postData()?.includes('signin') === true,
+    /\/(api|graphql)\b/.test(r.url()) && r.request().postData()?.includes('signin') === true,
   )
   await page.getByRole('button', { name: /try a demo/i }).click()
   await responsePromise
@@ -99,7 +99,7 @@ async function signIn(page: import('@playwright/test').Page) {
 
 async function submitSearch(page: import('@playwright/test').Page) {
   const retrieveResponse = page.waitForResponse(
-    (r) => r.url().includes('/api') && r.request().postData()?.includes('retrieve') === true,
+    (r) => /\/(api|graphql)\b/.test(r.url()) && r.request().postData()?.includes('retrieve') === true,
   )
   await page.getByLabel(/search labels/i).click()
   await page.keyboard.press('Enter')
@@ -186,7 +186,7 @@ test.describe('Graph workspace', () => {
 
     // Submit the form
     const saveResponse = page.waitForResponse((r) =>
-      r.url().includes('/api') && r.request().postData()?.includes('change') === true,
+      /\/(api|graphql)\b/.test(r.url()) && r.request().postData()?.includes('change') === true,
     )
     await detailPanel.getByRole('button', { name: /save/i }).click()
     await saveResponse
@@ -232,7 +232,7 @@ test.describe('Graph workspace', () => {
 
     // Confirm deletion
     const destroyResponse = page.waitForResponse((r) =>
-      r.url().includes('/api') && r.request().postData()?.includes('destroy') === true,
+      /\/(api|graphql)\b/.test(r.url()) && r.request().postData()?.includes('destroy') === true,
     )
     await dialog.getByRole('button', { name: /^delete$/i }).click()
     await destroyResponse
@@ -271,7 +271,7 @@ test.describe('Graph workspace', () => {
 
   test('workspace remains functional after mutation error', async ({ page }) => {
     // Override mock to fail on mutations
-    await page.route('**/api', (route) => {
+    await page.route('**/{api,graphql}', (route) => {
       const postData = route.request().postData()
       if (!postData) return route.continue()
       const body = JSON.parse(postData)

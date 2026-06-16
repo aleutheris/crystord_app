@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 
 function mockGraphQL(page: import('@playwright/test').Page) {
-  return page.route('**/api', (route) => {
+  return page.route('**/{api,graphql}', (route) => {
     const postData = route.request().postData()
     if (!postData) return route.continue()
 
@@ -60,7 +60,7 @@ test.describe('Sign-in flow', () => {
     await expect(page.getByRole('heading', { name: /sign in/i })).toBeVisible()
 
     const responsePromise = page.waitForResponse((resp) =>
-      resp.url().includes('/api') && resp.request().postData()?.includes('signin') === true
+      /\/(api|graphql)\b/.test(resp.url()) && resp.request().postData()?.includes('signin') === true
     )
     await page.getByRole('button', { name: /try a demo/i }).click()
     await responsePromise
@@ -74,7 +74,7 @@ test.describe('Sign-in flow', () => {
     await expect(page.getByRole('heading', { name: /sign in/i })).toBeVisible()
 
     const responsePromise = page.waitForResponse((resp) =>
-      resp.url().includes('/api') && resp.request().postData()?.includes('signin') === true
+      /\/(api|graphql)\b/.test(resp.url()) && resp.request().postData()?.includes('signin') === true
     )
     await page.getByRole('button', { name: /try a demo/i }).click()
     await responsePromise
