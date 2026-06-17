@@ -6,8 +6,7 @@ schema {
 scalar JSON
 
 type Query {
-    retrieve(labels: [String], uuid: String, categories: [CategoryFilterInput]): [AtomOutput!]
-    getGoogleClientID: String!
+    retrieve(labels: [String], uuid: String, categories: [CategoryFilterInput!]): [AtomOutput!]
     signin(email: String!, password: String!): String!
     signinGoogle(idToken: String!): String!
     listLabels(labelsPrefix: String!): [String!]!
@@ -18,8 +17,12 @@ type Query {
     listWorkspaceMembers(workspaceUuid: ID!): [WorkspaceMemberOutput!]!
     retrieveWorkspace(selector: WorkspaceSelector!): WorkspaceOutput
     listAtomsSharedToWorkspace(workspaceUuid: ID!): [ID!]!
-    retrieveCategoryDimensions(selector: CatDimensionSelector): [CatDimensionOutput!]!
-    retrieveCategoryValues(selector: CatValueSelector): [CatValueOutput!]!
+    retrieveCategoryDimensions(selector: CategoryDimensionSelector): [CategoryDimensionOutput!]!
+    retrieveCategoryValues(selector: CategoryValueSelector): [CategoryValueOutput!]!
+    # Drill-down browse (ADR-260047 §9). Focus on a value (atoms UNDER it + its child values) or a
+    # dimension (atoms across it + its root values) — exactly one of valueKey/dimensionKey required.
+    # Atoms and child counts are access-scoped (never reveal atoms outside the caller's scope).
+    retrieveCategoryBrowse(valueKey: String, dimensionKey: String, limit: Int, offset: Int, childLimit: Int, childOffset: Int): CategoryBrowseOutput!
 }
 
 # Access-control enums (ADR-260043). AccessLevel is what can be GRANTED (never OWNER);
@@ -71,12 +74,26 @@ type Mutation {
     addWorkspaceMember(workspaceUuid: ID!, userUuid: ID!, role: WorkspaceRole!): Boolean!
     removeWorkspaceMember(workspaceUuid: ID!, userUuid: ID!): Boolean!
     updateWorkspaceMemberRole(workspaceUuid: ID!, userUuid: ID!, role: WorkspaceRole!): Boolean!
-    createCategoryDimension(key: String!, displayName: String!, description: String, level: Int!): CatDimensionOutput!
-    createCategoryValue(key: String!, displayName: String!, description: String, dimensionKey: String!): CatValueOutput!
-    # Update exposes only mutable fields. key/level/dimensionKey are immutable (CR-18) and are
+    # Dimension hierarchy (ADR-260047): the schema is declared via UNDER_CATDIM (child -> parent),
+    # single-parent (a tree) for v1. parentDimensionKeys/childDimensionKeys wire the new dimension
+    # into the schema atomically; child wiring runs the full connect validation.
+    createCategoryDimension(key: String!, displayName: String!, description: String, parentDimensionKeys: [String!], childDimensionKeys: [String!]): CategoryDimensionOutput!
+    # Value containment (ADR-260047 §2): parentValueKeys/childValueKeys wire the new value into the
+    # hierarchy atomically; each parent must comply with the dimension schema (the parent value's
+    # dimension must be the immediate parent dimension) → CAT-VALUE-PARENT-DIMENSION-MISMATCH.
+    createCategoryValue(key: String!, displayName: String!, description: String, dimensionKey: String!, parentValueKeys: [String!], childValueKeys: [String!]): CategoryValueOutput!
+    # Update exposes only mutable fields. key/dimensionKey are immutable (CR-18) and are
     # intentionally NOT arguments here — do not add them; immutability is enforced by omission.
-    updateCategoryDimension(key: String!, displayName: String, description: String): CatDimensionOutput!
-    updateCategoryValue(key: String!, displayName: String, description: String): CatValueOutput!
+    updateCategoryDimension(key: String!, displayName: String, description: String): CategoryDimensionOutput!
+    updateCategoryValue(key: String!, displayName: String, description: String): CategoryValueOutput!
+    # Add/remove UNDER_CATDIM edges. A second parent → CAT-MULTIPLE-PARENTS-UNSUPPORTED; a loop →
+    # CAT-DIMENSION-CYCLE. disconnect to no parent makes the dimension a root.
+    connectCategoryDimensions(dimensionKey: String!, parentDimensionKeys: [String!], childDimensionKeys: [String!]): CategoryDimensionOutput!
+    disconnectCategoryDimensions(dimensionKey: String!, parentDimensionKeys: [String!], childDimensionKeys: [String!]): CategoryDimensionOutput!
+    # Add/remove UNDER_CATVAL edges. A second parent → CAT-MULTIPLE-PARENTS-UNSUPPORTED; a parent not
+    # in the value's dimension's immediate parent dimension → CAT-VALUE-PARENT-DIMENSION-MISMATCH.
+    connectCategoryValues(valueKey: String!, parentValueKeys: [String!], childValueKeys: [String!]): CategoryValueOutput!
+    disconnectCategoryValues(valueKey: String!, parentValueKeys: [String!], childValueKeys: [String!]): CategoryValueOutput!
     deleteCategoryDimension(key: String!): Boolean!
     deleteCategoryValue(key: String!): Boolean!
 }
@@ -139,9 +156,9 @@ input AtomInput {
     labels: [String!]!
     bonds: [BondInput]
     properties: PropertiesInput
-    # Category assignments (ADR-260046, FR-17). Present (incl. []) replaces all current
+    # Category assignments (ADR-260046, ADR-260047, FR-17). Present (incl. []) replaces all current
     # assignments; omitted leaves them unchanged (the `bonds` precedent).
-    categories: [CategoryAssignmentInput]
+    categories: [CategoryAssignmentInput!]
 }
 
 input BondInput {
@@ -235,65 +252,93 @@ type NucleariesOutput {
     typeState: String
 }
 
-# --- Categorization taxonomy: Dimension/Value model (ADR-260046, FR-16, OR-70) ---
+# --- Categorization taxonomy: Dimension/Value model (ADR-260046, ADR-260047, FR-16, OR-70) ---
+# Granularity comes from the explicit dimension schema (UNDER_CATDIM) — there is no `level`.
 
-type CatDimensionOutput {
+type CategoryDimensionOutput {
     uuid: ID!
     key: String!
     displayName: String!
     description: String
-    level: Int!
+    # The dimension's parent(s) in the schema. ≤1 now (single-parent tree); list shape is DAG-ready.
+    parentDimensionKeys: [String!]!
     createdAt: String!
     updatedAt: String!
 }
 
-type CatValueOutput {
+type CategoryValueOutput {
     uuid: ID!
     key: String!
     displayName: String!
     description: String
-    level: Int!
     dimensionKey: String!
+    # The value's parent(s) in the containment hierarchy. ≤1 now (single-parent tree); DAG-ready.
+    parentValueKeys: [String!]!
     createdAt: String!
     updatedAt: String!
 }
 
-input CatDimensionSelector {
+# Boolean selectors are positive filters only: `true` narrows to matching nodes; `false` (and
+# absent) is a no-op, NOT an inverse filter. The complement (e.g. "non-root") is intentionally
+# out of scope here.
+input CategoryDimensionSelector {
     key: String
     uuid: ID
-    level: Int
-    orphaned: Boolean
+    parentDimensionKey: String   # children-of: dimensions whose parent is this dimension
+    isRoot: Boolean              # true → only dimensions with no parent (false/absent = no-op)
+    isEmpty: Boolean             # true → only dimensions with no values (false/absent = no-op)
     limit: Int
     offset: Int
 }
 
-input CatValueSelector {
+input CategoryValueSelector {
     key: String
     uuid: ID
-    level: Int
-    dimensionKey: String
-    orphaned: Boolean
+    dimensionKey: String         # all values in a dimension
+    parentValueKey: String       # children-of: values whose parent value is this value
+    isRoot: Boolean              # true → only values with no parent value (false/absent = no-op)
+    isUnused: Boolean            # true → only values referenced by no atom (false/absent = no-op)
     limit: Int
     offset: Int
 }
 
-# --- Atom categorization (ADR-260046, FR-17) ---
+# --- Atom categorization (ADR-260046, ADR-260047, FR-17) ---
+# An atom is categorized at the single most specific value it is known to belong to; broader
+# dimensions are derived ancestors. The dimension is derived from the value (one dimension per
+# value). The object wrapper is kept for future per-assignment fields.
 
 input CategoryAssignmentInput {
-    dimensionKey: String!
     valueKey: String!
 }
 
-# retrieve filter: AND across entries, OR within an entry's valueKeys. `level` is an optional
-# validation hint (rejected if the dimension key is not at that level).
+# retrieve filter: AND across entries, OR within an entry's valueKeys. `includeDescendants`
+# (default false = exact) also matches atoms at any descendant of a value via UNDER_CATVAL.
 input CategoryFilterInput {
     dimensionKey: String!
     valueKeys: [String!]!
-    level: Int
+    includeDescendants: Boolean
 }
 
 type CategoryAssignmentOutput {
-    level: Int!
     dimensionKey: String!
     valueKey: String!
+}
+
+# --- Drill-down browse (ADR-260047 §9, FR-17, OR-71) ---
+
+type CategoryBrowseOutput {
+    # The focus value (null when browsing a dimension's roots).
+    value: CategoryValueOutput
+    # Immediate next level below the focus (a value's child values, or a dimension's root values),
+    # paginated, each with an access-scoped count of atoms UNDER it.
+    children: [CategoryChildCount!]!
+    # Atoms UNDER the focus (paginated, access-scoped). "UNDER" = the value (or, for a dimension
+    # focus, any of its values) or any descendant — the same meaning in both modes, consistent with
+    # the subtree child counts.
+    atoms: [AtomOutput!]!
+}
+
+type CategoryChildCount {
+    value: CategoryValueOutput!
+    atomCount: Int!
 }

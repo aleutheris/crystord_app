@@ -155,7 +155,6 @@ Authorization: Bearer <your-token>
 | `signup` | Mutation | Create an account and receive an access token |
 | `signin` | Query | Sign in and receive an access token |
 | `signinGoogle` | Query | Sign in with a Google ID token |
-| `getGoogleClientID` | Query | Retrieve the Google client ID used for sign-in flows |
 | `schemaInfo` | Query | Retrieve schema version, hash, and release date for compatibility checks |
 | `retrieve` | Query | Read Atoms by UUID or by labels |
 | `listLabels` | Query | List available labels starting with a prefix |
@@ -203,8 +202,6 @@ This section is the complete user-facing contract for the current schema.
 - `signinGoogle(idToken: String!): String!`
   - No bearer token required.
   - Returns an access token.
-- `getGoogleClientID: String!`
-  - No bearer token required.
 
 #### Mutations
 
@@ -436,13 +433,7 @@ query {
 }
 ```
 
-If a client application needs the Google client ID:
-
-```graphql
-query {
-  getGoogleClientID
-}
-```
+The Google client ID is configured in the client application; the API no longer exposes it.
 
 ### Testing note for Google sign-in
 
