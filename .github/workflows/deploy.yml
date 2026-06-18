@@ -30,22 +30,21 @@ jobs:
 
       - run: npm ci
 
+      # CI=true is set by GitHub Actions, so `npm run build` generates dist/config.json
+      # from deploy_config.json's `deployProfile` (production), never the local `active`.
       - name: Build
         run: npm run build
         env:
           VITE_NETWORK_VIEW_ENABLED: ${{ vars.VITE_NETWORK_VIEW_ENABLED }}
 
-      - name: Write runtime config
+      - name: Verify deploy config
         run: |
-          ACTIVE=$(jq -r '.active' deploy_config.json)
-          jq -e --arg p "$ACTIVE" '
-            .oauthClients as $clients
-            | (.profiles[$p] // error("unknown profile: " + $p)) as $profile
-            | $profile.oauthClient as $ref
-            | ($profile | del(.oauthClient))
-            | .googleClientId = (if $ref == null then "" else ($clients[$ref] // error("unknown oauthClient: " + $ref)) end)
-          ' deploy_config.json > dist/config.json
-          echo "Deployed with profile: $ACTIVE"
+          echo "Deploying with config.json:"
+          cat dist/config.json
+          if grep -Eq 'localhost|127\.0\.0\.1' dist/config.json; then
+            echo "::error::Refusing to deploy: config.json points at a local endpoint."
+            exit 1
+          fi
 
       - uses: actions/configure-pages@v6
         with:
