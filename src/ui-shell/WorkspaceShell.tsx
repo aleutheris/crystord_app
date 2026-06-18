@@ -4,6 +4,7 @@ import { useAuth } from '../features/auth-entry'
 import { GraphCanvas, NetworkCanvas, useGraphData, DeleteConfirmDialog, useGraphDegrade } from '../features/workspace-graph'
 import { DetailPanel, CreationNotification } from '../features/workspace-details'
 import { SearchBar, QuerySummary, SearchResultPanel, useSearch, useRecommendedLabels } from '../features/workspace-search'
+import { BetaBanner } from './BetaBanner'
 import { GraphViewTabs } from './GraphViewTabs'
 import { GraphRenderGate } from './GraphRenderGate'
 import { GraphLegend } from './GraphLegend'
@@ -49,6 +50,7 @@ export function WorkspaceShell() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+      <BetaBanner />
       <header style={{ padding: '0.5rem 1rem', borderBottom: `1px solid ${C_BORDER}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
         <h1 style={{ margin: 0, fontSize: '1.25rem', flexShrink: 0 }}>Crystord</h1>
         <SearchBar search={search} recommendedLabels={recommendedLabels} />

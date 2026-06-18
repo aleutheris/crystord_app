@@ -115,9 +115,20 @@ test.describe('Graph workspace', () => {
     await expect(page.getByLabel(/search labels/i)).toBeVisible()
     // Graph is blank — no atom nodes
     await expect(page.getByText('Alpha')).not.toBeVisible()
-    await expect(page.getByText('Beta')).not.toBeVisible()
+    await expect(page.getByText('Beta', { exact: true })).not.toBeVisible()
     // Recommended labels from list_labels are visible as search affordances
     await expect(page.getByRole('button', { name: 'Project' })).toBeVisible()
+  })
+
+  test('shows the beta notice and lets the user dismiss it', async ({ page }) => {
+    await mockGraphQL(page)
+    await signIn(page)
+
+    const banner = page.getByRole('status').filter({ hasText: /beta version/i })
+    await expect(banner).toBeVisible()
+
+    await banner.getByRole('button', { name: /dismiss beta notice/i }).click()
+    await expect(banner).not.toBeVisible()
   })
 
   test('atoms appear in graph only after explicit search', async ({ page }) => {
@@ -125,12 +136,12 @@ test.describe('Graph workspace', () => {
     await signIn(page)
 
     await expect(page.getByText('Alpha')).not.toBeVisible()
-    await expect(page.getByText('Beta')).not.toBeVisible()
+    await expect(page.getByText('Beta', { exact: true })).not.toBeVisible()
 
     await submitSearch(page)
 
     await expect(page.getByText('Alpha')).toBeVisible()
-    await expect(page.getByText('Beta')).toBeVisible()
+    await expect(page.getByText('Beta', { exact: true })).toBeVisible()
   })
 
   test('opens detail panel when clicking an atom node', async ({ page }) => {
@@ -166,7 +177,7 @@ test.describe('Graph workspace', () => {
     await page.getByText('Alpha').click()
     await expect(page.getByLabel(/title/i)).toHaveValue('Alpha')
 
-    await page.getByText('Beta').click()
+    await page.getByText('Beta', { exact: true }).click()
     const detailPanel = page.getByRole('complementary', { name: /atom details/i })
     await expect(detailPanel.getByLabel(/title/i)).toHaveValue('Beta')
     await expect(detailPanel.getByLabel(/labels.*comma/i)).toHaveValue('Task')

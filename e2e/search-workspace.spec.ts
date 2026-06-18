@@ -340,7 +340,7 @@ test.describe('Search and discoverability', () => {
     await retrieveResponse
 
     // Backend-filtered result: only Beta visible, not Alpha
-    await expect(page.getByText('Beta')).toBeVisible()
+    await expect(page.getByText('Beta', { exact: true })).toBeVisible()
   })
 
   test('typing a label and pressing Enter auto-chips text and executes search', async ({ page }) => {

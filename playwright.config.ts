@@ -17,7 +17,10 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev',
+    // Pin to the "local" profile so e2e runs are independent of deploy_config.json's
+    // active profile. All GraphQL is mocked via page.route, so the endpoint host only
+    // needs to be deterministic, not reachable.
+    command: 'CRYSTORD_PROFILE=local npm run dev',
     url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
   },
