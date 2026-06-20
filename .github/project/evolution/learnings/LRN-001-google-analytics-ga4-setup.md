@@ -3,7 +3,7 @@
 ## 1. Context
 
 - Date discovered: 2026-06-15
-- Discovered by: info@aleutheris.com
+- Discovered by: info@crystord.com
 - Area: Web analytics / deployment (gtag.js integration in `index.html`)
 - Trigger: Regression on another project — GA showed zero data for weeks after the gtag snippet was "modernized."
 
