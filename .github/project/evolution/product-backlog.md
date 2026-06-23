@@ -35,6 +35,14 @@ User-outcome-oriented backlog for Crystord App.
 | 27 | BI-260035 | Formalize directional arrowheads baseline for Network-view bonds | See `.github/project/evolution/backlog-status.md` | Records Topic 2 direction baseline (target-end arrowheads) and keeps Network-view labels optional/off-by-default while preserving future label seam. |
 | 28 | BI-260036 | Formalize force-directed automatic layout baseline for Network view | See `.github/project/evolution/backlog-status.md` | Records Topic 3 layout baseline (d3-force, synchronous iteration cap, drag-position preservation, grid fallback above 400 nodes, non-determinism policy). |
 | 29 | BI-260037 | Formalize outer-circumference edge initiation baseline for Network view | See `.github/project/evolution/backlog-status.md` | Records superseding ring-based initiation baseline (hover/selected ring, inner-vs-outer pointer zones, no-op blank/self drop, target-circle completion) and preserves Flow-view boundary. |
+| 30 | BI-260054 | API-Contract Foundation for Schema 8.1.0 | See `.github/project/evolution/backlog-status.md` | Auth & Authz epic S1: schema range ~8.1.0, central error-code mapper, message-based session-expiry detection, new auth operation documents. |
+| 31 | BI-260055 | Verify-First Sign-Up Flow | See `.github/project/evolution/backlog-status.md` | Auth & Authz epic S1: restores registration via beginSignup/completeSignup + emailed-code screen with shared validation. |
+| 32 | BI-260056 | Session-Aware Auth State and Server-Side Logout | See `.github/project/evolution/backlog-status.md` | Auth & Authz epic S1: session token handling, server logout, demo/URL tokens as sessions, google-not-linked + rate-limit UX. |
+| 33 | BI-260057 | Self-Service Password Reset | See `.github/project/evolution/backlog-status.md` | Auth & Authz epic S1: forgot/reset password for locked-out users; reset revokes sessions → sign-in. |
+| 34 | BI-260058 | Account-Settings Surface and Identity Overview | See `.github/project/evolution/backlog-status.md` | Auth & Authz epic S2: new account-settings module replacing AdminPlaceholder; me identity overview. |
+| 35 | BI-260059 | Auth-Method Management (Password, Unlink, Link Google) | See `.github/project/evolution/backlog-status.md` | Auth & Authz epic S2: setPassword, unlink, link Google (closes the AUTH-GOOGLE-NOT-LINKED recovery loop). |
+| 36 | BI-260060 | Email Change, Sign-Out-Everywhere, and Delete Account | See `.github/project/evolution/backlog-status.md` | Auth & Authz epic S2: email change, revokeAllSessions, account deletion with block reasons. |
+| 37 | BI-260061 | Read-Side Access-Level Affordance Gating | See `.github/project/evolution/backlog-status.md` | Auth & Authz epic S3: gate edit/delete/bond affordances on AtomOutput.accessLevel. |
 
 ## Workflow States
 

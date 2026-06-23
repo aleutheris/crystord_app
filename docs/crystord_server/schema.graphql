@@ -9,6 +9,9 @@ type Query {
     retrieve(labels: [String], uuid: String, categories: [CategoryFilterInput!]): [AtomOutput!]
     signin(email: String!, password: String!): String!
     signinGoogle(idToken: String!): String!
+    # The authenticated caller's own account + its linked auth-method kinds (BI-260075 / ICR-260011).
+    # Owner-scoped: resolves to the session's user; there is no arbitrary user(id) lookup.
+    me: User!
     listLabels(labelsPrefix: String!): [String!]!
     schemaInfo: SchemaInfo!
     discoverOperations(prefix: String, limit: Int): [OperationFunction!]!
@@ -55,25 +58,48 @@ type SchemaInfo {
     releasedAt: String!
 }
 
+# The authenticated caller's own account (BI-260075). authMethods lists the linked method KINDS only
+# ("password" / "google") — never hashes or tokens. Returned only by `me` (owner-scoped).
+type User {
+    username: String!
+    email: String!
+    emailVerified: Boolean!
+    authMethods: [String!]!
+}
+
 type OperationFunction {
     name: String!
     description: String
 }
 
 type Mutation {
-    signup(email: String!, password: String!, username: String): String!
+    beginSignup(email: String!): Boolean!
+    completeSignup(email: String!, code: String!, password: String!, username: String!): String!
+    logout: Boolean!
+    revokeAllSessions: Boolean!
+    requestPasswordReset(email: String!): Boolean!
+    confirmPasswordReset(token: String!, newPassword: String!): Boolean!
+    requestEmailChange(newEmail: String!): Boolean!
+    confirmEmailChange(code: String!): Boolean!
+    # User-managed auth methods (BI-260077/078 / ICR-260011): deliberately link Google to the caller's
+    # own account (signinGoogle no longer silently links an existing account), and set/replace the
+    # caller's password (a Google-only account thereby gains password sign-in).
+    linkGoogle(idToken: String!): Boolean!
+    setPassword(newPassword: String!): Boolean!
+    # Remove a linked method ("password" / "google"); refuses to remove the last one (no self-lockout).
+    unlinkAuthMethod(method: String!): Boolean!
     change(selector: Selector, inputs: [AtomInput]!, remark: String): [String]!
     destroy(selector: DestroySelector!): DestroyOutcome!
-    transferAtomOwnership(atomUuid: ID!, toUserUuid: ID!): Boolean!
+    transferAtomOwnership(atomUuid: ID!, toUsername: String!): Boolean!
     deleteMyAccount: Boolean!
-    shareAtom(atomUuid: ID!, principalUuid: ID!, principalType: PrincipalType!, level: AccessLevel!): Boolean!
-    revokeAtomAccess(atomUuid: ID!, principalUuid: ID!, principalType: PrincipalType!): Boolean!
+    shareAtom(atomUuid: ID!, principal: String!, principalType: PrincipalType!, level: AccessLevel!): Boolean!
+    revokeAtomAccess(atomUuid: ID!, principal: String!, principalType: PrincipalType!): Boolean!
     createWorkspace(key: String!, name: String!, description: String): WorkspaceOutput!
     updateWorkspace(uuid: ID!, name: String, description: String): WorkspaceOutput!
     dissolveWorkspace(uuid: ID!): Boolean!
-    addWorkspaceMember(workspaceUuid: ID!, userUuid: ID!, role: WorkspaceRole!): Boolean!
-    removeWorkspaceMember(workspaceUuid: ID!, userUuid: ID!): Boolean!
-    updateWorkspaceMemberRole(workspaceUuid: ID!, userUuid: ID!, role: WorkspaceRole!): Boolean!
+    addWorkspaceMember(workspaceUuid: ID!, username: String!, role: WorkspaceRole!): Boolean!
+    removeWorkspaceMember(workspaceUuid: ID!, username: String!): Boolean!
+    updateWorkspaceMemberRole(workspaceUuid: ID!, username: String!, role: WorkspaceRole!): Boolean!
     # Dimension hierarchy (ADR-260047): the schema is declared via UNDER_CATDIM (child -> parent),
     # single-parent (a tree) for v1. parentDimensionKeys/childDimensionKeys wire the new dimension
     # into the schema atomically; child wiring runs the full connect validation.

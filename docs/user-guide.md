@@ -1,5 +1,9 @@
 # Crystord User Guide
 
+> **Schema version: `8.1.0`.** This guide matches the live GraphQL schema exactly
+> (`crystord_server/schema.graphql`). Always confirm the version your deployment serves with the
+> `schemaInfo` query before relying on a contract detail.
+
 ## What Crystord Is
 
 Crystord is a data management tool for working with information as **connected units**, not just isolated records.
@@ -80,6 +84,19 @@ A bond is:
 
 This is how Crystord expresses relationships in the data.
 
+### Categories (Dimensions & Values)
+Crystord also has a structured classification system built from two node kinds:
+
+- A **Category Dimension** is a classification axis — for example `Brand`, `Region`, or `Status`.
+- A **Category Value** is a specific value within a dimension — for example `Mercedes` within `Brand`.
+
+Dimensions can form a hierarchy (a dimension can be *under* a parent dimension), and Values can
+form a hierarchy too (a value can be *under* a parent value, e.g. `Sedan` under `Car`). An Atom is
+classified by assigning it one or more **Values** (the dimension is derived from the value).
+
+> **Categories are NOT bonds.** They are assigned through `AtomInput.categories`, not through
+> `bonds`. See [Categories (Dimensions & Values)](#categories-dimensions--values-1) below.
+
 ---
 
 ## A Simple Mental Model
@@ -88,8 +105,8 @@ This is how Crystord expresses relationships in the data.
 |---|---|
 | spreadsheet row or business record | an **Atom** |
 | tab/category/tag | a **label** |
-| reusable named tag | a **Category** |
-| named group of related categories | a **Facet** |
+| a classification axis (e.g. "Brand") | a **Category Dimension** |
+| a value on that axis (e.g. "Mercedes") | a **Category Value** |
 | unique row ID | `properties.shellies.uuid` |
 | main value or description | `properties.nuclearies` |
 | lookup/reference to another row | a **bond** |
@@ -142,102 +159,208 @@ The API is exposed through GraphQL at:
 http://<host>:5665/graphql
 ```
 
-After signing up or signing in, use your token in the request header for authenticated operations:
+After signing in (or completing signup), pass your **session token** in the request header for
+authenticated operations:
 
 ```text
-Authorization: Bearer <your-token>
+Authorization: Bearer <your-session-token>
 ```
+
+> **Sessions, not permanent tokens.** The token you receive is a **session** bearer token. It
+> **expires** (idle timeout ~24h, absolute cap ~30 days) and can be **revoked** (`logout`,
+> `revokeAllSessions`, password reset, email change). Clients MUST handle an expired/invalid token
+> by re-authenticating. See [Authentication](#authentication).
+
+### Authorization model (default-deny)
+
+Every operation is authorized centrally. There are two outcomes a client must handle:
+
+- **Public operations** (no token needed): `signin`, `signinGoogle`, `schemaInfo`,
+  `discoverOperations`, `beginSignup`, `completeSignup`, `requestPasswordReset`,
+  `confirmPasswordReset`, `logout`.
+- **Everything else requires a valid Bearer session token.** Calling a gated operation without a
+  valid token returns a GraphQL error with code `AUTHZ-AUTHENTICATION-REQUIRED`.
+
+> Errors are returned in the standard GraphQL `errors` array (the `message` carries the code, e.g.
+> `AUTH-RATE-LIMITED`, `SIGNUP-INVALID-OR-EXPIRED-CODE`). They are not returned as a data field.
 
 ### What the main GraphQL operations do
 
-| Operation | Type | Plain-English purpose |
-|---|---|---|
-| `signup` | Mutation | Create an account and receive an access token |
-| `signin` | Query | Sign in and receive an access token |
-| `signinGoogle` | Query | Sign in with a Google ID token |
-| `schemaInfo` | Query | Retrieve schema version, hash, and release date for compatibility checks |
-| `retrieve` | Query | Read Atoms by UUID or by labels |
-| `listLabels` | Query | List available labels starting with a prefix |
-| `discoverOperations` | Query | Discover callable operation functions, optionally filtered by prefix |
-| `change` | Mutation | Create new Atoms or update existing ones |
-| `destroy` | Mutation | Delete Atoms |
-| `createFacet` | Mutation | Create a Facet (classification dimension) |
-| `createCategory` | Mutation | Create a Category, optionally assigning it to a Facet |
-| `assignCategoryToFacet` | Mutation | Assign an existing Category to a Facet |
-| `retrieveFacets` | Query | Retrieve Facets, optionally filtered by key or uuid |
-| `retrieveCategories` | Query | Retrieve Categories, optionally filtered by key, uuid, or facetUuid |
+| Operation | Type | Auth | Plain-English purpose |
+|---|---|---|---|
+| `beginSignup` | Mutation | Public | Start signup: email a single-use verification code |
+| `completeSignup` | Mutation | Public | Finish signup with the code + password + username; returns a session token |
+| `signin` | Query | Public | Sign in with email + password; returns a session token |
+| `signinGoogle` | Query | Public | Sign in with a Google ID token; returns a session token |
+| `logout` | Mutation | Public | End the current session |
+| `revokeAllSessions` | Mutation | Auth | End all of the caller's sessions |
+| `requestPasswordReset` | Mutation | Public | Email a single-use password-reset token |
+| `confirmPasswordReset` | Mutation | Public | Set a new password using the reset token |
+| `requestEmailChange` | Mutation | Auth | Email a code to a new address to change the login email |
+| `confirmEmailChange` | Mutation | Auth | Confirm the email change with the code |
+| `linkGoogle` | Mutation | Auth | Link Google sign-in to the caller's account |
+| `setPassword` | Mutation | Auth | Set/replace the caller's password |
+| `unlinkAuthMethod` | Mutation | Auth | Remove a linked auth method (never the last one) |
+| `me` | Query | Auth | The caller's own account + linked auth methods |
+| `deleteMyAccount` | Mutation | Auth | Self-service account deletion |
+| `schemaInfo` | Query | Public | Schema version, hash, and release date for compatibility checks |
+| `retrieve` | Query | Auth | Read Atoms by UUID, by labels, and/or by category |
+| `listLabels` | Query | Auth | List available labels starting with a prefix |
+| `discoverOperations` | Query | Public | Discover callable operation functions |
+| `change` | Mutation | Auth | Create new Atoms or update existing ones |
+| `destroy` | Mutation | Auth | Delete Atoms |
+| `shareAtom` / `revokeAtomAccess` | Mutation | Auth | Grant/revoke access to an atom (by username or workspace key) |
+| `transferAtomOwnership` | Mutation | Auth | Hand an atom to another user (by username) |
+| `listAtomGrants` | Query | Auth | List access grants on an atom |
+| `createWorkspace` … `updateWorkspaceMemberRole` | Query/Mutation | Auth | Workspaces and membership |
+| `createCategoryDimension` / `createCategoryValue` … | Mutation | Auth | Manage the category taxonomy |
+| `retrieveCategoryDimensions` / `retrieveCategoryValues` / `retrieveCategoryBrowse` | Query | Auth | Read/browse the taxonomy |
 
 > Important: `change` is the main write operation. It is used both to **create** and to **update** data.
 
 ### Public GraphQL Contract (Complete)
 
-This section is the complete user-facing contract for the current schema.
+This section is the complete user-facing contract for schema `8.1.0`. Every operation that requires
+a token is marked **Auth required**; everything else is public.
 
 #### Queries
 
-- `retrieve(labels: [String], uuid: String): [AtomOutput!]`
+- `retrieve(labels: [String], uuid: String, categories: [CategoryFilterInput!]): [AtomOutput!]`
   - Auth required.
-  - Use `uuid` for single-atom retrieval or `labels` for grouped retrieval.
-- `listLabels(labelsPrefix: String!): [String!]!`
-  - Auth required.
-  - Returns distinct labels starting with the given prefix.
-- `discoverOperations(prefix: String, limit: Int): [OperationFunction!]!`
-  - No bearer token required.
-  - `limit` is optional; backend caps the effective limit at 100.
-- `retrieveFacets(selector: FacetSelector): [FacetOutput!]!`
-  - No bearer token required.
-  - `selector` is optional. Omit to return all Facets.
-  - Filter by `key` or `uuid`.
-- `retrieveCategories(selector: CategorySelector): [CategoryOutput!]!`
-  - No bearer token required.
-  - `selector` is optional. Omit to return all Categories.
-  - Filter by `key`, `uuid`, or `facetUuid`.
-  - Each result includes `facetUuid` (null if the Category is not yet assigned to a Facet).
-- `schemaInfo: SchemaInfo!`
-  - No bearer token required.
-  - Returns `schemaVersion`, `schemaHash`, and `releasedAt`.
+  - Use `uuid` for single-atom retrieval, `labels` for grouped retrieval, and/or `categories` to
+    filter by category value (see [Categories](#categories-dimensions--values-1)).
 - `signin(email: String!, password: String!): String!`
-  - No bearer token required.
-  - Returns an access token.
+  - Public. Returns a session token.
 - `signinGoogle(idToken: String!): String!`
-  - No bearer token required.
-  - Returns an access token.
+  - Public. Returns a session token.
+  - An existing account is signed in **only if Google is already linked** to it; otherwise
+    `AUTH-GOOGLE-NOT-LINKED`. An unknown email creates a new (verified, password-less) account.
+- `me: User!`
+  - Auth required. Returns the caller's own account: `username`, `email`, `emailVerified`,
+    `authMethods` (e.g. `["password", "google"]`). Never returns secrets.
+- `listLabels(labelsPrefix: String!): [String!]!`
+  - Auth required. Returns distinct labels starting with the given prefix.
+- `schemaInfo: SchemaInfo!`
+  - Public. Returns `schemaVersion`, `schemaHash`, and `releasedAt`.
+- `discoverOperations(prefix: String, limit: Int): [OperationFunction!]!`
+  - Public. `limit` is optional; backend caps the effective limit at 100.
+- `listAtomGrants(atomUuid: ID!): [AtomGrantOutput!]!`
+  - Auth required. Owner-only. Lists the direct access grants on an atom.
+- `listMyWorkspaces: [WorkspaceOutput!]!`
+  - Auth required. Workspaces the caller is a member of.
+- `listWorkspaceMembers(workspaceUuid: ID!): [WorkspaceMemberOutput!]!`
+  - Auth required.
+- `retrieveWorkspace(selector: WorkspaceSelector!): WorkspaceOutput`
+  - Auth required. Select by `uuid` or `key`.
+- `listAtomsSharedToWorkspace(workspaceUuid: ID!): [ID!]!`
+  - Auth required.
+- `retrieveCategoryDimensions(selector: CategoryDimensionSelector): [CategoryDimensionOutput!]!`
+  - Auth required. `selector` optional; omit to return all dimensions.
+- `retrieveCategoryValues(selector: CategoryValueSelector): [CategoryValueOutput!]!`
+  - Auth required. `selector` optional; omit to return all values.
+- `retrieveCategoryBrowse(valueKey: String, dimensionKey: String, limit: Int, offset: Int, childLimit: Int, childOffset: Int): CategoryBrowseOutput!`
+  - Auth required. Provide **exactly one** of `valueKey` or `dimensionKey`. Drill-down browse:
+    returns the focus value (if any), its immediate children with access-scoped atom counts, and the
+    atoms under the focus. See [Categories](#categories-dimensions--values-1).
 
-#### Mutations
+#### Mutations — Authentication & Account
 
-- `signup(email: String!, password: String!, username: String): String!`
-  - No bearer token required.
-  - Returns an access token.
+- `beginSignup(email: String!): Boolean!`
+  - Public. Emails a single-use 6-digit verification code and creates a transient pending signup.
+  - Always returns `true` (anti-enumeration): an already-registered email receives a "you already
+    have an account" message instead of a code.
+- `completeSignup(email: String!, code: String!, password: String!, username: String!): String!`
+  - Public. Verifies the code, creates an **already-verified** account, and returns a session token.
+  - `username` is **required** and must satisfy the username form rules (see
+    [Username rules](#username-rules)); an invalid handle raises `USER-INVALID-USERNAME`.
+  - `password` must satisfy the [password policy](#password-policy).
+  - A wrong/expired code raises `SIGNUP-INVALID-OR-EXPIRED-CODE`. If an account for the email
+    appeared in the meantime, `SIGNUP-ACCOUNT-ALREADY-EXISTS`.
+- `logout: Boolean!`
+  - Public (idempotent). Ends the session of the presented Bearer token.
+- `revokeAllSessions: Boolean!`
+  - Auth required. Ends every session of the caller (sign out everywhere).
+- `requestPasswordReset(email: String!): Boolean!`
+  - Public. Emails a single-use high-entropy reset token. Always returns `true` (anti-enumeration).
+- `confirmPasswordReset(token: String!, newPassword: String!): Boolean!`
+  - Public. Consumes the token (single-use), sets the new password, and **revokes all sessions**.
+  - `newPassword` must satisfy the [password policy](#password-policy). Invalid/expired token →
+    `RESET-INVALID-OR-EXPIRED-TOKEN`.
+- `requestEmailChange(newEmail: String!): Boolean!`
+  - Auth required. Emails a 6-digit code to the **new** address.
+- `confirmEmailChange(code: String!): Boolean!`
+  - Auth required. Switches the login email, keeps the account, revokes other sessions (keeps the
+    current one), and notifies the old address. A taken target → `EMAIL-ALREADY-IN-USE`; wrong/expired
+    code → `EMAIL-CHANGE-INVALID-OR-EXPIRED-CODE`.
+- `linkGoogle(idToken: String!): Boolean!`
+  - Auth required. Links Google to the caller's account; the verified Google email must equal the
+    caller's email (`AUTH-GOOGLE-EMAIL-MISMATCH` otherwise). Idempotent.
+- `setPassword(newPassword: String!): Boolean!`
+  - Auth required. Sets/replaces the caller's password (e.g. a Google-only account gains password
+    sign-in). No old-password argument — the session is the authorization. Sessions are not revoked.
+- `unlinkAuthMethod(method: String!): Boolean!`
+  - Auth required. Removes a linked method (`"password"` or `"google"`). Refuses to remove the last
+    one (`AUTH-CANNOT-REMOVE-LAST-METHOD`); unknown kind → `AUTH-METHOD-UNKNOWN`; idempotent if absent.
+- `deleteMyAccount: Boolean!`
+  - Auth required. Self-service deletion. Blocked while the caller still owns atoms
+    (`CR-15-OWNED-ATOMS-EXIST`) or is the sole Admin of a workspace (`CR-15-WORKSPACE-ADMIN-EXISTS`).
+
+#### Mutations — Atoms
+
 - `change(selector: Selector, inputs: [AtomInput]!, remark: String): [String]!`
   - Auth required.
   - Create mode: omit `selector`.
   - Update mode: provide `selector.uuid`.
   - In both modes, each `AtomInput` requires `labels`.
   - `remark` is optional. If provided, it is stored with the change event and visible in change history.
-- `createFacet(key: String!, displayName: String!): FacetOutput!`
-  - No bearer token required.
-  - `key` must be unique across all Facets. Duplicate raises `CR-14-DUPLICATE-KEY`.
-  - Returns the newly created Facet record.
-- `createCategory(key: String!, displayName: String!, facetUuid: ID): CategoryOutput!`
-  - No bearer token required.
-  - `key` must be unique across all Categories. Duplicate raises `CR-10-DUPLICATE-KEY`.
-  - `facetUuid` is optional. If supplied, the Category is assigned to that Facet in the same operation.
-  - Returns the newly created Category record, including `facetUuid` if assigned.
-- `assignCategoryToFacet(categoryUuid: ID!, facetUuid: ID!): Boolean!`
-  - No bearer token required.
-  - Assigns an existing Category to an existing Facet.
-  - A Category may only have **one** Facet parent. A second assignment raises `CR-14-ALREADY-ASSIGNED`.
-  - Returns `true` on success.
+  - Returns the list of affected atom UUIDs.
 - `destroy(selector: DestroySelector!): DestroyOutcome!`
   - Auth required.
-  - Supports either `selector.uuids` or `selector.uuid`.
-  - If only `uuid` is provided, backend normalizes it to `uuids` internally.
-  - Returns a `DestroyOutcome` with three fields:
+  - Supports either `selector.uuids` or `selector.uuid` (single is normalized to `uuids` internally).
+  - Returns a `DestroyOutcome`:
     - `requested: [String!]!` — UUIDs submitted for deletion.
     - `deleted: [String!]!` — UUIDs that were actually deleted.
     - `notFound: [String!]!` — UUIDs that were not deleted (not found or not owned by the caller).
-  - **Migration note (schema 2.0.0):** Previous schema versions returned `[String]!` (deleted UUIDs only). Callers that consumed the old list should now read `destroy { deleted }` for equivalent behaviour; `requested` and `notFound` provide additional observability at no extra cost.
   - No-op deletes (all UUIDs in `notFound`, empty `deleted`) do not raise errors.
+
+#### Mutations — Access, Ownership & Workspaces
+
+> **Principals are usernames / workspace keys, not UUIDs.** Sharing and ownership inputs take a
+> human-readable `principal` (a **username** for `USER`, a **workspace key** for `WORKSPACE`). The
+> backend resolves it to an internal id. An unknown principal → `CR-16-PRINCIPAL-UNKNOWN`.
+
+- `shareAtom(atomUuid: ID!, principal: String!, principalType: PrincipalType!, level: AccessLevel!): Boolean!`
+  - Auth required (owner-only). `principalType` is `USER` or `WORKSPACE`; `level` is `EDITOR` or `VIEWER`.
+- `revokeAtomAccess(atomUuid: ID!, principal: String!, principalType: PrincipalType!): Boolean!`
+  - Auth required (owner-only).
+- `transferAtomOwnership(atomUuid: ID!, toUsername: String!): Boolean!`
+  - Auth required (owner-only). Atomic single-owner handoff.
+- `createWorkspace(key: String!, name: String!, description: String): WorkspaceOutput!`
+- `updateWorkspace(uuid: ID!, name: String, description: String): WorkspaceOutput!`
+- `dissolveWorkspace(uuid: ID!): Boolean!`
+- `addWorkspaceMember(workspaceUuid: ID!, username: String!, role: WorkspaceRole!): Boolean!`
+- `removeWorkspaceMember(workspaceUuid: ID!, username: String!): Boolean!`
+- `updateWorkspaceMemberRole(workspaceUuid: ID!, username: String!, role: WorkspaceRole!): Boolean!`
+  - All auth required. `WorkspaceRole` is `ADMIN`, `EDITOR`, or `VIEWER`. Workspace mutations are
+    Admin-gated (with self-leave and a last-Admin invariant).
+
+#### Mutations — Category Taxonomy
+
+- `createCategoryDimension(key: String!, displayName: String!, description: String, parentDimensionKeys: [String!], childDimensionKeys: [String!]): CategoryDimensionOutput!`
+- `createCategoryValue(key: String!, displayName: String!, description: String, dimensionKey: String!, parentValueKeys: [String!], childValueKeys: [String!]): CategoryValueOutput!`
+- `updateCategoryDimension(key: String!, displayName: String, description: String): CategoryDimensionOutput!`
+- `updateCategoryValue(key: String!, displayName: String, description: String): CategoryValueOutput!`
+  - `key`/`dimensionKey` are immutable and are intentionally not update arguments.
+- `connectCategoryDimensions(dimensionKey: String!, parentDimensionKeys: [String!], childDimensionKeys: [String!]): CategoryDimensionOutput!`
+- `disconnectCategoryDimensions(dimensionKey: String!, parentDimensionKeys: [String!], childDimensionKeys: [String!]): CategoryDimensionOutput!`
+- `connectCategoryValues(valueKey: String!, parentValueKeys: [String!], childValueKeys: [String!]): CategoryValueOutput!`
+- `disconnectCategoryValues(valueKey: String!, parentValueKeys: [String!], childValueKeys: [String!]): CategoryValueOutput!`
+- `deleteCategoryDimension(key: String!): Boolean!`
+- `deleteCategoryValue(key: String!): Boolean!`
+  - All auth required. A dimension may have at most one parent (`CAT-MULTIPLE-PARENTS-UNSUPPORTED`),
+    cycles are rejected (`CAT-DIMENSION-CYCLE`), and a value's parent must comply with the dimension
+    schema (`CAT-VALUE-PARENT-DIMENSION-MISMATCH`). Deletion is guarded
+    (`CAT-DIMENSION-HAS-VALUES`/`-HAS-CHILDREN`, `CAT-VALUE-REFERENCED`/`-HAS-CHILDREN`).
 
 #### Input Types (Current)
 
@@ -245,6 +368,10 @@ This section is the complete user-facing contract for the current schema.
   - `labels: [String!]!`
   - `bonds: [BondInput]`
   - `properties: PropertiesInput`
+  - `categories: [CategoryAssignmentInput!]` — present (incl. `[]`) replaces all assignments; omitted
+    leaves them unchanged (the `bonds` precedent).
+- `BondInput`
+  - `uuid: ID!`, `name: String!`, `direction: String!`
 - `PropertiesInput`
   - `shellies: ShelliesInput` (`uuid` input only)
   - `nuclearies: NucleariesInput`
@@ -253,40 +380,48 @@ This section is the complete user-facing contract for the current schema.
   - `content: JSON` — accepts a string, number, JSON array (list atom), or null
   - `declaredType` (typed declaration input)
   - `typeMode` (`flexible` or `strict`)
+- `CategoryAssignmentInput`
+  - `valueKey: String!` — the dimension is derived from the value.
+- `CategoryFilterInput`
+  - `dimensionKey: String!`, `valueKeys: [String!]!`, `includeDescendants: Boolean`
+  - AND across entries, OR within an entry's `valueKeys`. `includeDescendants: true` also matches
+    atoms at any descendant value (via the value hierarchy).
 - `Selector`
   - `labels`, `uuid`, `uuids`, `title`, `content`, `description`, `operation`, `constants`
-  - Practical usage guidance:
-    - `change` update path should use `selector.uuid`.
-    - `destroy` should use `selector.uuids` (or `selector.uuid` for single delete).
+  - Practical usage: `change` update path should use `selector.uuid`; `destroy` should use
+    `selector.uuids` (or `selector.uuid` for a single delete).
+- `DestroySelector`
+  - `uuid`, `uuids`
+- `WorkspaceSelector`
+  - `uuid`, `key`
+- `CategoryDimensionSelector`
+  - `key`, `uuid`, `parentDimensionKey`, `isRoot`, `isEmpty`, `limit`, `offset`
+- `CategoryValueSelector`
+  - `key`, `uuid`, `dimensionKey`, `parentValueKey`, `isRoot`, `isUnused`, `limit`, `offset`
+  - Boolean selectors are positive filters only: `true` narrows; `false`/absent is a no-op.
 
 #### Output Typing Fields (Current)
 
 `AtomOutput.properties.nuclearies` exposes:
 
-- `declaredType`
-- `effectiveType`
-- `typeMode`
-- `typeState`
-
-These fields are user-visible typing semantics and should be included by clients that need content-typing behavior.
+- `title` (non-null), `content`, `description`, `operation`, `constants`
+- `declaredType`, `effectiveType`, `typeMode`, `typeState`
 
 #### Atom/Bond Output Fields (Current)
 
 `AtomOutput` also exposes:
 
+- `ownerUuid: ID!`
+- `accessLevel: EffectiveAccessLevel!` — `OWNER`, `EDITOR`, or `VIEWER`
 - `errorCode`
 - `evaluationStatus`
-- `cycleNodes`
-- `cycleEdges`
-- `originNodeUuid`
-- `affectedNodeUuid`
-- `causes`
+- `cycleNodes`, `cycleEdges`
+- `originNodeUuid`, `affectedNodeUuid`, `causes`
+- `categories: [CategoryAssignmentOutput!]!` — each is `{ dimensionKey, valueKey }`
 
 `BondOutput` exposes:
 
-- `uuid`
-- `name`
-- `direction`
+- `uuid`, `name`, `direction`
 - `required` (nullable; present for relationship types that carry required/optional semantics)
 
 #### Behavior and Constraints (Current)
@@ -296,121 +431,42 @@ These fields are user-visible typing semantics and should be included by clients
 - `OP_DEPENDENCY` bonds are system-managed; clients should not submit them directly.
 - `change` requires `labels` in each input object, including update payloads.
 
-##### Taxonomy: Facets, Categories, and Labels
-
-Crystord has three independent classification mechanisms. Use whichever fits your needs.
-
-| Mechanism | What it is | Best for |
-|---|---|---|
-| `labels` | Free-form strings on an Atom | Fast grouping and retrieval, no management needed |
-| `Category` | A named classification value, connected to an Atom via `IN_CATEGORY` | Reusable classification that survives renaming |
-| `Facet` | A named classification dimension that organises Categories | Structured taxonomy when you have many categories in the same subject area |
-
-**Labels** are the simplest option. Apply them directly on any Atom and use `retrieve(labels: [...])` or `listLabels(labelsPrefix: ...)` to work with them. No setup required.
-
-**Categories** are useful when you want stable, named classification that can be managed independently of Atoms. A Category is a first-class entity with its own `uuid` and `key`. An Atom connects to a Category using a bond named `IN_CATEGORY`:
-
-```json
-{ "uuid": "<category-uuid>", "name": "IN_CATEGORY", "direction": "to" }
-```
-
-**Facets** are classification dimensions that group related Categories. If you have many Categories in the same subject area (for example `Mercedes`, `Tesla`, `BMW` all belong to the `Brand` dimension), create a Facet named `brand` and assign each of those Categories to it. An Atom does not connect directly to a Facet — it always connects to a Category, which belongs to a Facet.
-
-The three-level chain:
-
-```
-(Atom) -[:IN_CATEGORY]-> (Category) -[:IN_FACET]-> (Facet)
-```
-
-**Facet rules:**
-- `Facet.key` is unique. Duplicate raises `CR-14-DUPLICATE-KEY`.
-- A Category may belong to at most one Facet (tree structure). A second assignment raises `CR-14-ALREADY-ASSIGNED`.
-- `IN_FACET` is not a valid bond name on an Atom — only Categories may connect to Facets.
-- Facets and Categories are system-global (not scoped to individual users).
-
-**Working example — cars:**
-
-```graphql
-# 1. Create a Facet for the classification dimension
-mutation {
-  createFacet(key: "brand", displayName: "Brand") {
-    uuid key displayName
-  }
-}
-
-# 2. Create Categories and assign them to the Facet in one step
-mutation {
-  createCategory(key: "mercedes", displayName: "Mercedes", facetUuid: "<brand-uuid>") {
-    uuid key displayName facetUuid
-  }
-}
-
-# 3. Tag an Atom with the Mercedes category using a normal bond
-mutation {
-  change(inputs: [{
-    labels: ["Car"]
-    bonds: [{ uuid: "<mercedes-uuid>", name: "IN_CATEGORY", direction: "to" }]
-    properties: { nuclearies: { title: "My car" } }
-  }])
-}
-
-# 4. Retrieve all Categories in the Brand facet
-query {
-  retrieveCategories(selector: { facetUuid: "<brand-uuid>" }) {
-    uuid key displayName facetUuid
-  }
-}
-```
-
-**Remaining Category behavior (unchanged):**
-- Category identity uses `uuid` and unique `key`; `displayName` is the human-readable field.
-- The category assignment contract is `(Atom)-[:IN_CATEGORY]->(Category)`.
-- Duplicate `Category.key` values are rejected with `CR-10-DUPLICATE-KEY`.
-- Query pagination defaults to `limit=25` with `max limit=100`.
-- Retrieval order is deterministic: `updatedAt DESC` with `uuid ASC` as the tie-breaker.
-- Requests beyond the allowed limit are rejected with `OR-QUERY-LIMIT-EXCEEDED`.
-
-##### Owner-Only Lifecycle Behavior (MVP)
-
-All atom lifecycle operations are owner-scoped in MVP. This means a caller only sees and changes atoms they own.
-
-Non-owner outcomes by operation:
-
-- `retrieve` (by `uuid` or `labels`): returns an empty list for atoms not owned by the caller.
-- `change` update path (`selector.uuid`): returns an empty result if the selected atom is not owned by the caller.
-- `destroy`: non-owner delete attempts are silent no-ops; the foreign atom remains unchanged.
-- `change` with explicit foreign bond target UUID: hard-fails with `AU-UNAUTHORIZED`.
-
-Why this is split into two denial styles:
-
-- Scoped operations (`retrieve`, update, delete) avoid leaking whether a foreign atom exists.
-- Explicit-reference operations (bonding to a foreign UUID) fail with a stable unauthorized error code.
-
-Short lifecycle example (owner vs non-owner):
-
-1. User A creates atom `A1`.
-2. User B runs `retrieve(uuid: "A1")` -> `[]`.
-3. User B runs `change(selector: {uuid: "A1"}, ...)` -> `[]` (no update).
-4. User B runs `destroy(selector: {uuids: ["A1"]})` -> no error, atom still exists for User A.
-5. User B tries to create/update an atom with `bonds: [{uuid: "A1", ...}]` -> error `AU-UNAUTHORIZED`.
-
 ---
 
 ## Authentication
 
-### Sign up
+Crystord uses **verify-first signup** and **revocable, expiring sessions**. There is no longer a
+single `signup` call that immediately returns a token, and there is no permanent token.
+
+### Sign up (two steps: verify the email, then create the account)
+
+**Step 1 — request a code.** This emails a single-use 6-digit code to the address.
 
 ```graphql
 mutation {
-  signup(
+  beginSignup(email: "user@example.com")
+}
+```
+
+Always returns `true` (it never reveals whether the email is already registered).
+
+**Step 2 — complete signup** with the emailed code, a password, and a chosen username. Returns a
+session token (the account is created already email-verified).
+
+```graphql
+mutation {
+  completeSignup(
     email: "user@example.com"
-    password: "strong-password"
-    username: "demo-user"
+    code: "123456"
+    password: "correct-horse-battery"
+    username: "demo.user"
   )
 }
 ```
 
-This returns an access token.
+- Wrong or expired code → `SIGNUP-INVALID-OR-EXPIRED-CODE`.
+- Invalid username → `USER-INVALID-USERNAME` (see [Username rules](#username-rules)).
+- Weak password → `PASSWORD-TOO-SHORT` / `PASSWORD-TOO-LONG` / `PASSWORD-TOO-COMMON`.
 
 ### Sign in
 
@@ -418,12 +474,12 @@ This returns an access token.
 query {
   signin(
     email: "user@example.com"
-    password: "strong-password"
+    password: "correct-horse-battery"
   )
 }
 ```
 
-This also returns an access token.
+Returns a fresh session token. Too many failed attempts → `AUTH-RATE-LIMITED`.
 
 ### Google sign-in
 
@@ -433,17 +489,86 @@ query {
 }
 ```
 
-The Google client ID is configured in the client application; the API no longer exposes it.
+- An **unknown** email creates a new verified, password-less account and returns a token.
+- An **existing** account is signed in **only if Google is already linked**. If it is not linked,
+  the API returns `AUTH-GOOGLE-NOT-LINKED` — the user must sign in another way and link Google
+  deliberately with `linkGoogle`. (Google sign-in no longer silently links an existing account.)
 
-### Testing note for Google sign-in
+The Google client ID is configured in the client application; the API does not expose it.
 
-For CI and local automated tests, Crystord intentionally tests the Google sign-in **error path** without real Google credentials.
+### Manage authentication methods
 
-- Tests use a placeholder client ID value instead of reading secret files.
-- Tests mock Google token verification to force the invalid-token path deterministically.
-- This keeps secrets out of source control and CI while still validating Crystord's user-facing error behavior (`Invalid ID token`).
+```graphql
+# See your own account and which methods are linked
+query { me { username email emailVerified authMethods } }
 
-This test strategy only applies to automated test isolation; production runtime behavior remains unchanged.
+# Link Google to the signed-in account (verified Google email must match your account email)
+mutation { linkGoogle(idToken: "google-id-token") }
+
+# Set or replace your password (e.g. a Google-only account adding password sign-in)
+mutation { setPassword(newPassword: "a-strong-new-password") }
+
+# Remove a method (cannot remove your last one)
+mutation { unlinkAuthMethod(method: "google") }
+```
+
+### Reset a forgotten password
+
+```graphql
+# Step 1 — email a reset token (always returns true)
+mutation { requestPasswordReset(email: "user@example.com") }
+
+# Step 2 — set a new password using the token from the email
+mutation { confirmPasswordReset(token: "<token-from-email>", newPassword: "a-strong-new-password") }
+```
+
+Confirming a reset **revokes all existing sessions**, so the user must sign in again afterwards.
+
+### Change the login email
+
+```graphql
+# Step 1 — email a code to the NEW address (authenticated)
+mutation { requestEmailChange(newEmail: "new@example.com") }
+
+# Step 2 — confirm with the code (authenticated). Other sessions are revoked; the current one stays.
+mutation { confirmEmailChange(code: "123456") }
+```
+
+A target email already in use → `EMAIL-ALREADY-IN-USE`.
+
+### End sessions
+
+```graphql
+mutation { logout }            # end the current session (the presented Bearer token)
+mutation { revokeAllSessions } # sign out everywhere
+```
+
+### Username rules
+
+A username (the public handle) must:
+
+- be **3–30** characters,
+- use only letters, digits, `.`, `_`, `-`,
+- **start with a letter**,
+- not start or end with a separator, and contain no consecutive separators,
+- not be a reserved name (`admin`, `support`, `api`, `me`, `root`, `system`).
+
+Uniqueness is case-insensitive; display casing is preserved. A violation raises
+`USER-INVALID-USERNAME`.
+
+### Password policy
+
+- Minimum length **12** characters (length-based, NIST-aligned; no character-class requirements).
+- Maximum **72 bytes** (bcrypt limit).
+- Common passwords are rejected against a bundled denylist.
+- Errors: `PASSWORD-TOO-SHORT`, `PASSWORD-TOO-LONG`, `PASSWORD-TOO-COMMON`.
+
+### Rate limiting
+
+The auth surface is rate-limited to resist brute force and abuse. Sign-in failures, repeated code
+entries, and code-send actions are capped per email and per IP within a window; exceeding the cap
+returns a generic `AUTH-RATE-LIMITED` (it does not reveal whether the email exists). Clients should
+surface a "try again later" message and back off.
 
 ---
 
@@ -455,11 +580,17 @@ This test strategy only applies to automated test isolation; production runtime 
 query {
   retrieve(uuid: "1c7b2b3d-1111-2222-3333-444455556666") {
     labels
+    ownerUuid
+    accessLevel
     bonds {
       uuid
       name
       direction
       required
+    }
+    categories {
+      dimensionKey
+      valueKey
     }
     properties {
       shellies {
@@ -499,7 +630,21 @@ query {
 }
 ```
 
-Use this to fetch groups of Atoms by category.
+### Retrieve Atoms by category
+
+```graphql
+query {
+  retrieve(categories: [
+    { dimensionKey: "brand", valueKeys: ["mercedes", "tesla"], includeDescendants: true }
+  ]) {
+    properties { shellies { uuid } nuclearies { title } }
+    categories { dimensionKey valueKey }
+  }
+}
+```
+
+AND across entries, OR within an entry's `valueKeys`. With `includeDescendants: true`, atoms tagged
+at a descendant value also match.
 
 ### List available labels
 
@@ -638,6 +783,25 @@ mutation {
 
 Use bonds when the meaning of one Atom depends on or relates to another.
 
+### Create an Atom with category assignments
+
+```graphql
+mutation {
+  change(
+    inputs: [
+      {
+        labels: ["Car"]
+        categories: [{ valueKey: "mercedes" }]
+        properties: { nuclearies: { title: "My car" } }
+      }
+    ]
+  )
+}
+```
+
+`categories` replaces all current assignments on the atom; omit it to leave them unchanged; pass `[]`
+to clear them. The dimension is derived from the value.
+
 ---
 
 ## Updating Data
@@ -679,11 +843,153 @@ mutation {
     selector: {
       uuids: ["1c7b2b3d-1111-2222-3333-444455556666"]
     }
-  )
+  ) {
+    requested
+    deleted
+    notFound
+  }
 }
 ```
 
 Use this when an Atom should be removed from the system.
+
+---
+
+## Access, Ownership & Sharing
+
+Every atom has an **owner**. Operations are access-aware:
+
+- `retrieve` returns atoms the caller owns or has been granted access to.
+- `change` updates require Editor-or-higher access; `destroy` and grant management are owner-only.
+- Each returned `AtomOutput` carries `ownerUuid` and the caller's `accessLevel` (`OWNER`/`EDITOR`/`VIEWER`).
+
+You grant access by **username** (for a user) or **workspace key** (for a workspace):
+
+```graphql
+# Share an atom with another user as an editor
+mutation {
+  shareAtom(
+    atomUuid: "1c7b2b3d-1111-2222-3333-444455556666"
+    principal: "demo.user"
+    principalType: USER
+    level: EDITOR
+  )
+}
+
+# Share with a whole workspace as viewers
+mutation {
+  shareAtom(
+    atomUuid: "1c7b2b3d-1111-2222-3333-444455556666"
+    principal: "marketing-team"
+    principalType: WORKSPACE
+    level: VIEWER
+  )
+}
+
+# Revoke access
+mutation {
+  revokeAtomAccess(atomUuid: "...", principal: "demo.user", principalType: USER)
+}
+
+# Hand the atom to someone else entirely
+mutation {
+  transferAtomOwnership(atomUuid: "...", toUsername: "other.user")
+}
+```
+
+An unknown principal raises `CR-16-PRINCIPAL-UNKNOWN`. Bonding to an atom you have no access to
+hard-fails with `AU-UNAUTHORIZED`.
+
+### Workspaces
+
+Workspaces let a group of users share access. A workspace has a unique `key`, members with roles
+(`ADMIN`/`EDITOR`/`VIEWER`), and is managed by its Admins.
+
+```graphql
+mutation { createWorkspace(key: "marketing-team", name: "Marketing", description: "Campaigns") {
+  uuid key name memberCount
+}}
+
+mutation { addWorkspaceMember(workspaceUuid: "<ws-uuid>", username: "demo.user", role: EDITOR) }
+
+query { listMyWorkspaces { uuid key name memberCount } }
+```
+
+When an atom is shared to a workspace, each member's effective access is the lower of the grant
+level and their workspace role; the highest applicable grant wins across direct + workspace grants.
+
+---
+
+## Categories (Dimensions & Values)
+
+Crystord's structured classification has two node kinds plus optional hierarchies:
+
+- **Dimension** — a classification axis (e.g. `brand`). Dimensions can be nested under a parent
+  dimension (single-parent tree for v1).
+- **Value** — a value within a dimension (e.g. `mercedes` in `brand`). Values can be nested under a
+  parent value (e.g. `sedan` under `car`).
+
+An atom is classified by assigning it the **most specific value(s)** it belongs to (via
+`AtomInput.categories`); broader dimensions/values are derived ancestors.
+
+> This **replaces** the old Facet/Category model (`createFacet`, `createCategory`,
+> `assignCategoryToFacet`, `retrieveFacets`, `retrieveCategories`, and the `IN_CATEGORY` bond), which
+> was removed in schema `4.0.0`. Do not use any of those — they no longer exist.
+
+**Working example — cars by brand:**
+
+```graphql
+# 1. Create a dimension (the axis)
+mutation {
+  createCategoryDimension(key: "brand", displayName: "Brand") {
+    uuid key displayName parentDimensionKeys
+  }
+}
+
+# 2. Create values within the dimension
+mutation {
+  createCategoryValue(key: "mercedes", displayName: "Mercedes", dimensionKey: "brand") {
+    uuid key displayName dimensionKey parentValueKeys
+  }
+}
+
+# 3. Classify an atom by assigning the value (NOT a bond)
+mutation {
+  change(inputs: [{
+    labels: ["Car"]
+    categories: [{ valueKey: "mercedes" }]
+    properties: { nuclearies: { title: "My car" } }
+  }])
+}
+
+# 4. Read the taxonomy
+query {
+  retrieveCategoryValues(selector: { dimensionKey: "brand" }) {
+    uuid key displayName dimensionKey parentValueKeys
+  }
+}
+
+# 5. Drill down: browse a dimension's roots, or a value's subtree
+query {
+  retrieveCategoryBrowse(dimensionKey: "brand") {
+    value { key displayName }
+    children { value { key displayName } atomCount }
+    atoms { properties { shellies { uuid } nuclearies { title } } }
+  }
+}
+```
+
+**Rules and behavior:**
+- `key` is unique and immutable; `dimensionKey` on a value is immutable. Duplicate → `CAT-DUPLICATE-KEY`.
+- A dimension or value may have at most one parent (`CAT-MULTIPLE-PARENTS-UNSUPPORTED`); dimension
+  cycles are rejected (`CAT-DIMENSION-CYCLE`).
+- A value's parent must comply with the dimension schema → `CAT-VALUE-PARENT-DIMENSION-MISMATCH`.
+- An atom is assigned the most specific value per dimension: assigning two values in the same
+  dimension → `CAT-DUPLICATE-DIMENSION`; assigning an ancestor of an already-assigned value →
+  `CAT-REDUNDANT-ANCESTOR`.
+- Deletion is guarded: `CAT-DIMENSION-HAS-VALUES` / `CAT-DIMENSION-HAS-CHILDREN`,
+  `CAT-VALUE-REFERENCED` / `CAT-VALUE-HAS-CHILDREN`.
+- Pagination defaults to `limit=25`, `max limit=100`; over-limit → `OR-QUERY-LIMIT-EXCEEDED`.
 
 ---
 
@@ -869,12 +1175,13 @@ If you do not need calculated behavior yet, it is fine to leave `operation` and 
 
 A simple and practical approach is:
 
-1. Use **labels** to define business categories.
-2. Use **title** as the human-readable name.
-3. Use **description** for context.
-4. Use **content** for the main value or body of information.
-5. Use **bonds** whenever one item refers to or depends on another.
-6. Use **uuid** whenever you need to update, connect, or delete a specific Atom.
+1. Use **labels** to define quick, free-form business categories.
+2. Use **Category Dimensions/Values** when you need stable, managed, hierarchical classification.
+3. Use **title** as the human-readable name.
+4. Use **description** for context.
+5. Use **content** for the main value or body of information.
+6. Use **bonds** whenever one item refers to or depends on another.
+7. Use **uuid** whenever you need to update, connect, or delete a specific Atom.
 
 ---
 
@@ -882,12 +1189,12 @@ A simple and practical approach is:
 
 A typical usage flow looks like this:
 
-1. `signup` or `signin` to get a token.
+1. `beginSignup` then `completeSignup` (or `signin`) to get a session token.
 2. `change` without a selector to create Atoms.
 3. `change` with `bonds` to connect related Atoms.
-4. `retrieve` by label or UUID to read the data back.
+4. `retrieve` by label, UUID, or category to read the data back.
 5. `change` with a selector to update an existing Atom.
-6. `destroy` if an Atom is no longer needed.
+6. `shareAtom` to collaborate; `destroy` if an Atom is no longer needed.
 
 ---
 
@@ -941,10 +1248,12 @@ Crystord is best understood as a way to manage **connected business information*
 
 - An **Atom** is one meaningful unit of data.
 - **Labels** classify it quickly without setup.
-- **Categories** give it reusable, stable classification values.
-- **Facets** organise Categories into named dimensions when your taxonomy grows.
+- **Category Dimensions and Values** give it stable, managed, hierarchical classification.
 - **Properties** hold its identity and content.
-- **Bonds** connect it to other Atoms (and to Categories via `IN_CATEGORY`).
+- **Bonds** connect it to other Atoms.
+- **Sharing, ownership, and workspaces** control who can see and change each Atom.
 - GraphQL gives you a simple way to create, retrieve, update, and delete those items.
 
 If you are building a frontend or integrating from a non-coding workflow, the main thing to learn is not the internal implementation — it is the **meaning of the Atom model** and the small set of GraphQL operations available to work with it.
+</content>
+</invoke>

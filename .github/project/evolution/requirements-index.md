@@ -71,7 +71,7 @@ When a requirement is deprecated, keep its row in this file and set `Status` to 
 | REQ-OR-260010 | Dual-View Mutation Reflection Must Be Centralized in Shared Graph State | OR | Accepted | ADR-260030 | BI-260031 |
 | REQ-OR-260011 | Dual-View Rollout Must Be Feature-Flag Controlled with Immediate Fallback | OR | Accepted | ADR-260032 | BI-260033 |
 | REQ-OR-260012 | Authentication Must Use JWTs Stored in localStorage | OR | Accepted | ADR-260048 | BI-260048 |
-| REQ-OR-260013 | Temporary Authentication Compatibility | OR | Proposed | ADR-260049 | BI-260049 |
+| REQ-OR-260013 | Temporary Authentication Compatibility | OR | Deprecated | ADR-260049, ADR-260055 | BI-260049, BI-260055 |
 | REQ-CR-260001 | MVP Scope Exclusions for Graph Experience | CR | Accepted | ADR-260002 | BI-260002 |
 | REQ-CR-260002 | Backend Error Handling and Resilience Baseline | CR | Accepted | ADR-260003 | BI-260003 |
 | REQ-CR-260003 | Desktop-Only MVP and Minimal Placeholder Policy | CR | Accepted | ADR-260014 | BI-260011 |
@@ -82,7 +82,7 @@ When a requirement is deprecated, keep its row in this file and set `Status` to 
 | REQ-CR-260008 | Stack Rejection and Scope Constraints for MVP | CR | Accepted | ADR-260019 | BI-260016 |
 | REQ-CR-260009 | MVP Placeholder and Fallback Trust Constraints | CR | Accepted | ADR-260020 | BI-260017 |
 | REQ-CR-260010 | MVP Growth Boundary and Migration Safety Constraints | CR | Accepted | ADR-260021 | BI-260018 |
-| REQ-CR-260011 | Branding Governance and Semantic Usage Constraint | CR | Accepted | ADR-260022 | BI-260019 |
+| REQ-CR-260011 | Branding Governance and Semantic Usage Constraint | CR | Accepted | ADR-260022 | BI-260019, BI-260055 |
 | REQ-CR-260012 | Suggested Label Display Cap of Three (Temporary) | CR | Accepted | ADR-260016 | BI-260022 |
 | REQ-CR-260013 | Autocomplete and Incremental Search Behaviors Are Deferred | CR | Accepted | ADR-260016, ADR-260023 | BI-260025 |
 | REQ-CR-260014 | View-Switching Must Not Change Shell and Panel Contracts | CR | Accepted | ADR-260028 | BI-260029 |
@@ -95,13 +95,27 @@ When a requirement is deprecated, keep its row in this file and set `Status` to 
 | REQ-QR-260003 | Large-Graph Degrade Policy for Dual-View Rendering | QR | Accepted | ADR-260030 | BI-260031 |
 | REQ-QR-260004 | Dual-View Visual States Must Be Contrast-Safe and Non-Color-Only | QR | Accepted | ADR-260031 | BI-260032 |
 | REQ-QR-260005 | Dual-View Switch Performance Targets and Large-Render Gate Timing | QR | Accepted | ADR-260032 | BI-260033 |
-| REQ-FR-260059 | Credential-Based Sign-Up and Sign-In | FR | Proposed | ADR-260050 | BI-260050 |
+| REQ-FR-260059 | Credential-Based Sign-Up and Sign-In | FR | Deprecated | ADR-260050, ADR-260055 | BI-260050, BI-260055 |
 | REQ-FR-260060 | Passwordless Google Sign-In | FR | Proposed | ADR-260050 | BI-260050 |
 | REQ-FR-260061 | One-Click Demo Mode | FR | Proposed | ADR-260050 | BI-260050 |
-| REQ-OR-260014 | Authentication Backend Contract | OR | Proposed | ADR-260050 | BI-260050 |
-| REQ-CR-260020 | Unified Authentication UI | CR | Proposed | ADR-260050 | BI-260050 |
+| REQ-OR-260014 | Authentication Backend Contract | OR | Deprecated | ADR-260050, ADR-260054 | BI-260050, BI-260054 |
+| REQ-CR-260020 | Unified Authentication UI | CR | Proposed | ADR-260050 | BI-260050, BI-260055 |
 | REQ-QR-260007 | Authentication Security and Reliability | QR | Proposed | ADR-260050 | BI-260050 |
 | REQ-FR-260062 | Accept Platform Token from URL Parameter on Redirect | FR | Accepted | ADR-260052 | BI-260051 |
 | REQ-CR-260021 | URL Token Parameter Must Be Stripped from URL Immediately After Consumption | CR | Accepted | ADR-260052 | BI-260051 |
 | REQ-OR-260015 | URL Token Handoff Must Apply Regardless of Existing Session State | OR | Accepted | ADR-260052 | BI-260051 |
 | REQ-CR-260022 | Auth Entry Screen Must Use Two-Column Auth + Demo Panel Layout | CR | Accepted | ADR-260053 | BI-260052 |
+| REQ-FR-260063 | Verify-First Account Sign-Up | FR | Proposed | ADR-260055 | BI-260055 |
+| REQ-FR-260064 | Session Lifecycle and Re-Authentication | FR | Proposed | ADR-260056 | BI-260056 |
+| REQ-FR-260065 | Self-Service Password Reset | FR | Proposed | ADR-260058 | BI-260057 |
+| REQ-FR-260066 | Google Account Linking and Unlinked-Account Recovery | FR | Proposed | ADR-260058 | BI-260056, BI-260059 |
+| REQ-FR-260067 | Account Management and Identity Settings | FR | Proposed | ADR-260058 | BI-260058, BI-260059, BI-260060 |
+| REQ-FR-260068 | Authenticated Data and Taxonomy Reads | FR | Proposed | ADR-260057 | BI-260054 |
+| REQ-FR-260069 | Read-Side Access-Level Affordance Gating | FR | Proposed | ADR-260059 | BI-260061 |
+| REQ-OR-260016 | Authentication & Authorization Backend Contract (Schema 8.1.0) | OR | Proposed | ADR-260054 | BI-260054 |
+| REQ-OR-260017 | Backend Schema Compatibility Pinned to ~8.1.0 | OR | Proposed | ADR-260054 | BI-260054 |
+| REQ-CR-260023 | Client-Side Username and Password Validation Parity | CR | Proposed | ADR-260055 | BI-260055 |
+| REQ-CR-260024 | Anti-Enumeration Authentication Messaging | CR | Proposed | ADR-260055 | BI-260055, BI-260057 |
+| REQ-CR-260025 | Centralized GraphQL Error-Code Interpretation | CR | Proposed | ADR-260057 | BI-260054 |
+| REQ-CR-260026 | Rate-Limit Handling and Back-Off | CR | Proposed | ADR-260057 | BI-260056 |
+| REQ-QR-260008 | Authentication & Authorization Security, Reliability, and Coverage | QR | Proposed | ADR-260054 | BI-260054, BI-260055, BI-260056, BI-260057, BI-260058, BI-260059, BI-260060, BI-260061 |
