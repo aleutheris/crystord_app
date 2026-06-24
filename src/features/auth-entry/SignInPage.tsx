@@ -3,12 +3,11 @@ import type { FormEvent } from 'react'
 import type { ApolloClient } from '@apollo/client'
 import { SIGN_IN_QUERY } from '../../api-contract/sign-in-query'
 import type { SignInResponse } from '../../api-contract/sign-in-query'
-import { SIGN_UP_QUERY } from '../../api-contract/auth-queries'
-import type { SignUpResponse } from '../../api-contract/auth-queries'
 import { useAuth } from './AuthProvider'
 import { GoogleSignInButton } from './GoogleSignInButton'
 import { BrandPanel } from './BrandPanel'
 import { DemoPanel } from './DemoPanel'
+import { SignUpPanel } from './SignUpPanel'
 import './sign-in-page.css'
 
 interface SignInPageProps {
@@ -19,8 +18,6 @@ interface SignInPageProps {
 export function SignInPage({ client, googleClientId }: SignInPageProps) {
   const { signIn } = useAuth()
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
-  // identifier holds username OR email for sign-in; always an email for sign-up
-  // sent as `email` param to the backend in both cases (REQ-OR-260013 compatibility shim)
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -31,34 +28,21 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
     signIn(token, demo)
   }
 
-  async function handleSubmit(e: FormEvent) {
+  async function handleSignIn(e: FormEvent) {
     e.preventDefault()
     setError(null)
     setLoading(true)
-
     try {
-      if (mode === 'signup') {
-        const { data } = await client.mutate<SignUpResponse>({
-          mutation: SIGN_UP_QUERY,
-          variables: { email: identifier, password },
-        })
-        if (!data?.signup) {
-          setError('Sign-up failed: no token returned.')
-          return
-        }
-        handleSuccess(data.signup)
-      } else {
-        const { data } = await client.query<SignInResponse>({
-          query: SIGN_IN_QUERY,
-          variables: { email: identifier, password },
-          fetchPolicy: 'network-only',
-        })
-        if (!data?.signin) {
-          setError('Sign-in failed: no token returned.')
-          return
-        }
-        handleSuccess(data.signin)
+      const { data } = await client.query<SignInResponse>({
+        query: SIGN_IN_QUERY,
+        variables: { email: identifier, password },
+        fetchPolicy: 'network-only',
+      })
+      if (!data?.signin) {
+        setError('Sign-in failed: no token returned.')
+        return
       }
+      handleSuccess(data.signin)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Authentication failed.')
     } finally {
@@ -90,28 +74,23 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
   const isSignUp = mode === 'signup'
   const busy = loading || demoLoading
 
+  function switchMode(next: 'signin' | 'signup') {
+    setMode(next)
+    setError(null)
+  }
+
   return (
     <div className="sign-in-page theme-force-light">
       <BrandPanel />
       <div className="sign-in-page__auth">
         <div className="sign-in-page__form-wrap">
           <div role="tablist" className="sign-in-page__tabs">
-            <button
-              role="tab"
-              aria-selected={!isSignUp}
-              className="sign-in-page__tab"
-              onClick={() => { setMode('signin'); setError(null) }}
-              type="button"
-            >
+            <button role="tab" aria-selected={!isSignUp} className="sign-in-page__tab" type="button"
+              onClick={() => switchMode('signin')}>
               Sign In
             </button>
-            <button
-              role="tab"
-              aria-selected={isSignUp}
-              className="sign-in-page__tab"
-              onClick={() => { setMode('signup'); setError(null) }}
-              type="button"
-            >
+            <button role="tab" aria-selected={isSignUp} className="sign-in-page__tab" type="button"
+              onClick={() => switchMode('signup')}>
               Sign Up
             </button>
           </div>
@@ -121,46 +100,31 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
               {isSignUp ? 'Create Account' : 'Sign In'}
             </h2>
 
-            <form onSubmit={handleSubmit} className="sign-in-page__form">
-              <div className="sign-in-page__field">
-                <label htmlFor="identifier" className="sign-in-page__label">
-                  {isSignUp ? 'Email' : 'Username or Email'}
-                </label>
-                <input
-                  id="identifier"
-                  className="sign-in-page__input"
-                  type={isSignUp ? 'email' : 'text'}
-                  value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
-                  required
-                  autoComplete={isSignUp ? 'email' : 'username'}
-                />
-              </div>
-              <div className="sign-in-page__field">
-                <label htmlFor="password" className="sign-in-page__label">Password</label>
-                <input
-                  id="password"
-                  className="sign-in-page__input"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  autoComplete={isSignUp ? 'new-password' : 'current-password'}
-                />
-              </div>
+            {error && <p role="alert" className="sign-in-page__error">{error}</p>}
 
-              {error && (
-                <p role="alert" className="sign-in-page__error">{error}</p>
-              )}
-
-              <div className="sign-in-page__actions">
-                <button type="submit" disabled={busy} className="sign-in-page__btn-primary">
-                  {loading
-                    ? (isSignUp ? 'Signing up…' : 'Signing in…')
-                    : (isSignUp ? 'Sign Up' : 'Sign In')}
-                </button>
-              </div>
-            </form>
+            {isSignUp ? (
+              <SignUpPanel client={client} onSuccess={(token) => handleSuccess(token)} />
+            ) : (
+              <form onSubmit={handleSignIn} className="sign-in-page__form">
+                <div className="sign-in-page__field">
+                  <label htmlFor="identifier" className="sign-in-page__label">Username or Email</label>
+                  <input id="identifier" className="sign-in-page__input" type="text"
+                    value={identifier} onChange={(e) => setIdentifier(e.target.value)}
+                    required autoComplete="username" />
+                </div>
+                <div className="sign-in-page__field">
+                  <label htmlFor="password" className="sign-in-page__label">Password</label>
+                  <input id="password" className="sign-in-page__input" type="password"
+                    value={password} onChange={(e) => setPassword(e.target.value)}
+                    required autoComplete="current-password" />
+                </div>
+                <div className="sign-in-page__actions">
+                  <button type="submit" disabled={busy} className="sign-in-page__btn-primary">
+                    {loading ? 'Signing in…' : 'Sign In'}
+                  </button>
+                </div>
+              </form>
+            )}
 
             <div className="sign-in-page__divider">
               <span>{isSignUp ? 'or sign up with' : 'or sign in with'}</span>
@@ -168,28 +132,17 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
 
             {googleClientId && (
               <div className="sign-in-page__google">
-                <GoogleSignInButton
-                  client={client}
-                  googleClientId={googleClientId}
-                  onSuccess={(token) => handleSuccess(token)}
-                  onError={setError}
-                />
+                <GoogleSignInButton client={client} googleClientId={googleClientId}
+                  onSuccess={(token) => handleSuccess(token)} onError={setError} />
               </div>
             )}
 
-            <DemoPanel
-              onTryDemo={signInAsDemoUser}
-              loading={demoLoading}
-              disabled={busy}
-            />
+            <DemoPanel onTryDemo={signInAsDemoUser} loading={demoLoading} disabled={busy} />
 
             <p className="sign-in-page__switch">
               {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
-              <button
-                type="button"
-                className="sign-in-page__switch-btn"
-                onClick={() => { setMode(isSignUp ? 'signin' : 'signup'); setError(null) }}
-              >
+              <button type="button" className="sign-in-page__switch-btn"
+                onClick={() => switchMode(isSignUp ? 'signin' : 'signup')}>
                 {isSignUp ? 'Sign in' : 'Sign up'}
               </button>
             </p>

@@ -2298,12 +2298,14 @@ describe('Auth contract files exist (BI-260048)', () => {
     expect(src).toContain('triggerSessionExpired')
   })
 
-  it('auth-queries.ts exists with SIGN_UP_QUERY and SIGN_IN_GOOGLE_QUERY', () => {
-    const p = path.join(SRC, 'api-contract', 'auth-queries.ts')
-    expect(fs.existsSync(p)).toBe(true)
-    const src = fs.readFileSync(p, 'utf-8')
-    expect(src).toContain('SIGN_UP_QUERY')
-    expect(src).toContain('SIGN_IN_GOOGLE_QUERY')
+  it('auth-queries.ts retains SIGN_IN_GOOGLE_QUERY; verify-first sign-up lives in auth-operations.ts', () => {
+    const queries = fs.readFileSync(path.join(SRC, 'api-contract', 'auth-queries.ts'), 'utf-8')
+    expect(queries).toContain('SIGN_IN_GOOGLE_QUERY')
+    // The old single-step signup mutation was removed in 8.1.0 (BI-260055).
+    expect(queries).not.toContain('SIGN_UP_QUERY')
+    const ops = fs.readFileSync(path.join(SRC, 'api-contract', 'auth-operations.ts'), 'utf-8')
+    expect(ops).toContain('BEGIN_SIGNUP_MUTATION')
+    expect(ops).toContain('COMPLETE_SIGNUP_MUTATION')
   })
 
   it('auth-token.ts exports localStorage helpers', () => {
@@ -2343,13 +2345,16 @@ describe('AuthProvider persistence and session-expiry (BI-260048)', () => {
 })
 
 describe('Sign-up and Google sign-in wiring (BI-260048)', () => {
-  it('SignInPage supports sign-up mode with SIGN_UP_QUERY', () => {
+  it('SignInPage delegates sign-up to SignUpPanel (verify-first flow)', () => {
     const src = fs.readFileSync(
       path.join(FEATURES, 'auth-entry', 'SignInPage.tsx'), 'utf-8',
     )
-    expect(src).toContain('SIGN_UP_QUERY')
-    expect(src).toContain('signup')
+    expect(src).toContain('<SignUpPanel')
     expect(src).toContain('mode')
+    expect(src).not.toContain('SIGN_UP_QUERY')
+    const hook = fs.readFileSync(path.join(FEATURES, 'auth-entry', 'use-sign-up.ts'), 'utf-8')
+    expect(hook).toContain('BEGIN_SIGNUP_MUTATION')
+    expect(hook).toContain('COMPLETE_SIGNUP_MUTATION')
   })
 
   it('GoogleSignInButton.tsx exists and uses VITE_GOOGLE_CLIENT_ID via prop', () => {
@@ -2389,7 +2394,7 @@ describe('Username/password sign-in (BI-260049)', () => {
     const src = fs.readFileSync(
       path.join(FEATURES, 'auth-entry', 'SignInPage.tsx'), 'utf-8',
     )
-    expect(src).toContain("type={isSignUp ? 'email' : 'text'}")
+    expect(src).toContain('type="text"')
   })
 
   it('SignInPage sends identifier as email param — REQ-OR-260013 compatibility shim', () => {
@@ -2399,11 +2404,11 @@ describe('Username/password sign-in (BI-260049)', () => {
     expect(src).toContain('email: identifier')
   })
 
-  it('SignInPage sign-up mode enforces email format (type="email")', () => {
+  it('SignUpPanel email step enforces email format (type="email")', () => {
     const src = fs.readFileSync(
-      path.join(FEATURES, 'auth-entry', 'SignInPage.tsx'), 'utf-8',
+      path.join(FEATURES, 'auth-entry', 'SignUpPanel.tsx'), 'utf-8',
     )
-    expect(src).toContain("isSignUp ? 'email' : 'text'")
+    expect(src).toContain('type="email"')
   })
 })
 
@@ -2421,10 +2426,12 @@ describe('api-contract barrel exports BI-260048 symbols', () => {
     expect(barrel).toContain('triggerSessionExpired')
   })
 
-  it('barrel re-exports new auth query operations', () => {
+  it('barrel re-exports auth query + verify-first sign-up operations', () => {
     const barrel = fs.readFileSync(path.join(SRC, 'api-contract', 'index.ts'), 'utf-8')
-    expect(barrel).toContain('SIGN_UP_QUERY')
     expect(barrel).toContain('SIGN_IN_GOOGLE_QUERY')
+    expect(barrel).toContain('BEGIN_SIGNUP_MUTATION')
+    expect(barrel).toContain('COMPLETE_SIGNUP_MUTATION')
+    expect(barrel).not.toContain('SIGN_UP_QUERY')
   })
 })
 

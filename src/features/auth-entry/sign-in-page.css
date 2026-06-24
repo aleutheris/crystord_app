@@ -181,6 +181,45 @@
   margin: 0;
 }
 
+/* Inline, per-field validation error (paired with the input via aria-describedby). */
+.sign-in-page__field-error {
+  font-size: 0.8rem;
+  color: var(--color-error);
+  margin: 0.1rem 0 0;
+}
+
+/* Verification-step helper / anti-enumeration copy. */
+.sign-in-page__hint {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Resend-code row (the visible countdown; discrete status announced via the sr-status region). */
+.sign-in-page__resend {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+/* Visually-hidden polite status region — announces discrete transitions to screen readers only. */
+.sign-in-page__sr-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.sign-in-page__switch-btn:disabled {
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+}
+
 .sign-in-page__actions {
   display: flex;
   justify-content: flex-start;

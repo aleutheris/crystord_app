@@ -1,8 +1,9 @@
 export { createApolloClient, resolveLinkErrorReauth } from './apollo-client'
 export { getAuthToken, setAuthToken, readStoredToken, persistToken, clearStoredToken } from './auth-token'
 export { onSessionExpired, triggerSessionExpired } from './session-expired'
-export { SIGN_IN_GOOGLE_QUERY, SIGN_UP_QUERY } from './auth-queries'
-export type { SignInGoogleResponse, SignUpResponse } from './auth-queries'
+export { SIGN_IN_GOOGLE_QUERY } from './auth-queries'
+export type { SignInGoogleResponse } from './auth-queries'
+export { validateUsername, validatePassword } from './auth-validation'
 export {
   AUTH_ERROR_CODES,
   extractAuthErrorCode,
