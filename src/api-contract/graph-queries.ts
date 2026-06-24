@@ -2,7 +2,7 @@ import { gql } from '@apollo/client'
 
 export const LIST_LABELS_QUERY = gql`
   query ListLabels($prefix: String!) {
-    list_labels(labels_prefix: $prefix)
+    listLabels(labelsPrefix: $prefix)
   }
 `
 
@@ -10,6 +10,8 @@ export const RETRIEVE_QUERY = gql`
   query RetrieveAtoms($labels: [String!], $uuid: String) {
     retrieve(labels: $labels, uuid: $uuid) {
       labels
+      ownerUuid
+      accessLevel
       bonds {
         uuid
         name
@@ -77,6 +79,13 @@ export interface AtomNuclearies {
   constants: Record<string, unknown> | null
 }
 
+/**
+ * The caller's EFFECTIVE access to an atom — what they HOLD (schema 8.1.0 `EffectiveAccessLevel`,
+ * which includes OWNER). This is deliberately distinct from the schema's grantable `AccessLevel`
+ * enum (`EDITOR`/`VIEWER` only), which belongs to the sharing epic's share/transfer surface.
+ */
+export type EffectiveAccessLevel = 'OWNER' | 'EDITOR' | 'VIEWER'
+
 export interface Atom {
   labels: string[]
   bonds: AtomBond[]
@@ -84,6 +93,13 @@ export interface Atom {
     shellies: { uuid: string }
     nuclearies: AtomNuclearies
   }
+  /**
+   * Owner and caller access level (schema 8.1.0 `AtomOutput.ownerUuid: ID!` /
+   * `accessLevel: EffectiveAccessLevel!`). Modelled optional so existing mocks/older responses without
+   * them stay valid; the read-side gating slice (BI-260061) defaults a missing level to most-restrictive.
+   */
+  ownerUuid?: string | null
+  accessLevel?: EffectiveAccessLevel | null
 }
 
 export interface RetrieveResponse {
@@ -91,5 +107,5 @@ export interface RetrieveResponse {
 }
 
 export interface ListLabelsResponse {
-  list_labels: string[]
+  listLabels: string[]
 }

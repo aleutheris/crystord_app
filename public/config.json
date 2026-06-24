@@ -1,5 +1,5 @@
 {
   "graphqlEndpoint": "http://localhost:5665/graphql",
-  "backendSchemaRange": "^6.0.0",
+  "backendSchemaRange": "~8.1.0",
   "googleClientId": "175685736190-dtssul3gq9eckth8aua8hdkchl086i4f.apps.googleusercontent.com"
 }

@@ -2,7 +2,11 @@ import { useEffect, useRef } from 'react'
 
 export function useUrlTokenHandoff(signIn: (token: string) => void): void {
   const signInRef = useRef(signIn)
-  signInRef.current = signIn
+
+  // Keep the ref current without writing during render (react-hooks/refs).
+  useEffect(() => {
+    signInRef.current = signIn
+  })
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)

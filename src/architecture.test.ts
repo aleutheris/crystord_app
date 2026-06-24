@@ -3,6 +3,7 @@ import { describe, it, expect, beforeAll } from 'vitest'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { AUTH_ERROR_CODES } from './api-contract'
 
 const THIS_DIR = path.dirname(fileURLToPath(import.meta.url))
 const SRC = THIS_DIR
@@ -488,7 +489,7 @@ describe('Critical E2E flow coverage (I1 / REQ-FR-260019)', () => {
   it('bootstrap graph load is covered', () => {
     const spec = fs.readFileSync(path.join(E2E_DIR, 'graph-workspace.spec.ts'), 'utf-8')
     expect(spec).toContain('retrieve')
-    expect(spec).toContain('list_labels')
+    expect(spec).toContain('listLabels')
   })
 
   it('atom create/edit persistence is covered', () => {
@@ -2556,5 +2557,54 @@ describe('Two-column auth + demo layout (BI-260052)', () => {
     const withoutComments = css.replace(/\/\*[\s\S]*?\*\//g, '')
     const withoutWhite = withoutComments.replace(/#ffffff/gi, '')
     expect(withoutWhite).not.toMatch(/#[0-9a-fA-F]{3,8}/)
+  })
+})
+
+// --- BI-260054: central error mapping + authenticated-read ordering ---
+
+describe('Central error mapping is the only auth error-code interpreter (BI-260054 / REQ-CR-260025)', () => {
+  it('the error-code table lives in api-contract/error-codes.ts', () => {
+    const src = fs.readFileSync(path.join(SRC, 'api-contract', 'error-codes.ts'), 'utf-8')
+    for (const code of AUTH_ERROR_CODES) {
+      expect(src).toContain(code)
+    }
+  })
+
+  it('no feature module hard-codes an auth error code — features must route through mapAuthError', () => {
+    for (const mod of FEATURE_MODULES) {
+      const modDir = path.join(FEATURES, mod)
+      if (!fs.existsSync(modDir)) continue
+      for (const file of collectTsFiles(modDir)) {
+        const content = fs.readFileSync(file, 'utf-8')
+        for (const code of AUTH_ERROR_CODES) {
+          expect(
+            content.includes(code),
+            `${path.relative(SRC, file)} hard-codes auth code "${code}" — interpret it via api-contract mapAuthError instead of parsing raw messages`,
+          ).toBe(false)
+        }
+      }
+    }
+  })
+})
+
+describe('No gated read is issued before authentication (BI-260054 / REQ-FR-260068)', () => {
+  it('the startup compatibility check issues only the public schemaInfo query', () => {
+    const src = fs.readFileSync(path.join(SRC, 'bootstrap', 'startup-check.ts'), 'utf-8')
+    expect(src).toContain('SCHEMA_INFO_QUERY')
+    // Gated reads must NOT run during the pre-auth startup handshake.
+    expect(src).not.toContain('RETRIEVE_QUERY')
+    expect(src).not.toContain('LIST_LABELS_QUERY')
+    expect(src).not.toContain('listLabels')
+  })
+
+  it('the pre-auth sign-in screen does not import gated data/taxonomy reads', () => {
+    const dir = path.join(FEATURES, 'auth-entry')
+    for (const file of collectTsFiles(dir)) {
+      const content = fs.readFileSync(file, 'utf-8')
+      expect(
+        content.includes('RETRIEVE_QUERY') || content.includes('LIST_LABELS_QUERY'),
+        `${path.relative(SRC, file)} pulls a gated read into the pre-auth auth-entry surface`,
+      ).toBe(false)
+    }
   })
 })

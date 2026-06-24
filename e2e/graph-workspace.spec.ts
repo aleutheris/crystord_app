@@ -5,6 +5,8 @@ function mockGraphQL(page: import('@playwright/test').Page) {
     {
       labels: ['Project'],
       bonds: [{ uuid: 'atom-2', name: 'DEPENDS_ON', direction: 'from' }],
+      ownerUuid: 'owner-1',
+      accessLevel: 'OWNER',
       properties: {
         shellies: { uuid: 'atom-1' },
         nuclearies: { title: 'Alpha', description: 'First', content: 'Active', operation: '', constants: {} },
@@ -13,6 +15,8 @@ function mockGraphQL(page: import('@playwright/test').Page) {
     {
       labels: ['Task'],
       bonds: [],
+      ownerUuid: 'owner-1',
+      accessLevel: 'OWNER',
       properties: {
         shellies: { uuid: 'atom-2' },
         nuclearies: { title: 'Beta', description: 'Second', content: 'Pending', operation: '', constants: {} },
@@ -34,7 +38,7 @@ function mockGraphQL(page: import('@playwright/test').Page) {
         body: JSON.stringify({
           data: {
             schemaInfo: {
-              schemaVersion: '6.0.0',
+              schemaVersion: '8.1.0',
               schemaHash: '6e1c4572d4a6d485702dc8a3c46491d51b8fc1fb34c032474f4e54e8a4ba01b8',
               releasedAt: '2026-05-27T00:00:00Z',
             },
@@ -51,11 +55,11 @@ function mockGraphQL(page: import('@playwright/test').Page) {
       })
     }
 
-    if (query.includes('list_labels')) {
+    if (query.includes('listLabels')) {
       return route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ data: { list_labels: ['Project', 'Task'] } }),
+        body: JSON.stringify({ data: { listLabels: ['Project', 'Task'] } }),
       })
     }
 
@@ -116,7 +120,7 @@ test.describe('Graph workspace', () => {
     // Graph is blank — no atom nodes
     await expect(page.getByText('Alpha')).not.toBeVisible()
     await expect(page.getByText('Beta', { exact: true })).not.toBeVisible()
-    // Recommended labels from list_labels are visible as search affordances
+    // Recommended labels from listLabels are visible as search affordances
     await expect(page.getByRole('button', { name: 'Project' })).toBeVisible()
   })
 
@@ -295,7 +299,7 @@ test.describe('Graph workspace', () => {
           body: JSON.stringify({
             data: {
               schemaInfo: {
-                schemaVersion: '6.0.0',
+                schemaVersion: '8.1.0',
                 schemaHash: '6e1c4572d4a6d485702dc8a3c46491d51b8fc1fb34c032474f4e54e8a4ba01b8',
                 releasedAt: '2026-05-27T00:00:00Z',
               },
@@ -310,11 +314,11 @@ test.describe('Graph workspace', () => {
           body: JSON.stringify({ data: { signin: 'mock-token' } }),
         })
       }
-      if (query.includes('list_labels')) {
+      if (query.includes('listLabels')) {
         return route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify({ data: { list_labels: ['Project', 'Task'] } }),
+          body: JSON.stringify({ data: { listLabels: ['Project', 'Task'] } }),
         })
       }
       if (query.includes('retrieve')) {
@@ -327,6 +331,8 @@ test.describe('Graph workspace', () => {
                 {
                   labels: ['Project'],
                   bonds: [],
+                  ownerUuid: 'owner-1',
+                  accessLevel: 'OWNER',
                   properties: {
                     shellies: { uuid: 'atom-1' },
                     nuclearies: { title: 'Alpha', description: '', content: '', operation: '', constants: {} },

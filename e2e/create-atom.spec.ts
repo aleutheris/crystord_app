@@ -4,6 +4,8 @@ const BASE_ATOMS = [
   {
     labels: ['Project'],
     bonds: [],
+    ownerUuid: 'owner-1',
+    accessLevel: 'OWNER',
     properties: {
       shellies: { uuid: 'atom-1' },
       nuclearies: { title: 'Alpha', description: 'First', content: 'Active', operation: '', constants: {} },
@@ -12,6 +14,8 @@ const BASE_ATOMS = [
   {
     labels: ['Task'],
     bonds: [],
+    ownerUuid: 'owner-1',
+    accessLevel: 'OWNER',
     properties: {
       shellies: { uuid: 'atom-2' },
       nuclearies: { title: 'Beta', description: 'Second', content: 'Pending', operation: '', constants: {} },
@@ -22,6 +26,8 @@ const BASE_ATOMS = [
 const NEW_ATOM = {
   labels: ['Project'],
   bonds: [],
+  ownerUuid: 'owner-1',
+  accessLevel: 'OWNER',
   properties: {
     shellies: { uuid: 'new-uuid' },
     nuclearies: { title: 'Gamma', description: 'New atom', content: '', operation: '', constants: {} },
@@ -46,7 +52,7 @@ function mockGraphQL(
         body: JSON.stringify({
           data: {
             schemaInfo: {
-              schemaVersion: '6.0.0',
+              schemaVersion: '8.1.0',
               schemaHash: '6e1c4572d4a6d485702dc8a3c46491d51b8fc1fb34c032474f4e54e8a4ba01b8',
               releasedAt: '2026-05-27T00:00:00Z',
             },
@@ -61,11 +67,11 @@ function mockGraphQL(
         body: JSON.stringify({ data: { signin: 'mock-token' } }),
       })
     }
-    if (query.includes('list_labels')) {
+    if (query.includes('listLabels')) {
       return route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ data: { list_labels: ['Project', 'Task'] } }),
+        body: JSON.stringify({ data: { listLabels: ['Project', 'Task'] } }),
       })
     }
     if (query.includes('retrieve')) {

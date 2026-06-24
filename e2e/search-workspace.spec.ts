@@ -5,6 +5,8 @@ function mockGraphQL(page: import('@playwright/test').Page) {
     {
       labels: ['Project'],
       bonds: [{ uuid: 'atom-2', name: 'DEPENDS_ON', direction: 'from' }],
+      ownerUuid: 'owner-1',
+      accessLevel: 'OWNER',
       properties: {
         shellies: { uuid: 'atom-1' },
         nuclearies: { title: 'Alpha', description: 'First', content: 'Active', operation: '', constants: {} },
@@ -13,6 +15,8 @@ function mockGraphQL(page: import('@playwright/test').Page) {
     {
       labels: ['Task'],
       bonds: [],
+      ownerUuid: 'owner-1',
+      accessLevel: 'OWNER',
       properties: {
         shellies: { uuid: 'atom-2' },
         nuclearies: { title: 'Beta', description: 'Second', content: 'Pending', operation: '', constants: {} },
@@ -21,6 +25,8 @@ function mockGraphQL(page: import('@playwright/test').Page) {
     {
       labels: ['Project', 'Active'],
       bonds: [],
+      ownerUuid: 'owner-1',
+      accessLevel: 'OWNER',
       properties: {
         shellies: { uuid: 'atom-3' },
         nuclearies: { title: 'Gamma', description: 'Third', content: 'Done', operation: '', constants: {} },
@@ -42,7 +48,7 @@ function mockGraphQL(page: import('@playwright/test').Page) {
         body: JSON.stringify({
           data: {
             schemaInfo: {
-              schemaVersion: '6.0.0',
+              schemaVersion: '8.1.0',
               schemaHash: '6e1c4572d4a6d485702dc8a3c46491d51b8fc1fb34c032474f4e54e8a4ba01b8',
               releasedAt: '2026-05-27T00:00:00Z',
             },
@@ -59,11 +65,11 @@ function mockGraphQL(page: import('@playwright/test').Page) {
       })
     }
 
-    if (query.includes('list_labels')) {
+    if (query.includes('listLabels')) {
       return route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ data: { list_labels: ['Active', 'Project', 'Task'] } }),
+        body: JSON.stringify({ data: { listLabels: ['Active', 'Project', 'Task'] } }),
       })
     }
 
@@ -125,7 +131,7 @@ test.describe('Search and discoverability', () => {
 
     await expect(page.getByLabel(/search labels/i)).toBeVisible()
     await expect(page.getByText('Alpha')).not.toBeVisible()
-    // Recommended labels from list_labels are visible before any search
+    // Recommended labels from listLabels are visible before any search
     await expect(page.getByRole('button', { name: 'Active' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Project' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Task' })).toBeVisible()
@@ -275,6 +281,8 @@ test.describe('Search and discoverability', () => {
     const taskAtom = {
       labels: ['Task'],
       bonds: [],
+      ownerUuid: 'owner-1',
+      accessLevel: 'OWNER',
       properties: {
         shellies: { uuid: 'atom-2' },
         nuclearies: { title: 'Beta', description: 'Second', content: 'Pending', operation: '', constants: {} },
@@ -294,7 +302,7 @@ test.describe('Search and discoverability', () => {
           body: JSON.stringify({
             data: {
               schemaInfo: {
-                schemaVersion: '6.0.0',
+                schemaVersion: '8.1.0',
                 schemaHash: '6e1c4572d4a6d485702dc8a3c46491d51b8fc1fb34c032474f4e54e8a4ba01b8',
                 releasedAt: '2026-05-27T00:00:00Z',
               },
@@ -308,10 +316,10 @@ test.describe('Search and discoverability', () => {
           body: JSON.stringify({ data: { signin: 'mock-token' } }),
         })
       }
-      if (query.includes('list_labels')) {
+      if (query.includes('listLabels')) {
         return route.fulfill({
           status: 200, contentType: 'application/json',
-          body: JSON.stringify({ data: { list_labels: ['Active', 'Project', 'Task'] } }),
+          body: JSON.stringify({ data: { listLabels: ['Active', 'Project', 'Task'] } }),
         })
       }
       if (query.includes('retrieve')) {
@@ -402,7 +410,7 @@ test.describe('Search and discoverability', () => {
           body: JSON.stringify({
             data: {
               schemaInfo: {
-                schemaVersion: '6.0.0',
+                schemaVersion: '8.1.0',
                 schemaHash: '6e1c4572d4a6d485702dc8a3c46491d51b8fc1fb34c032474f4e54e8a4ba01b8',
                 releasedAt: '2026-05-27T00:00:00Z',
               },
@@ -416,10 +424,10 @@ test.describe('Search and discoverability', () => {
           body: JSON.stringify({ data: { signin: 'mock-token' } }),
         })
       }
-      if (query.includes('list_labels')) {
+      if (query.includes('listLabels')) {
         return route.fulfill({
           status: 200, contentType: 'application/json',
-          body: JSON.stringify({ data: { list_labels: ['Active', 'Project', 'Task'] } }),
+          body: JSON.stringify({ data: { listLabels: ['Active', 'Project', 'Task'] } }),
         })
       }
       if (query.includes('retrieve')) {

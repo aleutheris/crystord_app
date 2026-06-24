@@ -43,6 +43,7 @@ User-outcome-oriented backlog for Crystord App.
 | 35 | BI-260059 | Auth-Method Management (Password, Unlink, Link Google) | See `.github/project/evolution/backlog-status.md` | Auth & Authz epic S2: setPassword, unlink, link Google (closes the AUTH-GOOGLE-NOT-LINKED recovery loop). |
 | 36 | BI-260060 | Email Change, Sign-Out-Everywhere, and Delete Account | See `.github/project/evolution/backlog-status.md` | Auth & Authz epic S2: email change, revokeAllSessions, account deletion with block reasons. |
 | 37 | BI-260061 | Read-Side Access-Level Affordance Gating | See `.github/project/evolution/backlog-status.md` | Auth & Authz epic S3: gate edit/delete/bond affordances on AtomOutput.accessLevel. |
+| 38 | BI-260062 | Align Label-Listing Read with Schema 8.1.0 Operation Name | See `.github/project/evolution/backlog-status.md` | 8.1.0 baseline compatibility: list_labels → listLabels rename in LIST_LABELS_QUERY + consumers. Done. |
 
 ## Workflow States
 

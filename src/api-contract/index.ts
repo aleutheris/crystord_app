@@ -1,8 +1,51 @@
-export { createApolloClient } from './apollo-client'
+export { createApolloClient, resolveLinkErrorReauth } from './apollo-client'
 export { getAuthToken, setAuthToken, readStoredToken, persistToken, clearStoredToken } from './auth-token'
 export { onSessionExpired, triggerSessionExpired } from './session-expired'
 export { SIGN_IN_GOOGLE_QUERY, SIGN_UP_QUERY } from './auth-queries'
 export type { SignInGoogleResponse, SignUpResponse } from './auth-queries'
+export {
+  AUTH_ERROR_CODES,
+  extractAuthErrorCode,
+  mapAuthError,
+  isReauthMessage,
+} from './error-codes'
+export type {
+  AuthErrorCode,
+  AuthErrorKind,
+  AuthErrorField,
+  AuthErrorOutcome,
+} from './error-codes'
+export {
+  BEGIN_SIGNUP_MUTATION,
+  COMPLETE_SIGNUP_MUTATION,
+  LOGOUT_MUTATION,
+  REVOKE_ALL_SESSIONS_MUTATION,
+  REQUEST_PASSWORD_RESET_MUTATION,
+  CONFIRM_PASSWORD_RESET_MUTATION,
+  REQUEST_EMAIL_CHANGE_MUTATION,
+  CONFIRM_EMAIL_CHANGE_MUTATION,
+  ME_QUERY,
+  SET_PASSWORD_MUTATION,
+  UNLINK_AUTH_METHOD_MUTATION,
+  LINK_GOOGLE_MUTATION,
+  DELETE_MY_ACCOUNT_MUTATION,
+} from './auth-operations'
+export type {
+  BeginSignupResponse,
+  CompleteSignupResponse,
+  LogoutResponse,
+  RevokeAllSessionsResponse,
+  RequestPasswordResetResponse,
+  ConfirmPasswordResetResponse,
+  RequestEmailChangeResponse,
+  ConfirmEmailChangeResponse,
+  AccountInfo,
+  MeResponse,
+  SetPasswordResponse,
+  UnlinkAuthMethodResponse,
+  LinkGoogleResponse,
+  DeleteMyAccountResponse,
+} from './auth-operations'
 export { SCHEMA_INFO_QUERY } from './schema-info-query'
 export type { SchemaInfo, SchemaInfoResponse } from './schema-info-query'
 export { SIGN_IN_QUERY } from './sign-in-query'
@@ -20,6 +63,7 @@ export type {
   Atom,
   AtomBond,
   AtomNuclearies,
+  EffectiveAccessLevel,
   RetrieveResponse,
   ListLabelsResponse,
 } from './graph-queries'
