@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ReactFlowProvider } from '@xyflow/react'
 import { useLogout } from '../features/auth-entry'
+import { AccountSettingsPanel } from '../features/account-settings'
 import { GraphCanvas, NetworkCanvas, useGraphData, DeleteConfirmDialog, useGraphDegrade } from '../features/workspace-graph'
 import { DetailPanel, CreationNotification } from '../features/workspace-details'
 import { SearchBar, QuerySummary, SearchResultPanel, useSearch, useRecommendedLabels } from '../features/workspace-search'
@@ -24,6 +25,7 @@ export function WorkspaceShell() {
   const { mode: renderMode, confirmRender } = useGraphDegrade(graphData.atoms.length)
   const [isCreatingAtom, setIsCreatingAtom] = useState(false)
   const [creationSuccessMsg, setCreationSuccessMsg] = useState<string | null>(null)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const canvasMode = renderMode === 'full' ? 'full' : 'reduced'
 
   const selectedAtom = graphData.atoms.find(
@@ -56,6 +58,9 @@ export function WorkspaceShell() {
         <SearchBar search={search} recommendedLabels={recommendedLabels} />
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
           <ThemeToggle />
+          <button type="button" onClick={() => setIsSettingsOpen(true)} style={{ padding: '0.25rem 0.75rem' }}>
+            Account
+          </button>
           <button type="button" onClick={logout} style={{ padding: '0.25rem 0.75rem' }}>
             Sign Out
           </button>
@@ -145,6 +150,7 @@ export function WorkspaceShell() {
           onExpire={() => setCreationSuccessMsg(null)}
         />
       )}
+      {isSettingsOpen && <AccountSettingsPanel onClose={() => setIsSettingsOpen(false)} />}
     </div>
   )
 }

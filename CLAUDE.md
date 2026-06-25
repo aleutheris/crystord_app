@@ -28,6 +28,14 @@ Load these based on the task type as defined in `.github/copilot-instructions.md
 - `.github/project/evolution/learnings-index.md` — learnings index
 - `docs/backend-user-guide.md` — backend contract reference
 
+## Bash Command Style
+
+To keep allowlisted commands auto-approving, avoid shell expansions that defeat static permission analysis:
+
+- No command substitution (`$(...)`, backticks) or parameter expansion (`${...}`, e.g. `${PIPESTATUS[0]}`) in Bash commands — the permission engine cannot statically verify expanded commands and will prompt regardless of allow rules.
+- Prefer separate commands or literal values so allowlisted prefixes match.
+- This is a default, not an absolute: use an expansion only when it is genuinely the clearest option.
+
 ## Scope Routing
 
 Before applying any change, follow the routing rules in `.github/copilot-instructions.md`:

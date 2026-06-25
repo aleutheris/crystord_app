@@ -29,7 +29,7 @@ function extractImports(filePath: string): string[] {
   return matches.map(m => m[1]!)
 }
 
-const FEATURE_MODULES = ['auth-entry', 'workspace-graph', 'workspace-search', 'workspace-details', 'admin']
+const FEATURE_MODULES = ['auth-entry', 'workspace-graph', 'workspace-search', 'workspace-details', 'account-settings']
 
 describe('Architecture boundary checks', () => {
   describe('dependency direction — no cross-feature imports', () => {
@@ -122,28 +122,6 @@ describe('Auth boundary checks', () => {
   })
 })
 
-describe('Admin placeholder scope checks', () => {
-  it('AdminPlaceholder has no mutation imports or form actions', () => {
-    const adminDir = path.join(FEATURES, 'admin')
-    const files = collectTsFiles(adminDir)
-
-    for (const file of files) {
-      const content = fs.readFileSync(file, 'utf-8')
-      const imports = extractImports(file)
-
-      // No GraphQL mutation imports
-      for (const imp of imports) {
-        expect(imp).not.toContain('MUTATION')
-        expect(imp).not.toContain('mutation')
-      }
-
-      // No form submission logic
-      expect(content).not.toContain('onSubmit')
-      expect(content).not.toContain('useMutation')
-    }
-  })
-})
-
 describe('Content ownership invariant checks', () => {
   it('Atom type defines primary entity structure with nuclearies and bonds', () => {
     const graphQueries = path.join(SRC, 'api-contract', 'graph-queries.ts')
@@ -232,7 +210,7 @@ describe('Contract stability — barrel export checks (G5)', () => {
     'workspace-graph': ['GraphCanvas', 'useGraphData', 'GraphData'],
     'workspace-search': ['SearchBar', 'QuerySummary', 'SearchResultPanel', 'useSearch', 'SearchState', 'SearchFilters'],
     'workspace-details': ['DetailPanel'],
-    'admin': ['AdminPlaceholder'],
+    'account-settings': ['AccountSettingsPanel'],
   }
 
   for (const [mod, expectedExports] of Object.entries(EXPECTED_BARRELS)) {
@@ -719,37 +697,16 @@ describe('Release and rollback operations (I5 / REQ-OR-260005)', () => {
 })
 
 describe('Placeholder and fallback trust constraints (I6 / REQ-CR-260009)', () => {
-  it('admin placeholder provides clear non-deceptive messaging', () => {
-    const admin = fs.readFileSync(
-      path.join(FEATURES, 'admin', 'AdminPlaceholder.tsx'), 'utf-8',
-    )
-    // Honest placeholder messaging
-    expect(admin).toMatch(/planned|future|coming/i)
-    // No fake-functional controls
-    expect(admin).not.toContain('onSubmit')
-    expect(admin).not.toContain('useMutation')
-  })
-
-  it('admin placeholder is a self-contained dead-end — no navigation that could mislead', () => {
-    const admin = fs.readFileSync(
-      path.join(FEATURES, 'admin', 'AdminPlaceholder.tsx'), 'utf-8',
-    )
-    // No router imports (app uses state-based rendering, not URL routing)
-    expect(admin).not.toContain('react-router')
-    // No fake navigation controls
-    expect(admin).not.toContain('useNavigate')
-  })
-
-  it('placeholder routes do not import mutation operations', () => {
-    const adminDir = path.join(FEATURES, 'admin')
-    const files = collectTsFiles(adminDir)
-
-    for (const file of files) {
-      const imports = extractImports(file)
-      for (const imp of imports) {
-        expect(imp).not.toContain('MUTATION')
-        expect(imp).not.toContain('mutation')
-      }
+  // The admin placeholder was replaced by the real account-settings feature in BI-260058; the
+  // remaining honesty-sensitive surfaces are the startup/schema fallback screens.
+  it('fallback error screens provide honest messaging with a real recovery action', () => {
+    for (const screen of ['StartupErrorScreen.tsx', 'SchemaErrorScreen.tsx']) {
+      const src = fs.readFileSync(path.join(SRC, 'ui-shell', screen), 'utf-8')
+      // Surfaces the failure to the user and offers a genuine recovery (Retry), not a fake control.
+      expect(src).toMatch(/role="alert"/)
+      expect(src).toMatch(/Retry|reload/i)
+      expect(src).not.toContain('onSubmit')
+      expect(src).not.toContain('useMutation')
     }
   })
 })
@@ -771,16 +728,16 @@ describe('Extension seam preservation (J1 / REQ-FR-260020)', () => {
     expect(barrel).toContain('SearchFilters')
   })
 
-  it('admin/governance is isolated behind its own seam for future expansion', () => {
-    const barrel = fs.readFileSync(path.join(FEATURES, 'admin', 'index.ts'), 'utf-8')
-    expect(barrel).toContain('AdminPlaceholder')
-    // Admin feature module is self-contained — no cross-feature imports
-    const adminDir = path.join(FEATURES, 'admin')
-    const files = collectTsFiles(adminDir)
+  it('account-settings is isolated behind its own seam for future expansion', () => {
+    const barrel = fs.readFileSync(path.join(FEATURES, 'account-settings', 'index.ts'), 'utf-8')
+    expect(barrel).toContain('AccountSettingsPanel')
+    // account-settings feature module is self-contained — no cross-feature imports
+    const dir = path.join(FEATURES, 'account-settings')
+    const files = collectTsFiles(dir)
     for (const file of files) {
       const imports = extractImports(file)
       for (const imp of imports) {
-        expect(imp).not.toMatch(/features\/(workspace-graph|workspace-search|workspace-details)/)
+        expect(imp).not.toMatch(/features\/(workspace-graph|workspace-search|workspace-details|auth-entry)/)
       }
     }
   })
@@ -901,17 +858,6 @@ describe('MVP growth boundary — excluded capabilities (J2 / REQ-CR-260010)', (
     }
   })
 
-  it('admin is placeholder-only — no full admin suite', () => {
-    const adminFiles = collectTsFiles(path.join(FEATURES, 'admin'))
-    // Admin should have minimal files — not a full suite
-    expect(adminFiles.length).toBeLessThanOrEqual(2)
-
-    for (const file of adminFiles) {
-      const content = fs.readFileSync(file, 'utf-8')
-      expect(content).not.toContain('useMutation')
-      expect(content).not.toContain('useQuery')
-    }
-  })
 })
 
 describe('Collaboration-readiness architecture (J4 / REQ-FR-260020)', () => {

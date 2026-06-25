@@ -9,6 +9,14 @@ vi.mock('../features/auth-entry', () => ({
   useLogout: () => mockLogout,
 }))
 
+vi.mock('../features/account-settings', () => ({
+  AccountSettingsPanel: ({ onClose }: { onClose: () => void }) => (
+    <div role="dialog" aria-label="Account settings">
+      <button type="button" onClick={onClose}>close settings</button>
+    </div>
+  ),
+}))
+
 const mockSearch = vi.fn()
 const mockCreateAtom = vi.fn()
 
@@ -144,6 +152,20 @@ describe('WorkspaceShell view switching', () => {
     render(<WorkspaceShell />)
     await userEvent.click(screen.getByRole('button', { name: /sign out/i }))
     expect(mockLogout).toHaveBeenCalledOnce()
+  })
+
+  it('opens the account settings panel from the Account button', async () => {
+    render(<WorkspaceShell />)
+    expect(screen.queryByRole('dialog', { name: /account settings/i })).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /^account$/i }))
+    expect(screen.getByRole('dialog', { name: /account settings/i })).toBeInTheDocument()
+  })
+
+  it('closes the account settings panel via onClose', async () => {
+    render(<WorkspaceShell />)
+    await userEvent.click(screen.getByRole('button', { name: /^account$/i }))
+    await userEvent.click(screen.getByRole('button', { name: /close settings/i }))
+    expect(screen.queryByRole('dialog', { name: /account settings/i })).not.toBeInTheDocument()
   })
 })
 

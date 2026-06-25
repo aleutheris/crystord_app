@@ -45,6 +45,7 @@ User-outcome-oriented backlog for Crystord App.
 | 37 | BI-260061 | Read-Side Access-Level Affordance Gating | See `.github/project/evolution/backlog-status.md` | Auth & Authz epic S3: gate edit/delete/bond affordances on AtomOutput.accessLevel. |
 | 38 | BI-260062 | Align Label-Listing Read with Schema 8.1.0 Operation Name | See `.github/project/evolution/backlog-status.md` | 8.1.0 baseline compatibility: list_labels → listLabels rename in LIST_LABELS_QUERY + consumers. Done. |
 | 39 | BI-260063 | Complete the Auth Sign-In/Sign-Up Tab ARIA Pattern | See `.github/project/evolution/backlog-status.md` | Accessibility polish: full WAI-ARIA tab pattern (aria-controls/labelledby, arrow-key nav) for the auth tabs. Pre-existing from BI-260052. |
+| 40 | BI-260064 | Shared Modal Focus Management for Overlay Dialogs | See `.github/project/evolution/backlog-status.md` | Accessibility polish: shared focus-on-open/trap/restore for the account-settings + atom-creation modals. From BI-260058 review. |
 
 ## Workflow States
 
