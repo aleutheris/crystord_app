@@ -1,49 +1,17 @@
 import type { ApolloClient } from '@apollo/client'
 import { useSignUp } from './use-sign-up'
 import type { SignUpController } from './use-sign-up'
+import { AuthField } from './AuthField'
 
 interface SignUpPanelProps {
   client: ApolloClient
   onSuccess: (token: string) => void
 }
 
-interface FieldProps {
-  id: string
-  label: string
-  value: string
-  onChange: (v: string) => void
-  type?: string
-  autoComplete?: string
-  inputMode?: 'numeric'
-  error?: string
-}
-
-function Field({ id, label, value, onChange, type = 'text', autoComplete, inputMode, error }: FieldProps) {
-  const errorId = `${id}-error`
-  return (
-    <div className="sign-in-page__field">
-      <label htmlFor={id} className="sign-in-page__label">{label}</label>
-      <input
-        id={id}
-        className="sign-in-page__input"
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        required
-        autoComplete={autoComplete}
-        inputMode={inputMode}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={error ? errorId : undefined}
-      />
-      {error && <p id={errorId} className="sign-in-page__field-error">{error}</p>}
-    </div>
-  )
-}
-
 function EmailStep({ s }: { s: SignUpController }) {
   return (
     <form className="sign-in-page__form" onSubmit={(e) => { e.preventDefault(); void s.submitEmail() }}>
-      <Field id="signup-email" label="Email" type="email" value={s.email} onChange={s.setEmail}
+      <AuthField id="signup-email" label="Email" type="email" value={s.email} onChange={s.setEmail}
         autoComplete="email" error={s.fieldErrors.email} />
       {s.formError && <p role="alert" className="sign-in-page__error">{s.formError}</p>}
       <div className="sign-in-page__actions">
@@ -62,11 +30,11 @@ function VerifyStep({ s }: { s: SignUpController }) {
         If that email can be registered, we have sent a 6-digit code to <strong>{s.email}</strong>.
         Enter it below and choose a username and password.
       </p>
-      <Field id="signup-code" label="Verification code" value={s.code} onChange={s.setCode}
+      <AuthField id="signup-code" label="Verification code" value={s.code} onChange={s.setCode}
         autoComplete="one-time-code" inputMode="numeric" error={s.fieldErrors.code} />
-      <Field id="signup-username" label="Username" value={s.username} onChange={s.setUsername}
+      <AuthField id="signup-username" label="Username" value={s.username} onChange={s.setUsername}
         autoComplete="username" error={s.fieldErrors.username} />
-      <Field id="signup-password" label="Password" type="password" value={s.password}
+      <AuthField id="signup-password" label="Password" type="password" value={s.password}
         onChange={s.setPassword} autoComplete="new-password" error={s.fieldErrors.password} />
       {s.formError && <p role="alert" className="sign-in-page__error">{s.formError}</p>}
       <p className="sign-in-page__resend">

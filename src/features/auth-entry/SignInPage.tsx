@@ -9,6 +9,7 @@ import { GoogleSignInButton } from './GoogleSignInButton'
 import { BrandPanel } from './BrandPanel'
 import { DemoPanel } from './DemoPanel'
 import { SignUpPanel } from './SignUpPanel'
+import { PasswordResetPanel } from './PasswordResetPanel'
 import { useBackoff } from './use-backoff'
 import './sign-in-page.css'
 
@@ -22,10 +23,11 @@ interface SignInPageProps {
 
 export function SignInPage({ client, googleClientId }: SignInPageProps) {
   const { signIn } = useAuth()
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin')
+  const [mode, setMode] = useState<'signin' | 'signup' | 'reset'>('signin')
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [demoLoading, setDemoLoading] = useState(false)
   const backoff = useBackoff()
@@ -88,9 +90,28 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
   const isSignUp = mode === 'signup'
   const busy = loading || demoLoading || backoff.active
 
-  function switchMode(next: 'signin' | 'signup') {
+  function switchMode(next: 'signin' | 'signup' | 'reset') {
     setMode(next)
     setError(null)
+    setNotice(null)
+  }
+
+  if (mode === 'reset') {
+    return (
+      <div className="sign-in-page theme-force-light">
+        <BrandPanel />
+        <div className="sign-in-page__auth">
+          <div className="sign-in-page__form-wrap">
+            <h2 className="sign-in-page__panel-title">Reset Password</h2>
+            <PasswordResetPanel
+              client={client}
+              onComplete={() => { switchMode('signin'); setNotice('Your password was reset — please sign in.') }}
+              onBack={() => switchMode('signin')}
+            />
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -114,6 +135,7 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
               {isSignUp ? 'Create Account' : 'Sign In'}
             </h2>
 
+            {notice && <p role="status" className="sign-in-page__notice">{notice}</p>}
             {error && <p role="alert" className="sign-in-page__error">{error}</p>}
 
             {isSignUp ? (
@@ -141,6 +163,12 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
                         : 'Sign In'}
                   </button>
                 </div>
+                <p className="sign-in-page__forgot">
+                  <button type="button" className="sign-in-page__switch-btn"
+                    onClick={() => switchMode('reset')}>
+                    Forgot password?
+                  </button>
+                </p>
               </form>
             )}
 

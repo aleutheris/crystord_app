@@ -408,4 +408,47 @@ describe('SignInPage', () => {
     // During the back-off the submit is disabled and shows a countdown instead of "Sign In".
     expect(screen.getByRole('button', { name: /try again in \d+s/i })).toBeDisabled()
   })
+
+  it('"Forgot password?" opens the reset view', async () => {
+    const user = userEvent.setup()
+    const client = createMockClient({ data: { signin: 'token' } })
+    renderSignIn(client)
+
+    await user.click(screen.getByRole('button', { name: /forgot password/i }))
+
+    expect(screen.getByRole('heading', { name: /reset password/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /send reset code/i })).toBeInTheDocument()
+  })
+
+  it('reset view "Back to sign in" returns to the sign-in form', async () => {
+    const user = userEvent.setup()
+    const client = createMockClient({ data: { signin: 'token' } })
+    renderSignIn(client)
+
+    await user.click(screen.getByRole('button', { name: /forgot password/i }))
+    await user.click(screen.getByRole('button', { name: /back to sign in/i }))
+
+    expect(screen.getByLabelText(/username or email/i)).toBeInTheDocument()
+  })
+
+  it('completing a reset returns to sign-in with a success notice', async () => {
+    const user = userEvent.setup({ delay: null })
+    const client = createMockClient({ data: { signin: 'token' } })
+    const mutate = client.mutate as unknown as ReturnType<typeof vi.fn>
+    mutate.mockReset()
+    mutate
+      .mockResolvedValueOnce({ data: { requestPasswordReset: true } })
+      .mockResolvedValueOnce({ data: { confirmPasswordReset: true } })
+    renderSignIn(client)
+
+    await user.click(screen.getByRole('button', { name: /forgot password/i }))
+    await user.type(screen.getByLabelText(/^email$/i), 'user@example.com')
+    await user.click(screen.getByRole('button', { name: /send reset code/i }))
+    await user.type(await screen.findByLabelText(/reset code/i), '123456')
+    await user.type(screen.getByLabelText(/new password/i), 'correct horse battery')
+    await user.click(screen.getByRole('button', { name: /reset password/i }))
+
+    expect(await screen.findByText(/your password was reset/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/username or email/i)).toBeInTheDocument()
+  })
 })
