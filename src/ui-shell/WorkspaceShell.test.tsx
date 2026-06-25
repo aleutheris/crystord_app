@@ -184,6 +184,13 @@ describe('WorkspaceShell atom creation flow', () => {
     expect(document.querySelector('[aria-hidden="true"]')).toBeInTheDocument()
   })
 
+  it('creation overlay is an accessible modal dialog', async () => {
+    render(<WorkspaceShell />)
+    await userEvent.click(screen.getByRole('button', { name: /create atom/i }))
+    const dialog = screen.getByRole('dialog', { name: /create atom/i })
+    expect(dialog).toHaveAttribute('aria-modal', 'true')
+  })
+
   it('closes creation panel when Cancel is clicked', async () => {
     render(<WorkspaceShell />)
     await userEvent.click(screen.getByRole('button', { name: /create atom/i }))

@@ -5,6 +5,7 @@ import { AccountSettingsPanel } from '../features/account-settings'
 import { GraphCanvas, NetworkCanvas, useGraphData, DeleteConfirmDialog, useGraphDegrade } from '../features/workspace-graph'
 import { DetailPanel, CreationNotification } from '../features/workspace-details'
 import { SearchBar, QuerySummary, SearchResultPanel, useSearch, useRecommendedLabels } from '../features/workspace-search'
+import { AtomCreationOverlay } from './AtomCreationOverlay'
 import { BetaBanner } from './BetaBanner'
 import { GraphViewTabs } from './GraphViewTabs'
 import { GraphRenderGate } from './GraphRenderGate'
@@ -12,7 +13,7 @@ import { GraphLegend } from './GraphLegend'
 import type { GraphView } from './GraphViewTabs'
 import { networkViewEnabled } from '../feature-flags'
 import { ThemeToggle } from '../styles/ThemeToggle'
-import { C_BORDER, C_OVERLAY } from '../styles/tokens'
+import { C_BORDER } from '../styles/tokens'
 
 export function WorkspaceShell({ googleClientId }: { googleClientId?: string }) {
   const logout = useLogout()
@@ -131,19 +132,10 @@ export function WorkspaceShell({ googleClientId }: { googleClientId?: string }) 
         />
       )}
       {isCreatingAtom && (
-        <>
-          <div
-            aria-hidden="true"
-            style={{ position: 'fixed', inset: 0, background: C_OVERLAY, zIndex: 1000 }}
-          />
-          <div style={{ position: 'fixed', right: 0, top: 0, height: '100%', zIndex: 1001, display: 'flex' }}>
-            <DetailPanel
-              isCreationMode={true}
-              onCreate={handleCreateAtom}
-              onClose={() => setIsCreatingAtom(false)}
-            />
-          </div>
-        </>
+        <AtomCreationOverlay
+          onCreate={handleCreateAtom}
+          onClose={() => setIsCreatingAtom(false)}
+        />
       )}
       {creationSuccessMsg && (
         <CreationNotification

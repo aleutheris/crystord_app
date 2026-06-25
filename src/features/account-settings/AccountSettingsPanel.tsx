@@ -1,9 +1,10 @@
-import { useEffect } from 'react'
+import { useRef } from 'react'
 import { useAccountInfo } from './use-account-info'
 import { useAccountActions } from './use-account-actions'
 import { AuthMethodsSection } from './AuthMethodsSection'
 import { EmailChangeSection } from './EmailChangeSection'
 import { DangerZoneSection } from './DangerZoneSection'
+import { useModalFocus } from '../../a11y/use-modal-focus'
 import './account-settings.css'
 
 interface AccountSettingsPanelProps {
@@ -22,17 +23,15 @@ interface AccountSettingsPanelProps {
 export function AccountSettingsPanel({ onClose, onSessionEnded, googleClientId }: AccountSettingsPanelProps) {
   const { account, loading, error, refetch } = useAccountInfo()
   const actions = useAccountActions(refetch, onSessionEnded)
+  const dialogRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
+  // Focus-on-open, Tab trap, scoped Escape, and focus restore on close (BI-260064).
+  useModalFocus(dialogRef, onClose)
 
   return (
     <>
       <div className="account-settings__backdrop" aria-hidden="true" onClick={onClose} />
-      <div role="dialog" aria-modal="true" aria-labelledby="account-settings-title" className="account-settings">
+      <div ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="account-settings-title" className="account-settings">
         <div className="account-settings__header">
           <h2 id="account-settings-title" className="account-settings__title">Account Settings</h2>
           <button type="button" className="account-settings__close" aria-label="Close account settings"
