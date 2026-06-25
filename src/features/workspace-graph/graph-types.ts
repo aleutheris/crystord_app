@@ -1,6 +1,7 @@
 import { MarkerType } from '@xyflow/react'
 import type { Node, Edge } from '@xyflow/react'
 import type { Atom } from '../../api-contract/graph-queries'
+import { atomPermissions } from '../../api-contract/access-control'
 
 export function atomsToNodes(atoms: Atom[]): Node[] {
   const count = atoms.length
@@ -17,6 +18,8 @@ export function atomsToNodes(atoms: Atom[]): Node[] {
     data: {
       title: atom.properties.nuclearies.title,
       labels: atom.labels,
+      // Drives whether the node exposes a bond-create (source) handle — read-side gating (BI-260061).
+      canBond: atomPermissions(atom.accessLevel).canBond,
     },
   }))
 }

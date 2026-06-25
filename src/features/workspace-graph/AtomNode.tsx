@@ -6,13 +6,17 @@ interface AtomNodeData {
   title: string
   labels: string[]
   isNonFlowAtom?: boolean
+  canBond?: boolean
   [key: string]: unknown
 }
 
 export function AtomNode({ data, selected }: NodeProps) {
-  const { title, labels, isNonFlowAtom } = data as AtomNodeData
+  const { title, labels, isNonFlowAtom, canBond } = data as AtomNodeData
   const labelList = labels.join(', ')
   const tooltip = labelList ? `${title} [${labelList}]` : title
+  // Read-side gating: expose the bond-create source handle only when explicitly bondable (fail-closed —
+  // a node missing the flag shows no affordance, and onConnect blocks the bond regardless).
+  const showBondHandle = canBond === true
 
   const borderColor = selected ? C_PRIMARY : C_BORDER
   const borderWidth = selected ? 2 : 1
@@ -42,7 +46,7 @@ export function AtomNode({ data, selected }: NodeProps) {
           </div>
         )}
       </div>
-      <Handle type="source" position={Position.Right} />
+      {showBondHandle && <Handle type="source" position={Position.Right} />}
     </>
   )
 }

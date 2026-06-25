@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import type { Edge, Connection, NodeMouseHandler } from '@xyflow/react'
 import type { Atom } from '../../api-contract/graph-queries'
+import { atomPermissions } from '../../api-contract/access-control'
 import type { GraphData } from './use-graph-data'
 import type { UndoEntry } from './UndoNotification'
 
@@ -46,9 +47,12 @@ export function useCanvasInteractions({
 
   const onConnect = useCallback((connection: Connection) => {
     if (connection.source && connection.target && connection.source !== connection.target) {
+      // Bond-create is a `change` on the source atom — gate on the caller's access to it (REQ-FR-260069).
+      const source = atoms.find((a) => a.properties.shellies.uuid === connection.source)
+      if (!atomPermissions(source?.accessLevel).canBond) return
       setPendingConnection({ source: connection.source, target: connection.target })
     }
-  }, [])
+  }, [atoms])
 
   const handleBondConfirm = useCallback(async (bondName: string) => {
     if (!pendingConnection) return
@@ -60,7 +64,8 @@ export function useCanvasInteractions({
 
   const handleDeleteRequest = useCallback((atomId: string) => {
     const atom = atoms.find((a) => a.properties.shellies.uuid === atomId)
-    if (atom) setConfirmDelete(atom)
+    // Deletion (`destroy`) is owner-only — never open the confirm for an atom the caller can't delete.
+    if (atom && atomPermissions(atom.accessLevel).canDelete) setConfirmDelete(atom)
   }, [atoms])
 
   const handleDeleteConfirm = useCallback(async () => {
@@ -81,6 +86,8 @@ export function useCanvasInteractions({
     if (!edge) return
     const sourceAtom = atoms.find((a) => a.properties.shellies.uuid === edge.source)
     if (!sourceAtom) return
+    // Removing a bond rewrites the source atom (`change`) — requires editor-or-higher on it.
+    if (!atomPermissions(sourceAtom.accessLevel).canEdit) return
     const bond = sourceAtom.bonds.find(
       (b) => b.uuid === edge.target && b.name === String(edge.label) && b.direction === 'from',
     )

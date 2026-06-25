@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { DetailPanel } from './DetailPanel'
 import type { Atom } from '../../api-contract/graph-queries'
@@ -8,6 +8,7 @@ function makeAtom(overrides?: Partial<Atom>): Atom {
   return {
     labels: ['Project'],
     bonds: [],
+    accessLevel: 'OWNER',
     properties: {
       shellies: { uuid: 'test-uuid-1' },
       nuclearies: {
@@ -75,6 +76,67 @@ describe('DetailPanel — edit mode', () => {
     )
     await user.click(screen.getByRole('button', { name: /close/i }))
     expect(onClose).toHaveBeenCalledOnce()
+  })
+})
+
+describe('DetailPanel — access-level gating (BI-260061 / REQ-FR-260069)', () => {
+  it('is read-only for a VIEWER atom: fields read-only, no Save, no Delete, view-only note', () => {
+    render(
+      <DetailPanel atom={makeAtom({ accessLevel: 'VIEWER' })} onUpdate={vi.fn()} onDelete={vi.fn()} onClose={vi.fn()} />,
+    )
+    expect(screen.getByLabelText(/title/i)).toHaveAttribute('readonly')
+    expect(screen.queryByRole('button', { name: /^save$/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument()
+    expect(screen.getByText(/view-only access/i)).toBeInTheDocument()
+  })
+
+  it('lets an EDITOR edit and save but not delete (destroy is owner-only)', () => {
+    render(
+      <DetailPanel atom={makeAtom({ accessLevel: 'EDITOR' })} onUpdate={vi.fn()} onDelete={vi.fn()} onClose={vi.fn()} />,
+    )
+    expect(screen.getByLabelText(/title/i)).not.toHaveAttribute('readonly')
+    expect(screen.getByRole('button', { name: /^save$/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument()
+  })
+
+  it('lets an OWNER edit, save, and delete', () => {
+    render(
+      <DetailPanel atom={makeAtom({ accessLevel: 'OWNER' })} onUpdate={vi.fn()} onDelete={vi.fn()} onClose={vi.fn()} />,
+    )
+    expect(screen.getByRole('button', { name: /^save$/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument()
+  })
+
+  it('defaults a missing access level to read-only', () => {
+    render(
+      <DetailPanel atom={makeAtom({ accessLevel: null })} onUpdate={vi.fn()} onDelete={vi.fn()} onClose={vi.fn()} />,
+    )
+    expect(screen.queryByRole('button', { name: /^save$/i })).not.toBeInTheDocument()
+    expect(screen.getByText(/view-only access/i)).toBeInTheDocument()
+  })
+
+  it('hides Delete for an owner when no delete handler is wired', () => {
+    render(
+      <DetailPanel atom={makeAtom({ accessLevel: 'OWNER' })} onUpdate={vi.fn()} onClose={vi.fn()} />,
+    )
+    expect(screen.getByRole('button', { name: /^save$/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument()
+  })
+
+  it('ignores a form submit on a read-only atom (no update dispatched)', () => {
+    const onUpdate = vi.fn()
+    const { container } = render(
+      <DetailPanel atom={makeAtom({ accessLevel: 'VIEWER' })} onUpdate={onUpdate} onClose={vi.fn()} />,
+    )
+    fireEvent.submit(container.querySelector('form')!)
+    expect(onUpdate).not.toHaveBeenCalled()
+  })
+
+  it('save is a no-op when an editable atom has no update handler', async () => {
+    const user = userEvent.setup()
+    render(<DetailPanel atom={makeAtom({ accessLevel: 'OWNER' })} onClose={vi.fn()} />)
+    await user.click(screen.getByRole('button', { name: /^save$/i }))
+    expect(screen.getByLabelText(/title/i)).toHaveValue('Test Atom')
   })
 })
 

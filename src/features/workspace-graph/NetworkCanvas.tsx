@@ -10,6 +10,7 @@ import {
 import '@xyflow/react/dist/style.css'
 import type { Node, Edge } from '@xyflow/react'
 import type { Atom } from '../../api-contract/graph-queries'
+import { atomPermissions } from '../../api-contract/access-control'
 import type { GraphData } from './use-graph-data'
 import { atomsToNetworkEdges, mergeNodePositions } from './graph-types'
 import { applyForceLayout } from './use-network-layout'
@@ -44,7 +45,11 @@ function atomsToNetworkNodes(atoms: Atom[]): Node[] {
     id: atom.properties.shellies.uuid,
     type: 'circleAtom',
     position: { x: (i % cols) * SPACING, y: Math.floor(i / cols) * SPACING },
-    data: { title: atom.properties.nuclearies.title, labels: atom.labels },
+    data: {
+      title: atom.properties.nuclearies.title,
+      labels: atom.labels,
+      canBond: atomPermissions(atom.accessLevel).canBond,
+    },
     style: { width: NODE_SIZE, height: NODE_SIZE },
   }))
 }

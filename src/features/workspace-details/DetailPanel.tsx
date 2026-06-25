@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import type { Atom } from '../../api-contract/graph-queries'
+import { atomPermissions } from '../../api-contract/access-control'
 import { C_BORDER, C_CARD_BG, C_ERROR, C_TEXT_MUTED } from '../../styles/tokens'
 
 interface DetailPanelProps {
@@ -20,8 +21,16 @@ export function DetailPanel({ atom, isCreationMode, onCreate, onUpdate, onDelete
   const [labels, setLabels] = useState(atom?.labels.join(', ') ?? '')
   const [saving, setSaving] = useState(false)
 
+  // Read-side affordance gating (BI-260061 / REQ-FR-260069). Creation is always editable (you own the
+  // new atom); for an existing atom, gate on the caller's access level (missing → read-only).
+  const perms = atomPermissions(atom?.accessLevel)
+  const canEdit = Boolean(isCreationMode) || perms.canEdit
+  const canDelete = !isCreationMode && perms.canDelete && Boolean(onDelete)
+  const readOnly = !canEdit
+
   async function handleSave(e: FormEvent) {
     e.preventDefault()
+    if (!canEdit) return
     setSaving(true)
     try {
       const parsedLabels = labels.split(',').map((l) => l.trim()).filter(Boolean)
@@ -67,32 +76,40 @@ export function DetailPanel({ atom, isCreationMode, onCreate, onUpdate, onDelete
         <button type="button" onClick={onClose} aria-label="Close panel" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem' }}>✕</button>
       </div>
 
+      {readOnly && (
+        <p role="status" style={{ margin: '0 0 0.75rem', fontSize: '0.78rem', color: C_TEXT_MUTED }}>
+          You have view-only access to this atom.
+        </p>
+      )}
+
       <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', flex: 1 }}>
         <div>
           <label htmlFor="detail-title" style={{ fontSize: '0.8rem', fontWeight: 600 }}>Title</label>
-          <input id="detail-title" value={title} onChange={(e) => setTitle(e.target.value)} required style={{ width: '100%', padding: '0.4rem', boxSizing: 'border-box' }} />
+          <input id="detail-title" value={title} onChange={(e) => setTitle(e.target.value)} required readOnly={readOnly} style={{ width: '100%', padding: '0.4rem', boxSizing: 'border-box' }} />
         </div>
         <div>
           <label htmlFor="detail-labels" style={{ fontSize: '0.8rem', fontWeight: 600 }}>Labels (comma-separated)</label>
-          <input id="detail-labels" value={labels} onChange={(e) => setLabels(e.target.value)} style={{ width: '100%', padding: '0.4rem', boxSizing: 'border-box' }} />
+          <input id="detail-labels" value={labels} onChange={(e) => setLabels(e.target.value)} readOnly={readOnly} style={{ width: '100%', padding: '0.4rem', boxSizing: 'border-box' }} />
         </div>
         <div>
           <label htmlFor="detail-description" style={{ fontSize: '0.8rem', fontWeight: 600 }}>Description</label>
-          <textarea id="detail-description" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} style={{ width: '100%', padding: '0.4rem', boxSizing: 'border-box', resize: 'vertical' }} />
+          <textarea id="detail-description" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} readOnly={readOnly} style={{ width: '100%', padding: '0.4rem', boxSizing: 'border-box', resize: 'vertical' }} />
         </div>
         <div>
           <label htmlFor="detail-content" style={{ fontSize: '0.8rem', fontWeight: 600 }}>Content</label>
-          <textarea id="detail-content" value={content} onChange={(e) => setContent(e.target.value)} rows={4} style={{ width: '100%', padding: '0.4rem', boxSizing: 'border-box', resize: 'vertical' }} />
+          <textarea id="detail-content" value={content} onChange={(e) => setContent(e.target.value)} rows={4} readOnly={readOnly} style={{ width: '100%', padding: '0.4rem', boxSizing: 'border-box', resize: 'vertical' }} />
         </div>
 
         <div style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto' }}>
-          <button type="submit" disabled={saving} style={{ padding: '0.4rem 1rem' }}>
-            {saving ? (isCreationMode ? 'Creating…' : 'Saving…') : (isCreationMode ? 'Create' : 'Save')}
-          </button>
-          {!isCreationMode && onDelete && (
+          {canEdit && (
+            <button type="submit" disabled={saving} style={{ padding: '0.4rem 1rem' }}>
+              {saving ? (isCreationMode ? 'Creating…' : 'Saving…') : (isCreationMode ? 'Create' : 'Save')}
+            </button>
+          )}
+          {canDelete && (
             <button
               type="button"
-              onClick={() => onDelete(uuid)}
+              onClick={() => onDelete!(uuid)}
               style={{ padding: '0.4rem 1rem', color: C_ERROR, marginLeft: 'auto' }}
             >
               Delete

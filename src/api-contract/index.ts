@@ -68,3 +68,5 @@ export type {
   RetrieveResponse,
   ListLabelsResponse,
 } from './graph-queries'
+export { atomPermissions } from './access-control'
+export type { AtomPermissions } from './access-control'

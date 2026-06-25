@@ -21,10 +21,10 @@ vi.mock('@xyflow/react', () => ({
   Position: { Top: 'top', Right: 'right', Bottom: 'bottom', Left: 'left' },
 }))
 
-function makeProps(title: string, selected = false) {
+function makeProps(title: string, selected = false, canBond: boolean | undefined = true) {
   return {
     id: 'test-node',
-    data: { title, labels: [] },
+    data: { title, labels: [], ...(canBond === undefined ? {} : { canBond }) },
     selected,
     dragging: false,
     draggable: true,
@@ -76,6 +76,24 @@ describe('CircleAtomNode', () => {
     expect(ring).toBeInTheDocument()
     expect(ring).toHaveAttribute('data-handle-type', 'source')
     expect(ring).toHaveAttribute('data-handle-id', 'ring')
+  })
+
+  it('hides the ring source handle when the atom is not bondable (read-side gating)', () => {
+    render(<CircleAtomNode {...makeProps('Alpha', false, false)} />)
+    expect(screen.queryByTestId('ring-handle')).not.toBeInTheDocument()
+    // the centered drop (target) handle remains — a read-only atom can still be a bond target
+    expect(screen.getByTestId('circle-body-handle')).toBeInTheDocument()
+  })
+
+  it('renders the ring source handle when the atom is bondable', () => {
+    render(<CircleAtomNode {...makeProps('Alpha', false, true)} />)
+    expect(screen.getByTestId('ring-handle')).toBeInTheDocument()
+  })
+
+  it('hides the ring source handle when bondability is unspecified (fail-closed default)', () => {
+    const props = { ...makeProps('Alpha'), data: { title: 'Alpha', labels: [] } }
+    render(<CircleAtomNode {...props} />)
+    expect(screen.queryByTestId('ring-handle')).not.toBeInTheDocument()
   })
 
   it('ring is hidden by default (opacity 0, pointerEvents none)', () => {

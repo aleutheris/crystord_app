@@ -11,6 +11,11 @@ import type {
   DestroyResponse,
   RetrieveResponse,
 } from '../../api-contract/graph-queries'
+import { mapAuthError } from '../../api-contract/error-codes'
+
+function messageOf(err: unknown): string {
+  return err instanceof Error ? err.message : String(err)
+}
 
 export interface AtomCreationOptions {
   description?: string
@@ -37,6 +42,14 @@ export function useGraphData(): GraphData {
   const [error, setError] = useState<string | null>(null)
   const searchLabelsRef = useRef<string[]>([])
 
+  // Surface a clear, mapped message for a known auth/access failure (e.g. acting on an atom the caller
+  // cannot touch, or an unknown principal) via the central mapper. Stays silent on session expiry — the
+  // Apollo error link signs out globally, so the hook must not flash a raw error (BI-260061 hardening).
+  const surfaceAuthError = useCallback((err: unknown) => {
+    const outcome = mapAuthError(messageOf(err))
+    if (outcome.kind !== 'reauth' && outcome.code) setError(outcome.message)
+  }, [])
+
   const fetchAtoms = useCallback(async (labels?: string[]) => {
     if (labels !== undefined) {
       searchLabelsRef.current = labels
@@ -53,7 +66,12 @@ export function useGraphData(): GraphData {
 
       setAtoms(data?.retrieve ?? [])
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load graph data')
+      const msg = messageOf(err)
+      const outcome = mapAuthError(msg)
+      // Session expiry is handled globally (sign-out) — don't render a raw error in its place.
+      if (outcome.kind !== 'reauth') {
+        setError(outcome.code ? outcome.message : (msg || 'Failed to load graph data'))
+      }
     } finally {
       setLoading(false)
     }
@@ -89,32 +107,37 @@ export function useGraphData(): GraphData {
   [])
 
   const updateAtom = useCallback(async (uuid: string, atom: Atom) => {
-    await client.mutate({
-      mutation: UPDATE_ATOM_MUTATION,
-      variables: {
-        selector: { uuid },
-        inputs: [{
-          labels: atom.labels,
-          bonds: stripSystemBonds(atom.bonds).map((b) => ({ uuid: b.uuid, name: b.name, direction: b.direction })),
-          properties: { nuclearies: toNucleariesInput(atom.properties.nuclearies) },
-        }],
-      },
-    })
-    await fetchAtoms()
-  }, [client, fetchAtoms, stripSystemBonds, toNucleariesInput])
+    try {
+      await client.mutate({
+        mutation: UPDATE_ATOM_MUTATION,
+        variables: {
+          selector: { uuid },
+          inputs: [{
+            labels: atom.labels,
+            bonds: stripSystemBonds(atom.bonds).map((b) => ({ uuid: b.uuid, name: b.name, direction: b.direction })),
+            properties: { nuclearies: toNucleariesInput(atom.properties.nuclearies) },
+          }],
+        },
+      })
+      await fetchAtoms()
+    } catch (err) {
+      surfaceAuthError(err)
+      throw err
+    }
+  }, [client, fetchAtoms, stripSystemBonds, toNucleariesInput, surfaceAuthError])
 
   const deleteAtom = useCallback(async (uuid: string) => {
-    const result = await client.mutate<DestroyResponse>({
-      mutation: DESTROY_ATOMS_MUTATION,
-      variables: { selector: { uuids: [uuid] } },
-    })
-    const deleted = result.data?.destroy?.deleted ?? []
-    if (deleted.length === 0) {
+    try {
+      await client.mutate<DestroyResponse>({
+        mutation: DESTROY_ATOMS_MUTATION,
+        variables: { selector: { uuids: [uuid] } },
+      })
       await fetchAtoms()
-      return
+    } catch (err) {
+      surfaceAuthError(err)
+      throw err
     }
-    await fetchAtoms()
-  }, [client, fetchAtoms])
+  }, [client, fetchAtoms, surfaceAuthError])
 
   const addBond = useCallback(async (sourceUuid: string, targetUuid: string, bondName: string) => {
     const source = atoms.find((a) => a.properties.shellies.uuid === sourceUuid)

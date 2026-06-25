@@ -33,6 +33,18 @@ describe('atomsToNodes', () => {
   it('returns empty array for no atoms', () => {
     expect(atomsToNodes([])).toEqual([])
   })
+
+  it('threads canBond from the atom access level (read-side gating, BI-260061)', () => {
+    const owner: Atom = { ...makeAtom('a1', 'Owned'), accessLevel: 'OWNER' }
+    const editor: Atom = { ...makeAtom('a2', 'Editable'), accessLevel: 'EDITOR' }
+    const viewer: Atom = { ...makeAtom('a3', 'ReadOnly'), accessLevel: 'VIEWER' }
+    const unknown: Atom = makeAtom('a4', 'NoLevel') // missing → most restrictive
+    const [n1, n2, n3, n4] = atomsToNodes([owner, editor, viewer, unknown])
+    expect(n1!.data.canBond).toBe(true)
+    expect(n2!.data.canBond).toBe(true)
+    expect(n3!.data.canBond).toBe(false)
+    expect(n4!.data.canBond).toBe(false)
+  })
 })
 
 describe('atomsToEdges', () => {

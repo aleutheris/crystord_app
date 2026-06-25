@@ -18,6 +18,7 @@ const invisibleHandle: React.CSSProperties = { opacity: 0, pointerEvents: 'none'
 interface CircleAtomNodeData {
   title: string
   labels: string[]
+  canBond?: boolean
   [key: string]: unknown
 }
 
@@ -25,11 +26,14 @@ export function CircleAtomNode({ data, selected }: NodeProps) {
   const [hovered, setHovered] = useState(false)
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const { title, labels } = data as CircleAtomNodeData
+  const { title, labels, canBond } = data as CircleAtomNodeData
   const labelList = (labels as string[]).join(', ')
   const tooltip = labelList ? `${title} [${labelList}]` : title
+  // Read-side gating: expose the edge-initiation ring only when explicitly bondable (fail-closed — a
+  // node missing the flag shows no affordance, and onConnect blocks the bond regardless).
+  const showBondHandle = canBond === true
   // Ring visible on hover only — selected state is represented by inner selection visual (D1 / ADR-260038)
-  const ringVisible = hovered
+  const ringVisible = hovered && showBondHandle
 
   function scheduleHide() {
     hideTimerRef.current = setTimeout(() => setHovered(false), 50)
@@ -63,32 +67,35 @@ export function CircleAtomNode({ data, selected }: NodeProps) {
         }}
       />
 
-      {/* Outer ring — full-circumference edge-initiation affordance, hover-only (D1–D3 / ADR-260036, D1 / ADR-260038) */}
-      <Handle
-        id="ring"
-        type="source"
-        position={Position.Left}
-        data-testid="ring-handle"
-        aria-label="Drag from ring to create a relationship"
-        onMouseEnter={() => { cancelHide(); setHovered(true) }}
-        onMouseLeave={scheduleHide}
-        style={{
-          position: 'absolute',
-          top: -RING_THICKNESS,
-          left: -RING_THICKNESS,
-          width: NODE_SIZE + 2 * RING_THICKNESS,
-          height: NODE_SIZE + 2 * RING_THICKNESS,
-          borderRadius: '50%',
-          border: `${RING_THICKNESS}px solid ${RING_COLOR}`,
-          background: 'transparent',
-          opacity: ringVisible ? 1 : 0,
-          pointerEvents: ringVisible ? 'all' : 'none',
-          cursor: 'crosshair',
-          boxSizing: 'border-box',
-          zIndex: 1,
-          transform: 'none',
-        }}
-      />
+      {/* Outer ring — full-circumference edge-initiation affordance, hover-only (D1–D3 / ADR-260036, D1 / ADR-260038).
+          Gated: hidden entirely when the caller cannot bond from this atom (BI-260061). */}
+      {showBondHandle && (
+        <Handle
+          id="ring"
+          type="source"
+          position={Position.Left}
+          data-testid="ring-handle"
+          aria-label="Drag from ring to create a relationship"
+          onMouseEnter={() => { cancelHide(); setHovered(true) }}
+          onMouseLeave={scheduleHide}
+          style={{
+            position: 'absolute',
+            top: -RING_THICKNESS,
+            left: -RING_THICKNESS,
+            width: NODE_SIZE + 2 * RING_THICKNESS,
+            height: NODE_SIZE + 2 * RING_THICKNESS,
+            borderRadius: '50%',
+            border: `${RING_THICKNESS}px solid ${RING_COLOR}`,
+            background: 'transparent',
+            opacity: ringVisible ? 1 : 0,
+            pointerEvents: ringVisible ? 'all' : 'none',
+            cursor: 'crosshair',
+            boxSizing: 'border-box',
+            zIndex: 1,
+            transform: 'none',
+          }}
+        />
+      )}
 
       {/* Inner node body — primary drag surface for atom movement (D3 / ADR-260036) */}
       <div

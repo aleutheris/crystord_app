@@ -1,12 +1,14 @@
 import { describe, it, expect, vi } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
-import type { Edge } from '@xyflow/react'
+import type { Edge, Connection } from '@xyflow/react'
+import type { EffectiveAccessLevel } from '../../api-contract/graph-queries'
 import { useCanvasInteractions } from './use-canvas-interactions'
 
-function makeAtom(id: string, title = 'Atom') {
+function makeAtom(id: string, title = 'Atom', accessLevel: EffectiveAccessLevel = 'OWNER') {
   return {
     labels: ['Node'],
     bonds: [],
+    accessLevel,
     properties: {
       shellies: { uuid: id },
       nuclearies: { title, description: '', content: '', operation: null, constants: null },
@@ -193,5 +195,77 @@ describe('useCanvasInteractions keyboard deletion policy', () => {
 
     expect(preventDefault).not.toHaveBeenCalled()
     expect(result.current.confirmDelete).toBeNull()
+  })
+})
+
+describe('useCanvasInteractions access-level gating (BI-260061 / REQ-FR-260069)', () => {
+  const connection = (source: string, target: string): Connection => ({
+    source, target, sourceHandle: null, targetHandle: null,
+  })
+
+  it('opens the bond dialog when connecting from an owner/editor source', () => {
+    const { result } = makeHook() // default OWNER
+    act(() => { result.current.onConnect(connection('a1', 'a2')) })
+    expect(result.current.pendingConnection).toEqual({ source: 'a1', target: 'a2' })
+  })
+
+  it('allows an EDITOR to bond from their source', () => {
+    const atoms = [makeAtom('a1', 'Alpha', 'EDITOR'), makeAtom('a2', 'Beta', 'OWNER')]
+    const { result } = makeHook({ atoms })
+    act(() => { result.current.onConnect(connection('a1', 'a2')) })
+    expect(result.current.pendingConnection).toEqual({ source: 'a1', target: 'a2' })
+  })
+
+  it('ignores a bond drawn from a view-only source', () => {
+    const atoms = [makeAtom('a1', 'Alpha', 'VIEWER'), makeAtom('a2', 'Beta', 'OWNER')]
+    const { result } = makeHook({ atoms })
+    act(() => { result.current.onConnect(connection('a1', 'a2')) })
+    expect(result.current.pendingConnection).toBeNull()
+  })
+
+  it('does not open delete confirmation for a view-only atom on Delete', () => {
+    const { result } = makeHook({ atoms: [makeAtom('a1', 'Alpha', 'VIEWER')], selectedAtomId: 'a1' })
+    pressKey(result, 'Delete')
+    expect(result.current.confirmDelete).toBeNull()
+  })
+
+  it('does not open delete confirmation for an EDITOR (destroy is owner-only)', () => {
+    const { result } = makeHook({ atoms: [makeAtom('a1', 'Alpha', 'EDITOR')], selectedAtomId: 'a1' })
+    pressKey(result, 'Delete')
+    expect(result.current.confirmDelete).toBeNull()
+  })
+
+  function bondHook(sourceLevel: EffectiveAccessLevel, removeBond = vi.fn()) {
+    const sourceAtom = { ...makeAtom('a1', 'Alpha', sourceLevel), bonds: [{ uuid: 'a2', name: 'REL', direction: 'from' }] }
+    const edges: Edge[] = [{ id: 'e1', source: 'a1', target: 'a2', label: 'REL', selected: true }]
+    const { result } = renderHook(() =>
+      useCanvasInteractions({
+        atoms: [sourceAtom, makeAtom('a2', 'Beta')],
+        edges,
+        selectedAtomId: 'a1',
+        onSelectAtom: vi.fn(),
+        deleteAtom: vi.fn(),
+        createAtom: vi.fn(),
+        addBond: vi.fn(),
+        removeBond,
+      }),
+    )
+    return { result, removeBond }
+  }
+
+  it('removes a bond from an editable source via Delete on a selected edge', async () => {
+    const { result, removeBond } = bondHook('EDITOR', vi.fn().mockResolvedValue(undefined))
+    await act(async () => {
+      result.current.onKeyDown({ key: 'Delete', target: document.createElement('div'), preventDefault: vi.fn() } as unknown as React.KeyboardEvent)
+    })
+    expect(removeBond).toHaveBeenCalledWith('a1', 'a2', 'REL')
+  })
+
+  it('does not remove a bond from a view-only source', async () => {
+    const { result, removeBond } = bondHook('VIEWER')
+    await act(async () => {
+      result.current.onKeyDown({ key: 'Delete', target: document.createElement('div'), preventDefault: vi.fn() } as unknown as React.KeyboardEvent)
+    })
+    expect(removeBond).not.toHaveBeenCalled()
   })
 })

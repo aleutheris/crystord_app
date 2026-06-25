@@ -205,3 +205,81 @@ describe('useGraphData bond mutations', () => {
     })
   })
 })
+
+describe('useGraphData access-error handling (BI-260061 / REQ-FR-260069)', () => {
+  const atom = {
+    labels: ['P'],
+    bonds: [],
+    properties: {
+      shellies: { uuid: 'u1' },
+      nuclearies: { title: 'A', description: '', content: '', operation: null, constants: null },
+    },
+  }
+
+  it('maps AU-UNAUTHORIZED on retrieve to a clear access message', async () => {
+    mockQuery.mockRejectedValue(new Error('AU-UNAUTHORIZED'))
+    const { result } = renderHook(() => useGraphData())
+    await act(() => result.current.search(['P']))
+    expect(result.current.error).toMatch(/don't have access/i)
+  })
+
+  it('stays silent on session expiry during retrieve (global sign-out handles it)', async () => {
+    mockQuery.mockRejectedValue(new Error('AUTHZ-AUTHENTICATION-REQUIRED'))
+    const { result } = renderHook(() => useGraphData())
+    await act(() => result.current.search(['P']))
+    expect(result.current.error).toBeNull()
+  })
+
+  it('shows the raw message for an unknown retrieve failure', async () => {
+    mockQuery.mockRejectedValue(new Error('kaboom'))
+    const { result } = renderHook(() => useGraphData())
+    await act(() => result.current.search(['P']))
+    expect(result.current.error).toBe('kaboom')
+  })
+
+  it('falls back to a generic message when a retrieve failure carries no message', async () => {
+    mockQuery.mockRejectedValue(new Error(''))
+    const { result } = renderHook(() => useGraphData())
+    await act(() => result.current.search(['P']))
+    expect(result.current.error).toBe('Failed to load graph data')
+  })
+
+  it('surfaces a mapped access error when an edit is rejected, and rethrows', async () => {
+    mockMutate.mockRejectedValue(new Error('AU-UNAUTHORIZED'))
+    const { result } = renderHook(() => useGraphData())
+    await act(async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await expect(result.current.updateAtom('u1', atom as any)).rejects.toThrow()
+    })
+    expect(result.current.error).toMatch(/don't have access/i)
+  })
+
+  it('stays silent on session expiry during an edit', async () => {
+    mockMutate.mockRejectedValue(new Error('AUTHZ-AUTHENTICATION-REQUIRED'))
+    const { result } = renderHook(() => useGraphData())
+    await act(async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await expect(result.current.updateAtom('u1', atom as any)).rejects.toThrow()
+    })
+    expect(result.current.error).toBeNull()
+  })
+
+  it('stays silent on an unknown edit failure but still rethrows', async () => {
+    mockMutate.mockRejectedValue(new Error('whoops'))
+    const { result } = renderHook(() => useGraphData())
+    await act(async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await expect(result.current.updateAtom('u1', atom as any)).rejects.toThrow()
+    })
+    expect(result.current.error).toBeNull()
+  })
+
+  it('surfaces a mapped access error when a delete is rejected', async () => {
+    mockMutate.mockRejectedValue(new Error('AU-UNAUTHORIZED'))
+    const { result } = renderHook(() => useGraphData())
+    await act(async () => {
+      await expect(result.current.deleteAtom('u1')).rejects.toThrow()
+    })
+    expect(result.current.error).toMatch(/don't have access/i)
+  })
+})
