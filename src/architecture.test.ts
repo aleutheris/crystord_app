@@ -2303,7 +2303,7 @@ describe('Sign-up and Google sign-in wiring (BI-260048)', () => {
     expect(hook).toContain('COMPLETE_SIGNUP_MUTATION')
   })
 
-  it('GoogleSignInButton.tsx exists and uses VITE_GOOGLE_CLIENT_ID via prop', () => {
+  it('GoogleSignInButton.tsx owns the sign-in query and delegates GIS to the shared primitive (BI-260065)', () => {
     expect(
       fs.existsSync(path.join(FEATURES, 'auth-entry', 'GoogleSignInButton.tsx')),
     ).toBe(true)
@@ -2312,7 +2312,13 @@ describe('Sign-up and Google sign-in wiring (BI-260048)', () => {
     )
     expect(src).toContain('googleClientId')
     expect(src).toContain('SIGN_IN_GOOGLE_QUERY')
-    expect(src).toContain('accounts.google.com/gsi/client')
+    // The GIS script/init plumbing now lives once in the shared ui-primitives button.
+    expect(src).toContain('GoogleCredentialButton')
+    expect(src).not.toContain('accounts.google.com/gsi/client')
+    const primitive = fs.readFileSync(
+      path.join(SRC, 'ui-primitives', 'buttons', 'GoogleCredentialButton.tsx'), 'utf-8',
+    )
+    expect(primitive).toContain('accounts.google.com/gsi/client')
   })
 
   it('auth-entry barrel exports GoogleSignInButton', () => {

@@ -1,3 +1,5 @@
+import { LabeledField } from '../../ui-primitives/inputs'
+
 interface AuthFieldProps {
   id: string
   label: string
@@ -9,28 +11,15 @@ interface AuthFieldProps {
   error?: string
 }
 
-/**
- * Accessible labelled input with an inline error paired to the input via `aria-describedby` /
- * `aria-invalid`. Shared by the sign-up and password-reset panels.
- */
-export function AuthField({ id, label, value, onChange, type = 'text', autoComplete, inputMode, error }: AuthFieldProps) {
-  const errorId = `${id}-error`
-  return (
-    <div className="sign-in-page__field">
-      <label htmlFor={id} className="sign-in-page__label">{label}</label>
-      <input
-        id={id}
-        className="sign-in-page__input"
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        required
-        autoComplete={autoComplete}
-        inputMode={inputMode}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={error ? errorId : undefined}
-      />
-      {error && <p id={errorId} className="sign-in-page__field-error">{error}</p>}
-    </div>
-  )
+/** Auth-styled binding of the shared {@link LabeledField} primitive (BI-260065) — the sign-in-page
+ * look applied to the accessible field used by the sign-up and password-reset panels. */
+const AUTH_FIELD_CLASSES = {
+  field: 'sign-in-page__field',
+  label: 'sign-in-page__label',
+  input: 'sign-in-page__input',
+  error: 'sign-in-page__field-error',
+}
+
+export function AuthField(props: AuthFieldProps) {
+  return <LabeledField {...props} classNames={AUTH_FIELD_CLASSES} />
 }

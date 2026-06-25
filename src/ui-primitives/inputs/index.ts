@@ -6,3 +6,5 @@ export type {
   InputSize,
   InputState,
 } from './input.types'
+export { LabeledField } from './LabeledField'
+export type { LabeledFieldProps, LabeledFieldClassNames } from './LabeledField'

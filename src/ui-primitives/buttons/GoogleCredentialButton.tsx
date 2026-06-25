@@ -1,9 +1,11 @@
 import { useEffect, useRef } from 'react'
 
-interface GoogleLinkButtonProps {
+interface GoogleCredentialButtonProps {
   googleClientId: string
-  /** Receives the GIS ID token to link to the signed-in account (BI-260059). */
-  onCredential: (idToken: string) => void
+  /** Receives the Google Identity Services ID token (credential) when the user authenticates. */
+  onCredential: (credential: string) => void
+  /** GIS render style — `icon` for the compact sign-in glyph, `standard` for the full button. */
+  buttonType?: 'standard' | 'icon'
 }
 
 declare global {
@@ -20,14 +22,13 @@ declare global {
 }
 
 /**
- * Renders the Google Identity Services button for *linking* Google to the current account and yields
- * the resulting ID token via `onCredential`. Mirrors the GIS dance in auth-entry's GoogleSignInButton;
- * it lives here (not shared) because feature modules may not import each other's internals.
+ * The shared Google Identity Services (GIS) credential button (BI-260065 / ADR-260051): loads the GIS
+ * script if needed, renders the Google button, and yields the resulting ID token via `onCredential`.
+ * Consumers decide what to do with the token (sign in vs. link). A latest-ref keeps `onCredential`
+ * current without re-initializing GIS on every parent re-render.
  */
-export function GoogleLinkButton({ googleClientId, onCredential }: GoogleLinkButtonProps) {
+export function GoogleCredentialButton({ googleClientId, onCredential, buttonType = 'standard' }: GoogleCredentialButtonProps) {
   const containerRef = useRef<HTMLDivElement>(null)
-  // Latest-ref: keep the callback current without making it an effect dependency, so the GIS button
-  // is not re-initialized on every parent re-render (e.g. each keystroke in the password field).
   const onCredentialRef = useRef(onCredential)
   useEffect(() => { onCredentialRef.current = onCredential })
 
@@ -39,7 +40,7 @@ export function GoogleLinkButton({ googleClientId, onCredential }: GoogleLinkBut
         locale: 'en',
         callback: (response) => onCredentialRef.current(response.credential),
       })
-      window.google.accounts.id.renderButton(containerRef.current, { theme: 'outline', size: 'large', type: 'standard' })
+      window.google.accounts.id.renderButton(containerRef.current, { theme: 'outline', size: 'large', type: buttonType })
     }
 
     const existing = document.querySelector('script[src*="accounts.google.com/gsi"]')
@@ -53,7 +54,7 @@ export function GoogleLinkButton({ googleClientId, onCredential }: GoogleLinkBut
     script.async = true
     script.onload = initGIS
     document.head.appendChild(script)
-  }, [googleClientId])
+  }, [googleClientId, buttonType])
 
   return <div ref={containerRef} />
 }

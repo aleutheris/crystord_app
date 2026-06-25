@@ -5,8 +5,8 @@ import type { AccountInfo } from '../../api-contract'
 import type { AccountActions } from './use-account-actions'
 import { AuthMethodsSection } from './AuthMethodsSection'
 
-vi.mock('./GoogleLinkButton', () => ({
-  GoogleLinkButton: ({ onCredential }: { onCredential: (t: string) => void }) => (
+vi.mock('../../ui-primitives/buttons', () => ({
+  GoogleCredentialButton: ({ onCredential }: { onCredential: (t: string) => void }) => (
     <button type="button" onClick={() => onCredential('id-token')}>Mock Link Google</button>
   ),
 }))

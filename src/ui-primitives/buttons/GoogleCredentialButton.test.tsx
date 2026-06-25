@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render } from '@testing-library/react'
-import { GoogleLinkButton } from './GoogleLinkButton'
+import { GoogleCredentialButton } from './GoogleCredentialButton'
 
 function mockGis() {
   let callback: ((r: { credential: string }) => void) | undefined
@@ -26,23 +26,31 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-describe('GoogleLinkButton', () => {
+describe('GoogleCredentialButton', () => {
   it('initializes GIS and yields the credential when the script is already present', () => {
     addGisScript()
     const gis = mockGis()
     const onCredential = vi.fn()
 
-    render(<GoogleLinkButton googleClientId="client-123" onCredential={onCredential} />)
+    render(<GoogleCredentialButton googleClientId="client-123" onCredential={onCredential} />)
 
     expect(gis.initialize).toHaveBeenCalledWith(expect.objectContaining({ client_id: 'client-123' }))
-    expect(gis.renderButton).toHaveBeenCalled()
+    // default render style is the full "standard" button
+    expect(gis.renderButton).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ type: 'standard' }))
     gis.fireCredential('id-token-xyz')
     expect(onCredential).toHaveBeenCalledWith('id-token-xyz')
   })
 
+  it('renders the requested button type (icon)', () => {
+    addGisScript()
+    const gis = mockGis()
+    render(<GoogleCredentialButton googleClientId="c" onCredential={vi.fn()} buttonType="icon" />)
+    expect(gis.renderButton).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ type: 'icon' }))
+  })
+
   it('loads the GIS script when absent, then initializes on load', () => {
     const gis = mockGis()
-    render(<GoogleLinkButton googleClientId="client-123" onCredential={vi.fn()} />)
+    render(<GoogleCredentialButton googleClientId="client-123" onCredential={vi.fn()} />)
 
     const script = document.head.querySelector('script[src*="accounts.google.com/gsi"]') as HTMLScriptElement
     expect(script).toBeTruthy()
@@ -55,7 +63,21 @@ describe('GoogleLinkButton', () => {
   it('no-ops when the GIS SDK is unavailable', () => {
     addGisScript() // present, but window.google is undefined
     const onCredential = vi.fn()
-    expect(() => render(<GoogleLinkButton googleClientId="client-123" onCredential={onCredential} />)).not.toThrow()
+    expect(() => render(<GoogleCredentialButton googleClientId="client-123" onCredential={onCredential} />)).not.toThrow()
     expect(onCredential).not.toHaveBeenCalled()
+  })
+
+  it('calls the latest onCredential without re-initializing GIS on re-render', () => {
+    addGisScript()
+    const gis = mockGis()
+    const first = vi.fn()
+    const second = vi.fn()
+    const { rerender } = render(<GoogleCredentialButton googleClientId="c" onCredential={first} />)
+    rerender(<GoogleCredentialButton googleClientId="c" onCredential={second} />)
+    // still only one initialize (stable deps), but the newest callback is used
+    expect(gis.initialize).toHaveBeenCalledOnce()
+    gis.fireCredential('tok')
+    expect(first).not.toHaveBeenCalled()
+    expect(second).toHaveBeenCalledWith('tok')
   })
 })
