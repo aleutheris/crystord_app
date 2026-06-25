@@ -23,6 +23,8 @@ export const AUTH_ERROR_CODES = [
   'EMAIL-ALREADY-IN-USE',
   'RESET-INVALID-OR-EXPIRED-TOKEN',
   'EMAIL-CHANGE-INVALID-OR-EXPIRED-CODE',
+  'CR-15-OWNED-ATOMS-EXIST',
+  'CR-15-WORKSPACE-ADMIN-EXISTS',
   'CR-16-PRINCIPAL-UNKNOWN',
   'AU-UNAUTHORIZED',
 ] as const
@@ -129,6 +131,16 @@ const OUTCOMES: Record<AuthErrorCode, OutcomeSpec> = {
     kind: 'form',
     field: 'code',
     message: 'That code is invalid or has expired. Request a new one.',
+  },
+  'CR-15-OWNED-ATOMS-EXIST': {
+    kind: 'form',
+    field: null,
+    message: 'You still own atoms. Delete them first, then you can delete your account.',
+  },
+  'CR-15-WORKSPACE-ADMIN-EXISTS': {
+    kind: 'form',
+    field: null,
+    message: "You're the sole admin of a workspace. Assign another admin or remove the workspace first.",
   },
   'CR-16-PRINCIPAL-UNKNOWN': {
     kind: 'form',

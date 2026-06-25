@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ReactFlowProvider } from '@xyflow/react'
-import { useLogout } from '../features/auth-entry'
+import { useLogout, useAuth } from '../features/auth-entry'
 import { AccountSettingsPanel } from '../features/account-settings'
 import { GraphCanvas, NetworkCanvas, useGraphData, DeleteConfirmDialog, useGraphDegrade } from '../features/workspace-graph'
 import { DetailPanel, CreationNotification } from '../features/workspace-details'
@@ -16,6 +16,7 @@ import { C_BORDER, C_OVERLAY } from '../styles/tokens'
 
 export function WorkspaceShell({ googleClientId }: { googleClientId?: string }) {
   const logout = useLogout()
+  const { signOut } = useAuth()
   const graphData = useGraphData()
   const search = useSearch(graphData.atoms, graphData.search)
   const recommendedLabels = useRecommendedLabels()
@@ -150,7 +151,13 @@ export function WorkspaceShell({ googleClientId }: { googleClientId?: string }) 
           onExpire={() => setCreationSuccessMsg(null)}
         />
       )}
-      {isSettingsOpen && <AccountSettingsPanel onClose={() => setIsSettingsOpen(false)} googleClientId={googleClientId} />}
+      {isSettingsOpen && (
+        <AccountSettingsPanel
+          onClose={() => setIsSettingsOpen(false)}
+          onSessionEnded={signOut}
+          googleClientId={googleClientId}
+        />
+      )}
     </div>
   )
 }

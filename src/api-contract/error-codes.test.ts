@@ -23,14 +23,16 @@ const EXPECTED: Record<AuthErrorCode, { kind: AuthErrorKind; field: AuthErrorFie
   'EMAIL-ALREADY-IN-USE': { kind: 'field', field: 'email' },
   'RESET-INVALID-OR-EXPIRED-TOKEN': { kind: 'form', field: null },
   'EMAIL-CHANGE-INVALID-OR-EXPIRED-CODE': { kind: 'form', field: 'code' },
+  'CR-15-OWNED-ATOMS-EXIST': { kind: 'form', field: null },
+  'CR-15-WORKSPACE-ADMIN-EXISTS': { kind: 'form', field: null },
   'CR-16-PRINCIPAL-UNKNOWN': { kind: 'form', field: null },
   'AU-UNAUTHORIZED': { kind: 'access', field: null },
 }
 
 describe('AUTH_ERROR_CODES', () => {
-  it('covers exactly the epic error table (16 codes)', () => {
-    expect(AUTH_ERROR_CODES).toHaveLength(16)
-    expect(new Set(AUTH_ERROR_CODES).size).toBe(16)
+  it('covers exactly the epic error table (18 codes)', () => {
+    expect(AUTH_ERROR_CODES).toHaveLength(18)
+    expect(new Set(AUTH_ERROR_CODES).size).toBe(18)
     expect(Object.keys(EXPECTED).sort()).toEqual([...AUTH_ERROR_CODES].sort())
   })
 

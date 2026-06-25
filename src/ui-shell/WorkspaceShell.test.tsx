@@ -3,10 +3,11 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { WorkspaceShell } from './WorkspaceShell'
 
-const { mockLogout } = vi.hoisted(() => ({ mockLogout: vi.fn() }))
+const { mockLogout, mockSignOut } = vi.hoisted(() => ({ mockLogout: vi.fn(), mockSignOut: vi.fn() }))
 
 vi.mock('../features/auth-entry', () => ({
   useLogout: () => mockLogout,
+  useAuth: () => ({ signOut: mockSignOut }),
 }))
 
 vi.mock('../features/account-settings', () => ({

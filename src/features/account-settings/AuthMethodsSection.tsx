@@ -19,15 +19,8 @@ export function AuthMethodsSection({ account, actions, googleClientId }: AuthMet
   const isOnlyMethod = account.authMethods.length === 1
 
   return (
-    <section className="account-settings__section">
-      {actions.feedback && (
-        <p
-          role={actions.feedback.kind === 'error' ? 'alert' : 'status'}
-          className={actions.feedback.kind === 'error' ? 'account-settings__error' : 'account-settings__notice'}
-        >
-          {actions.feedback.message}
-        </p>
-      )}
+    <section className="account-settings__section" aria-labelledby="auth-methods-heading">
+      <p id="auth-methods-heading" className="account-settings__term">Sign-in &amp; password</p>
 
       <form className="account-settings__form" onSubmit={(e) => { e.preventDefault(); void actions.setPassword(newPassword) }}>
         <label htmlFor="new-password" className="account-settings__term">Set a password</label>

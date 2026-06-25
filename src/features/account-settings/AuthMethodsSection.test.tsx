@@ -15,8 +15,10 @@ const ACCOUNT: AccountInfo = { username: 'u', email: 'u@e.com', emailVerified: t
 
 function makeActions(over: Partial<AccountActions> = {}): AccountActions {
   return {
-    pending: false, feedback: null, passwordError: null,
-    setPassword: vi.fn(), unlinkMethod: vi.fn(), linkGoogle: vi.fn(), clearFeedback: vi.fn(),
+    pending: false, feedback: null, passwordError: null, emailError: null, codeError: null,
+    setPassword: vi.fn(), unlinkMethod: vi.fn(), linkGoogle: vi.fn(),
+    requestEmailChange: vi.fn(), confirmEmailChange: vi.fn(),
+    signOutEverywhere: vi.fn(), deleteAccount: vi.fn(), clearFeedback: vi.fn(),
     ...over,
   }
 }
@@ -38,16 +40,6 @@ describe('AuthMethodsSection', () => {
   it('shows the inline password error', () => {
     renderSection(ACCOUNT, makeActions({ passwordError: 'Password must be at least 12 characters.' }))
     expect(screen.getByText(/at least 12/i)).toBeInTheDocument()
-  })
-
-  it('shows a success feedback as a status region', () => {
-    renderSection(ACCOUNT, makeActions({ feedback: { kind: 'success', message: 'Password updated.' } }))
-    expect(screen.getByRole('status')).toHaveTextContent(/password updated/i)
-  })
-
-  it('shows an error feedback as an alert', () => {
-    renderSection(ACCOUNT, makeActions({ feedback: { kind: 'error', message: 'Could not remove that method.' } }))
-    expect(screen.getByRole('alert')).toHaveTextContent(/could not remove/i)
   })
 
   it('unlinks a method', async () => {

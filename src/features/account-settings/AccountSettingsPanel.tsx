@@ -2,21 +2,26 @@ import { useEffect } from 'react'
 import { useAccountInfo } from './use-account-info'
 import { useAccountActions } from './use-account-actions'
 import { AuthMethodsSection } from './AuthMethodsSection'
+import { EmailChangeSection } from './EmailChangeSection'
+import { DangerZoneSection } from './DangerZoneSection'
 import './account-settings.css'
 
 interface AccountSettingsPanelProps {
   onClose: () => void
+  /** Route back to sign-in after the current session is intentionally ended (sign-out-everywhere / delete). */
+  onSessionEnded: () => void
   googleClientId?: string
 }
 
 /**
- * Account-settings modal (BI-260058/260059): identity overview from `me` plus auth-method management
- * (set password / unlink / link Google). Email change, sign-out-everywhere, and delete land in
- * BI-260060.
+ * Account-settings modal (BI-260058/059/060): identity overview from `me` plus account management —
+ * set password / unlink / link Google, change email, sign out everywhere, and delete the account.
+ * The shared action feedback (success notices + non-field errors, incl. delete block reasons) is shown
+ * once at the panel level.
  */
-export function AccountSettingsPanel({ onClose, googleClientId }: AccountSettingsPanelProps) {
+export function AccountSettingsPanel({ onClose, onSessionEnded, googleClientId }: AccountSettingsPanelProps) {
   const { account, loading, error, refetch } = useAccountInfo()
-  const actions = useAccountActions(refetch)
+  const actions = useAccountActions(refetch, onSessionEnded)
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose() }
@@ -56,7 +61,19 @@ export function AccountSettingsPanel({ onClose, googleClientId }: AccountSetting
                 </dd>
               </div>
             </dl>
+
+            {actions.feedback && (
+              <p
+                role={actions.feedback.kind === 'error' ? 'alert' : 'status'}
+                className={actions.feedback.kind === 'error' ? 'account-settings__error' : 'account-settings__notice'}
+              >
+                {actions.feedback.message}
+              </p>
+            )}
+
             <AuthMethodsSection account={account} actions={actions} googleClientId={googleClientId} />
+            <EmailChangeSection actions={actions} />
+            <DangerZoneSection actions={actions} />
           </>
         )}
       </div>
