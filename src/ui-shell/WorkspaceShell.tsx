@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ReactFlowProvider } from '@xyflow/react'
-import { useAuth } from '../features/auth-entry'
+import { useLogout } from '../features/auth-entry'
 import { GraphCanvas, NetworkCanvas, useGraphData, DeleteConfirmDialog, useGraphDegrade } from '../features/workspace-graph'
 import { DetailPanel, CreationNotification } from '../features/workspace-details'
 import { SearchBar, QuerySummary, SearchResultPanel, useSearch, useRecommendedLabels } from '../features/workspace-search'
@@ -14,7 +14,7 @@ import { ThemeToggle } from '../styles/ThemeToggle'
 import { C_BORDER, C_OVERLAY } from '../styles/tokens'
 
 export function WorkspaceShell() {
-  const { signOut } = useAuth()
+  const logout = useLogout()
   const graphData = useGraphData()
   const search = useSearch(graphData.atoms, graphData.search)
   const recommendedLabels = useRecommendedLabels()
@@ -56,7 +56,7 @@ export function WorkspaceShell() {
         <SearchBar search={search} recommendedLabels={recommendedLabels} />
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
           <ThemeToggle />
-          <button type="button" onClick={signOut} style={{ padding: '0.25rem 0.75rem' }}>
+          <button type="button" onClick={logout} style={{ padding: '0.25rem 0.75rem' }}>
             Sign Out
           </button>
         </div>

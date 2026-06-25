@@ -3,8 +3,10 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { WorkspaceShell } from './WorkspaceShell'
 
+const { mockLogout } = vi.hoisted(() => ({ mockLogout: vi.fn() }))
+
 vi.mock('../features/auth-entry', () => ({
-  useAuth: () => ({ signOut: vi.fn(), isAuthenticated: true }),
+  useLogout: () => mockLogout,
 }))
 
 const mockSearch = vi.fn()
@@ -135,6 +137,13 @@ describe('WorkspaceShell view switching', () => {
     expect(screen.getByRole('tablist')).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: 'Network' })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: 'Flow' })).toBeInTheDocument()
+  })
+
+  it('Sign Out button triggers logout (server revocation + local clear)', async () => {
+    mockLogout.mockClear()
+    render(<WorkspaceShell />)
+    await userEvent.click(screen.getByRole('button', { name: /sign out/i }))
+    expect(mockLogout).toHaveBeenCalledOnce()
   })
 })
 

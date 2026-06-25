@@ -3,12 +3,17 @@ import type { FormEvent } from 'react'
 import type { ApolloClient } from '@apollo/client'
 import { SIGN_IN_QUERY } from '../../api-contract/sign-in-query'
 import type { SignInResponse } from '../../api-contract/sign-in-query'
+import { mapAuthError } from '../../api-contract'
 import { useAuth } from './AuthProvider'
 import { GoogleSignInButton } from './GoogleSignInButton'
 import { BrandPanel } from './BrandPanel'
 import { DemoPanel } from './DemoPanel'
 import { SignUpPanel } from './SignUpPanel'
+import { useBackoff } from './use-backoff'
 import './sign-in-page.css'
+
+/** Client-side back-off after a server rate-limit (REQ-CR-260026); the server enforces the real limit. */
+const RATE_LIMIT_BACKOFF_SECONDS = 15
 
 interface SignInPageProps {
   client: ApolloClient
@@ -23,9 +28,18 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [demoLoading, setDemoLoading] = useState(false)
+  const backoff = useBackoff()
 
   function handleSuccess(token: string, demo = false) {
     signIn(token, demo)
+  }
+
+  // Interpret a raw error message via the central mapper: friendly text for known auth codes, else
+  // the raw message. A rate-limit outcome opens a client-side back-off (REQ-CR-260026).
+  function applyAuthMessage(raw: string, fallback: string) {
+    const outcome = mapAuthError(raw)
+    if (outcome.kind === 'rate-limit') backoff.trigger(RATE_LIMIT_BACKOFF_SECONDS)
+    setError(outcome.code ? outcome.message : (raw || fallback))
   }
 
   async function handleSignIn(e: FormEvent) {
@@ -44,7 +58,7 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
       }
       handleSuccess(data.signin)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Authentication failed.')
+      applyAuthMessage(err instanceof Error ? err.message : '', 'Authentication failed.')
     } finally {
       setLoading(false)
     }
@@ -65,14 +79,14 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
       }
       handleSuccess(data.signin, true)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Demo sign-in failed.')
+      applyAuthMessage(err instanceof Error ? err.message : '', 'Demo sign-in failed.')
     } finally {
       setDemoLoading(false)
     }
   }
 
   const isSignUp = mode === 'signup'
-  const busy = loading || demoLoading
+  const busy = loading || demoLoading || backoff.active
 
   function switchMode(next: 'signin' | 'signup') {
     setMode(next)
@@ -120,7 +134,11 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
                 </div>
                 <div className="sign-in-page__actions">
                   <button type="submit" disabled={busy} className="sign-in-page__btn-primary">
-                    {loading ? 'Signing in…' : 'Sign In'}
+                    {loading
+                      ? 'Signing in…'
+                      : backoff.active
+                        ? `Try again in ${backoff.remaining}s`
+                        : 'Sign In'}
                   </button>
                 </div>
               </form>
@@ -130,10 +148,16 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
               <span>{isSignUp ? 'or sign up with' : 'or sign in with'}</span>
             </div>
 
+            {/*
+              Google is intentionally NOT disabled during the credential back-off: it is a separate
+              auth path (signinGoogle), and the GIS button is SDK-rendered. If the backend limit is
+              IP-wide, Google simply fails and surfaces its own mapped message.
+            */}
             {googleClientId && (
               <div className="sign-in-page__google">
                 <GoogleSignInButton client={client} googleClientId={googleClientId}
-                  onSuccess={(token) => handleSuccess(token)} onError={setError} />
+                  onSuccess={(token) => handleSuccess(token)}
+                  onError={(message) => applyAuthMessage(message, 'Google sign-in failed.')} />
               </div>
             )}
 

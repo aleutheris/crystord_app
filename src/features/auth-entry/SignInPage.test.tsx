@@ -7,10 +7,18 @@ import { AuthProvider } from './AuthProvider'
 import { SignInPage } from './SignInPage'
 import type { SignInResponse } from '../../api-contract/sign-in-query'
 
-// Stub the GIS-backed button so the wiring (onSuccess → signIn) is testable without the SDK.
+// Stub the GIS-backed button so success and error wiring is testable without the SDK.
 vi.mock('./GoogleSignInButton', () => ({
-  GoogleSignInButton: ({ onSuccess }: { onSuccess: (token: string) => void }) => (
-    <button type="button" onClick={() => onSuccess('google-token')}>Mock Google</button>
+  GoogleSignInButton: ({ onSuccess, onError }: {
+    onSuccess: (token: string) => void
+    onError: (message: string) => void
+  }) => (
+    <>
+      <button type="button" onClick={() => onSuccess('google-token')}>Mock Google</button>
+      <button type="button" onClick={() => onError('GraphQL error: AUTH-GOOGLE-NOT-LINKED')}>
+        Fail Google sign-in
+      </button>
+    </>
   ),
 }))
 
@@ -375,5 +383,29 @@ describe('SignInPage', () => {
     await waitFor(() =>
       expect(localStorage.getItem('crystord-auth-token')).toBe('google-token'),
     )
+  })
+
+  it('maps AUTH-GOOGLE-NOT-LINKED to the link-in-settings recovery message', async () => {
+    const user = userEvent.setup()
+    const client = createMockClient({ data: { signin: 'token' } })
+    renderSignIn(client, 'google-client-id')
+
+    await user.click(screen.getByRole('button', { name: /fail google sign-in/i }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/link google in settings/i)
+  })
+
+  it('rate-limited sign-in shows the generic back-off message and disables submit', async () => {
+    const user = userEvent.setup()
+    const client = createMockClient({ error: new Error('GraphQL error: AUTH-RATE-LIMITED') })
+    renderSignIn(client)
+
+    await user.type(screen.getByLabelText(/username or email/i), 'x')
+    await user.type(screen.getByLabelText(/password/i), 'y')
+    await user.click(screen.getByRole('button', { name: /^sign in$/i }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/too many attempts/i)
+    // During the back-off the submit is disabled and shows a countdown instead of "Sign In".
+    expect(screen.getByRole('button', { name: /try again in \d+s/i })).toBeDisabled()
   })
 })
