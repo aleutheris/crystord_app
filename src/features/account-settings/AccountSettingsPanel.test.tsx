@@ -7,8 +7,20 @@ import { AccountSettingsPanel } from './AccountSettingsPanel'
 const { mockUseAccountInfo } = vi.hoisted(() => ({ mockUseAccountInfo: vi.fn() }))
 vi.mock('./use-account-info', () => ({ useAccountInfo: () => mockUseAccountInfo() }))
 
+// The actions hook + methods section are unit-tested separately; stub them here so the panel test
+// focuses on the shell, identity overview, and composition.
+vi.mock('./use-account-actions', () => ({
+  useAccountActions: () => ({
+    pending: false, feedback: null, passwordError: null,
+    setPassword: vi.fn(), unlinkMethod: vi.fn(), linkGoogle: vi.fn(), clearFeedback: vi.fn(),
+  }),
+}))
+vi.mock('./AuthMethodsSection', () => ({
+  AuthMethodsSection: () => <div data-testid="auth-methods-section" />,
+}))
+
 function setState(state: Partial<AccountInfoState>) {
-  mockUseAccountInfo.mockReturnValue({ account: null, loading: false, error: null, ...state })
+  mockUseAccountInfo.mockReturnValue({ account: null, loading: false, error: null, refetch: vi.fn(), ...state })
 }
 
 beforeEach(() => { mockUseAccountInfo.mockReset() })
@@ -26,20 +38,19 @@ describe('AccountSettingsPanel', () => {
     expect(screen.getByRole('alert')).toHaveTextContent(/could not load/i)
   })
 
-  it('renders the identity overview with a verified badge and methods', () => {
-    setState({ account: { username: 'demo.user', email: 'd@e.com', emailVerified: true, authMethods: ['password', 'google'] } })
+  it('renders the identity overview and the auth-methods section', () => {
+    setState({ account: { username: 'demo.user', email: 'd@e.com', emailVerified: true, authMethods: ['password'] } })
     render(<AccountSettingsPanel onClose={vi.fn()} />)
     expect(screen.getByText('demo.user')).toBeInTheDocument()
     expect(screen.getByText(/d@e\.com/)).toBeInTheDocument()
     expect(screen.getByText('Verified')).toBeInTheDocument()
-    expect(screen.getByText(/password, google/)).toBeInTheDocument()
+    expect(screen.getByTestId('auth-methods-section')).toBeInTheDocument()
   })
 
-  it('shows Unverified and "None" methods when applicable', () => {
+  it('shows an Unverified badge when the email is not verified', () => {
     setState({ account: { username: 'u', email: 'u@e.com', emailVerified: false, authMethods: [] } })
     render(<AccountSettingsPanel onClose={vi.fn()} />)
     expect(screen.getByText('Unverified')).toBeInTheDocument()
-    expect(screen.getByText('None')).toBeInTheDocument()
   })
 
   it('is an accessible labelled dialog', () => {

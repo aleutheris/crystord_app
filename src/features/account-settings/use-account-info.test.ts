@@ -1,11 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { renderHook, waitFor } from '@testing-library/react'
+import { renderHook, waitFor, act } from '@testing-library/react'
 import type { AccountInfo } from '../../api-contract'
 import { useAccountInfo } from './use-account-info'
 import { ME_QUERY } from '../../api-contract'
 
-const { mockQuery } = vi.hoisted(() => ({ mockQuery: vi.fn() }))
-vi.mock('@apollo/client/react', () => ({ useApolloClient: () => ({ query: mockQuery }) }))
+const { mockQuery, mockClient } = vi.hoisted(() => {
+  const q = vi.fn()
+  return { mockQuery: q, mockClient: { query: q } }
+})
+vi.mock('@apollo/client/react', () => ({ useApolloClient: () => mockClient }))
 
 const ACCOUNT: AccountInfo = { username: 'demo.user', email: 'd@e.com', emailVerified: true, authMethods: ['password'] }
 
@@ -36,6 +39,16 @@ describe('useAccountInfo', () => {
     const { result } = renderHook(() => useAccountInfo())
 
     await waitFor(() => expect(result.current.error).toMatch(/could not load/i))
+  })
+
+  it('refetches me on demand', async () => {
+    mockQuery.mockResolvedValue({ data: { me: ACCOUNT } })
+    const { result } = renderHook(() => useAccountInfo())
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(mockQuery).toHaveBeenCalledTimes(1)
+
+    await act(async () => { result.current.refetch() })
+    await waitFor(() => expect(mockQuery).toHaveBeenCalledTimes(2))
   })
 
   it('ignores a resolved response after unmount', async () => {

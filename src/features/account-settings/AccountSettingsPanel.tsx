@@ -1,17 +1,22 @@
 import { useEffect } from 'react'
 import { useAccountInfo } from './use-account-info'
+import { useAccountActions } from './use-account-actions'
+import { AuthMethodsSection } from './AuthMethodsSection'
 import './account-settings.css'
 
 interface AccountSettingsPanelProps {
   onClose: () => void
+  googleClientId?: string
 }
 
 /**
- * Account-settings modal — identity overview from `me` (BI-260058). Mutating actions (set/unlink/link
- * method, email change, delete) land in BI-260059/260060.
+ * Account-settings modal (BI-260058/260059): identity overview from `me` plus auth-method management
+ * (set password / unlink / link Google). Email change, sign-out-everywhere, and delete land in
+ * BI-260060.
  */
-export function AccountSettingsPanel({ onClose }: AccountSettingsPanelProps) {
-  const { account, loading, error } = useAccountInfo()
+export function AccountSettingsPanel({ onClose, googleClientId }: AccountSettingsPanelProps) {
+  const { account, loading, error, refetch } = useAccountInfo()
+  const actions = useAccountActions(refetch)
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose() }
@@ -33,27 +38,26 @@ export function AccountSettingsPanel({ onClose }: AccountSettingsPanelProps) {
         {error && <p role="alert" className="account-settings__status">{error}</p>}
 
         {account && (
-          <dl className="account-settings__list">
-            <div className="account-settings__row">
-              <dt className="account-settings__term">Username</dt>
-              <dd className="account-settings__desc">{account.username}</dd>
-            </div>
-            <div className="account-settings__row">
-              <dt className="account-settings__term">Email</dt>
-              <dd className="account-settings__desc">
-                {account.email}{' '}
-                <span className={account.emailVerified
-                  ? 'account-settings__badge account-settings__badge--verified'
-                  : 'account-settings__badge account-settings__badge--unverified'}>
-                  {account.emailVerified ? 'Verified' : 'Unverified'}
-                </span>
-              </dd>
-            </div>
-            <div className="account-settings__row">
-              <dt className="account-settings__term">Sign-in methods</dt>
-              <dd className="account-settings__desc">{account.authMethods.join(', ') || 'None'}</dd>
-            </div>
-          </dl>
+          <>
+            <dl className="account-settings__list">
+              <div className="account-settings__row">
+                <dt className="account-settings__term">Username</dt>
+                <dd className="account-settings__desc">{account.username}</dd>
+              </div>
+              <div className="account-settings__row">
+                <dt className="account-settings__term">Email</dt>
+                <dd className="account-settings__desc">
+                  {account.email}{' '}
+                  <span className={account.emailVerified
+                    ? 'account-settings__badge account-settings__badge--verified'
+                    : 'account-settings__badge account-settings__badge--unverified'}>
+                    {account.emailVerified ? 'Verified' : 'Unverified'}
+                  </span>
+                </dd>
+              </div>
+            </dl>
+            <AuthMethodsSection account={account} actions={actions} googleClientId={googleClientId} />
+          </>
         )}
       </div>
     </>

@@ -30,7 +30,7 @@ function AppContent({ client, googleClientId }: AppContentProps) {
     return <SignInPage client={client} googleClientId={googleClientId} />
   }
 
-  return <WorkspaceShell />
+  return <WorkspaceShell googleClientId={googleClientId} />
 }
 
 export default function App() {

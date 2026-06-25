@@ -14,7 +14,7 @@ import { networkViewEnabled } from '../feature-flags'
 import { ThemeToggle } from '../styles/ThemeToggle'
 import { C_BORDER, C_OVERLAY } from '../styles/tokens'
 
-export function WorkspaceShell() {
+export function WorkspaceShell({ googleClientId }: { googleClientId?: string }) {
   const logout = useLogout()
   const graphData = useGraphData()
   const search = useSearch(graphData.atoms, graphData.search)
@@ -150,7 +150,7 @@ export function WorkspaceShell() {
           onExpire={() => setCreationSuccessMsg(null)}
         />
       )}
-      {isSettingsOpen && <AccountSettingsPanel onClose={() => setIsSettingsOpen(false)} />}
+      {isSettingsOpen && <AccountSettingsPanel onClose={() => setIsSettingsOpen(false)} googleClientId={googleClientId} />}
     </div>
   )
 }
