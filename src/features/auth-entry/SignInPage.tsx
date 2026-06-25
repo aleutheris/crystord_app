@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import type { FormEvent } from 'react'
 import type { ApolloClient } from '@apollo/client'
 import { SIGN_IN_QUERY } from '../../api-contract/sign-in-query'
@@ -16,6 +16,11 @@ import './sign-in-page.css'
 /** Client-side back-off after a server rate-limit (REQ-CR-260026); the server enforces the real limit. */
 const RATE_LIMIT_BACKOFF_SECONDS = 15
 
+/** Tab order for the Sign In / Sign Up tablist — drives roving focus and ArrowLeft/Right navigation. */
+const AUTH_TABS = ['signin', 'signup'] as const
+type AuthTab = (typeof AUTH_TABS)[number]
+const AUTH_TAB_LABELS: Record<AuthTab, string> = { signin: 'Sign In', signup: 'Sign Up' }
+
 interface SignInPageProps {
   client: ApolloClient
   googleClientId?: string
@@ -31,6 +36,7 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
   const [loading, setLoading] = useState(false)
   const [demoLoading, setDemoLoading] = useState(false)
   const backoff = useBackoff()
+  const tabRefs = useRef<Record<AuthTab, HTMLButtonElement | null>>({ signin: null, signup: null })
 
   function handleSuccess(token: string, demo = false) {
     signIn(token, demo)
@@ -96,6 +102,17 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
     setNotice(null)
   }
 
+  // WAI-ARIA tab pattern: ArrowLeft/Right move (wrapping) between tabs with focus following selection.
+  function handleTabKeyDown(e: React.KeyboardEvent) {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
+    e.preventDefault()
+    const current: AuthTab = isSignUp ? 'signup' : 'signin'
+    const delta = e.key === 'ArrowRight' ? 1 : -1
+    const next = AUTH_TABS[(AUTH_TABS.indexOf(current) + delta + AUTH_TABS.length) % AUTH_TABS.length]!
+    switchMode(next)
+    tabRefs.current[next]?.focus()
+  }
+
   if (mode === 'reset') {
     return (
       <div className="sign-in-page theme-force-light">
@@ -119,18 +136,30 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
       <BrandPanel />
       <div className="sign-in-page__auth">
         <div className="sign-in-page__form-wrap">
-          <div role="tablist" className="sign-in-page__tabs">
-            <button role="tab" aria-selected={!isSignUp} className="sign-in-page__tab" type="button"
-              onClick={() => switchMode('signin')}>
-              Sign In
-            </button>
-            <button role="tab" aria-selected={isSignUp} className="sign-in-page__tab" type="button"
-              onClick={() => switchMode('signup')}>
-              Sign Up
-            </button>
+          <div role="tablist" aria-label="Authentication" className="sign-in-page__tabs"
+            onKeyDown={handleTabKeyDown}>
+            {AUTH_TABS.map((tab) => {
+              const selected = tab === (isSignUp ? 'signup' : 'signin')
+              return (
+                <button
+                  key={tab}
+                  ref={(el) => { tabRefs.current[tab] = el }}
+                  id={`auth-tab-${tab}`}
+                  role="tab"
+                  type="button"
+                  aria-selected={selected}
+                  aria-controls="auth-tabpanel"
+                  tabIndex={selected ? 0 : -1}
+                  className="sign-in-page__tab"
+                  onClick={() => switchMode(tab)}
+                >
+                  {AUTH_TAB_LABELS[tab]}
+                </button>
+              )
+            })}
           </div>
 
-          <div role="tabpanel">
+          <div role="tabpanel" id="auth-tabpanel" aria-labelledby={`auth-tab-${isSignUp ? 'signup' : 'signin'}`}>
             <h2 className="sign-in-page__panel-title">
               {isSignUp ? 'Create Account' : 'Sign In'}
             </h2>

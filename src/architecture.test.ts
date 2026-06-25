@@ -2458,7 +2458,7 @@ describe('Two-column auth + demo layout (BI-260052)', () => {
     expect(src).toContain("'./sign-in-page.css'")
   })
 
-  it('SignInPage uses ARIA tablist pattern for Sign In / Sign Up tabs', () => {
+  it('SignInPage uses the full WAI-ARIA tablist pattern for Sign In / Sign Up tabs (BI-260063)', () => {
     const src = fs.readFileSync(
       path.join(FEATURES, 'auth-entry', 'SignInPage.tsx'), 'utf-8',
     )
@@ -2466,6 +2466,12 @@ describe('Two-column auth + demo layout (BI-260052)', () => {
     expect(src).toContain('role="tab"')
     expect(src).toContain('aria-selected=')
     expect(src).toContain('role="tabpanel"')
+    // Full pattern (matches the dual-view tabs): tab↔panel wiring, roving tabindex, arrow-key nav.
+    expect(src).toContain('aria-controls=')
+    expect(src).toContain('aria-labelledby=')
+    expect(src).toMatch(/tabIndex=\{[^}]*\? 0 : -1\}/)
+    expect(src).toContain('ArrowRight')
+    expect(src).toContain('ArrowLeft')
   })
 
   it('SignInPage renders a divider for alternative sign-in method', () => {

@@ -452,3 +452,75 @@ describe('SignInPage', () => {
     expect(screen.getByLabelText(/username or email/i)).toBeInTheDocument()
   })
 })
+
+describe('SignInPage — WAI-ARIA tab pattern (BI-260063 / REQ-QR-260002)', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+    localStorage.clear()
+  })
+
+  function render_() {
+    return renderSignIn(createMockClient({ data: { signin: 'token' } }))
+  }
+
+  it('wires aria-controls and aria-labelledby between tabs and the panel', () => {
+    render_()
+    const signIn = screen.getByRole('tab', { name: /^sign in$/i })
+    const signUp = screen.getByRole('tab', { name: /^sign up$/i })
+    expect(signIn).toHaveAttribute('id', 'auth-tab-signin')
+    expect(signIn).toHaveAttribute('aria-controls', 'auth-tabpanel')
+    expect(signUp).toHaveAttribute('aria-controls', 'auth-tabpanel')
+    const panel = screen.getByRole('tabpanel')
+    expect(panel).toHaveAttribute('id', 'auth-tabpanel')
+    expect(panel).toHaveAttribute('aria-labelledby', 'auth-tab-signin')
+  })
+
+  it('uses roving tabindex (selected 0, others -1)', () => {
+    render_()
+    expect(screen.getByRole('tab', { name: /^sign in$/i })).toHaveAttribute('tabindex', '0')
+    expect(screen.getByRole('tab', { name: /^sign up$/i })).toHaveAttribute('tabindex', '-1')
+  })
+
+  it('ArrowRight moves selection and focus to the next tab and relabels the panel', async () => {
+    const user = userEvent.setup()
+    render_()
+    screen.getByRole('tab', { name: /^sign in$/i }).focus()
+    await user.keyboard('{ArrowRight}')
+
+    const signUp = screen.getByRole('tab', { name: /^sign up$/i })
+    expect(signUp).toHaveAttribute('aria-selected', 'true')
+    expect(signUp).toHaveFocus()
+    expect(signUp).toHaveAttribute('tabindex', '0')
+    expect(screen.getByRole('tab', { name: /^sign in$/i })).toHaveAttribute('tabindex', '-1')
+    expect(screen.getByRole('heading', { name: /create account/i })).toBeInTheDocument()
+    expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', 'auth-tab-signup')
+  })
+
+  it('ArrowLeft also moves between the two tabs (wrapping)', async () => {
+    const user = userEvent.setup()
+    render_()
+    screen.getByRole('tab', { name: /^sign in$/i }).focus()
+    await user.keyboard('{ArrowLeft}')
+    expect(screen.getByRole('tab', { name: /^sign up$/i })).toHaveAttribute('aria-selected', 'true')
+  })
+
+  it('ArrowRight from the last tab wraps back to the first', async () => {
+    const user = userEvent.setup()
+    render_()
+    await user.click(screen.getByRole('tab', { name: /^sign up$/i }))
+    screen.getByRole('tab', { name: /^sign up$/i }).focus()
+    await user.keyboard('{ArrowRight}')
+    const signIn = screen.getByRole('tab', { name: /^sign in$/i })
+    expect(signIn).toHaveAttribute('aria-selected', 'true')
+    expect(signIn).toHaveFocus()
+  })
+
+  it('ignores non-arrow keys on the tablist', async () => {
+    const user = userEvent.setup()
+    render_()
+    const signIn = screen.getByRole('tab', { name: /^sign in$/i })
+    signIn.focus()
+    await user.keyboard('a')
+    expect(signIn).toHaveAttribute('aria-selected', 'true')
+  })
+})
