@@ -78,7 +78,7 @@ export function SignInPage({ client, googleClientId }: SignInPageProps) {
     try {
       const { data } = await client.query<SignInResponse>({
         query: SIGN_IN_QUERY,
-        variables: { email: 'demo', password: 'demo' },
+        variables: { email: 'demo@demo.invalid', password: 'crystord-demo' },
         fetchPolicy: 'network-only',
       })
       if (!data?.signin) {

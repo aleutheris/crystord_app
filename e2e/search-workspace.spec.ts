@@ -48,7 +48,7 @@ function mockGraphQL(page: import('@playwright/test').Page) {
         body: JSON.stringify({
           data: {
             schemaInfo: {
-              schemaVersion: '8.1.0',
+              schemaVersion: '9.2.0',
               schemaHash: '6e1c4572d4a6d485702dc8a3c46491d51b8fc1fb34c032474f4e54e8a4ba01b8',
               releasedAt: '2026-05-27T00:00:00Z',
             },
@@ -302,7 +302,7 @@ test.describe('Search and discoverability', () => {
           body: JSON.stringify({
             data: {
               schemaInfo: {
-                schemaVersion: '8.1.0',
+                schemaVersion: '9.2.0',
                 schemaHash: '6e1c4572d4a6d485702dc8a3c46491d51b8fc1fb34c032474f4e54e8a4ba01b8',
                 releasedAt: '2026-05-27T00:00:00Z',
               },
@@ -410,7 +410,7 @@ test.describe('Search and discoverability', () => {
           body: JSON.stringify({
             data: {
               schemaInfo: {
-                schemaVersion: '8.1.0',
+                schemaVersion: '9.2.0',
                 schemaHash: '6e1c4572d4a6d485702dc8a3c46491d51b8fc1fb34c032474f4e54e8a4ba01b8',
                 releasedAt: '2026-05-27T00:00:00Z',
               },

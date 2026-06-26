@@ -186,8 +186,8 @@ describe('SignInPage', () => {
 
     expect(client.query).toHaveBeenCalledOnce()
     const firstCall = (client.query as ReturnType<typeof vi.fn>).mock.calls[0] as [{ variables: { email: string; password: string } }]
-    expect(firstCall[0].variables.email).toBe('demo')
-    expect(firstCall[0].variables.password).toBe('demo')
+    expect(firstCall[0].variables.email).toBe('demo@demo.invalid')
+    expect(firstCall[0].variables.password).toBe('crystord-demo')
     expect(localStorage.getItem('crystord-auth-token')).toBeNull()
   })
 

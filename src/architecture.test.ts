@@ -2406,12 +2406,12 @@ describe('Demo mode — "Try a Demo" one-click entry (BI-260050)', () => {
     expect(src).toContain('Try a Demo')
   })
 
-  it('signInAsDemoUser sends hardcoded demo/demo credentials as email param', () => {
+  it('signInAsDemoUser sends hardcoded demo credentials as email param', () => {
     const src = fs.readFileSync(
       path.join(FEATURES, 'auth-entry', 'SignInPage.tsx'), 'utf-8',
     )
-    expect(src).toContain("email: 'demo'")
-    expect(src).toContain("password: 'demo'")
+    expect(src).toContain("email: 'demo@demo.invalid'")
+    expect(src).toContain("password: 'crystord-demo'")
   })
 
   it('signInAsDemoUser calls signIn with demo=true to skip localStorage persistence', () => {

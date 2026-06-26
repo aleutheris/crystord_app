@@ -15,7 +15,7 @@ function mockGraphQL(page: import('@playwright/test').Page) {
           body: JSON.stringify({
             data: {
               schemaInfo: {
-                schemaVersion: '8.1.0',
+                schemaVersion: '9.2.0',
                 schemaHash: '6e1c4572d4a6d485702dc8a3c46491d51b8fc1fb34c032474f4e54e8a4ba01b8',
                 releasedAt: '2026-05-27T00:00:00Z',
               },
@@ -26,7 +26,7 @@ function mockGraphQL(page: import('@playwright/test').Page) {
 
     if (query.includes('signin')) {
       const { email, password } = body.variables ?? {}
-      if (email === 'demo' && password === 'demo') {
+      if (email === 'demo@demo.invalid' && password === 'crystord-demo') {
         return route.fulfill({
           status: 200,
           contentType: 'application/json',
@@ -37,6 +37,16 @@ function mockGraphQL(page: import('@playwright/test').Page) {
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({ data: { signin: null }, errors: [{ message: 'Invalid credentials' }] }),
+      })
+    }
+
+    // Workspace bootstrap (recommended labels). Mocked so the post-sign-in shell
+    // reaches a stable state instead of churning on a failed live request.
+    if (query.includes('listLabels')) {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ data: { listLabels: ['Project', 'Task'] } }),
       })
     }
 

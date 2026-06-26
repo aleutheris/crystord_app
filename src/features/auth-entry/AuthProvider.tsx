@@ -21,19 +21,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = useCallback((newToken: string, demo = false) => {
     if (!demo) persistToken(newToken)
+    // Write the token the Apollo auth link reads SYNCHRONOUSLY, before the state update mounts any
+    // authenticated view. Otherwise WorkspaceShell's first queries can fire before this lands, go out
+    // without an Authorization header, and trigger a spurious re-auth bounce back to sign-in.
+    setAuthToken(newToken)
     setIsDemoSession(demo)
     setToken(newToken)
   }, [])
 
   const signOut = useCallback(() => {
     clearStoredToken()
+    setAuthToken(null)
     setIsDemoSession(false)
     setToken(null)
   }, [])
-
-  useEffect(() => {
-    setAuthToken(token)
-  }, [token])
 
   useEffect(() => {
     onSessionExpired(signOut)

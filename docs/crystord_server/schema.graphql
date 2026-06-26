@@ -26,6 +26,9 @@ type Query {
     # dimension (atoms across it + its root values) — exactly one of valueKey/dimensionKey required.
     # Atoms and child counts are access-scoped (never reveal atoms outside the caller's scope).
     retrieveCategoryBrowse(valueKey: String, dimensionKey: String, limit: Int, offset: Int, childLimit: Int, childOffset: Int): CategoryBrowseOutput!
+    # Taxonomy grant inspection (BI-260081) — owner-only.
+    listCategoryDimensionGrants(key: String!): [CategoryGrantOutput!]!
+    listCategoryValueGrants(key: String!): [CategoryGrantOutput!]!
 }
 
 # Access-control enums (ADR-260043). AccessLevel is what can be GRANTED (never OWNER);
@@ -122,6 +125,14 @@ type Mutation {
     disconnectCategoryValues(valueKey: String!, parentValueKeys: [String!], childValueKeys: [String!]): CategoryValueOutput!
     deleteCategoryDimension(key: String!): Boolean!
     deleteCategoryValue(key: String!): Boolean!
+    # Taxonomy sharing / transfer (BI-260081), mirroring the atom surface. Principal is a username
+    # (USER) or workspace key (WORKSPACE); all owner-only.
+    shareCategoryDimension(key: String!, principal: String!, principalType: PrincipalType!, level: AccessLevel!): Boolean!
+    shareCategoryValue(key: String!, principal: String!, principalType: PrincipalType!, level: AccessLevel!): Boolean!
+    revokeCategoryDimensionAccess(key: String!, principal: String!, principalType: PrincipalType!): Boolean!
+    revokeCategoryValueAccess(key: String!, principal: String!, principalType: PrincipalType!): Boolean!
+    transferCategoryDimensionOwnership(key: String!, toUsername: String!): Boolean!
+    transferCategoryValueOwnership(key: String!, toUsername: String!): Boolean!
 }
 
 type DestroyOutcome {
@@ -288,6 +299,9 @@ type CategoryDimensionOutput {
     description: String
     # The dimension's parent(s) in the schema. ≤1 now (single-parent tree); list shape is DAG-ready.
     parentDimensionKeys: [String!]!
+    # Ownership/access (ADR-260050, BI-260081): the owner's handle and the caller's effective level.
+    ownerUsername: String!
+    accessLevel: EffectiveAccessLevel!
     createdAt: String!
     updatedAt: String!
 }
@@ -300,8 +314,20 @@ type CategoryValueOutput {
     dimensionKey: String!
     # The value's parent(s) in the containment hierarchy. ≤1 now (single-parent tree); DAG-ready.
     parentValueKeys: [String!]!
+    ownerUsername: String!
+    accessLevel: EffectiveAccessLevel!
     createdAt: String!
     updatedAt: String!
+}
+
+# A grant on a taxonomy node (ADR-260050, BI-260081) — mirrors AtomGrantOutput.
+type CategoryGrantOutput {
+    principalUuid: ID!
+    principalType: PrincipalType!
+    principalName: String!
+    level: AccessLevel!
+    grantedAt: String!
+    grantedBy: ID!
 }
 
 # Boolean selectors are positive filters only: `true` narrows to matching nodes; `false` (and
