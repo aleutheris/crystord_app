@@ -5,8 +5,9 @@
   <title>Crystord</title>
   <script>
     // Redirect SPA routes to index.html, preserving the path as a query param.
-    // pathSegmentsToKeep=1 keeps the repo name segment (/crystord_app/).
-    var pathSegmentsToKeep = 1;
+    // pathSegmentsToKeep=0 because the app is served at the domain root
+    // (app.crystord.com/), not under a repo sub-path.
+    var pathSegmentsToKeep = 0;
     var l = window.location;
     l.replace(
       l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
