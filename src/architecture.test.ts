@@ -951,21 +951,21 @@ describe('Wrapper boundaries and contract coverage (J5 / REQ-CR-260010)', () => 
 // --- BI-260019: Branding governance operationalization ---
 
 describe('Branding source-of-truth (ADR-260022)', () => {
-  it('branding policy file exists at .github/project/branding.md', () => {
+  it('branding policy file exists at docs/governance/project/branding.md', () => {
     expect(
-      fs.existsSync(path.join(ROOT, '.github', 'project', 'branding.md')),
+      fs.existsSync(path.join(ROOT, 'docs', 'governance', 'project', 'branding.md')),
     ).toBe(true)
   })
 
   it('branding ADR exists at ADR-260022.md', () => {
     expect(
-      fs.existsSync(path.join(ROOT, '.github', 'project', 'evolution', 'adr', 'ADR-260022.md')),
+      fs.existsSync(path.join(ROOT, 'docs', 'governance', 'project', 'evolution', 'adr', 'ADR-260022.md')),
     ).toBe(true)
   })
 
   it('branding requirement exists at REQ-CR-260011.md', () => {
     expect(
-      fs.existsSync(path.join(ROOT, '.github', 'project', 'evolution', 'requirements', 'REQ-CR-260011.md')),
+      fs.existsSync(path.join(ROOT, 'docs', 'governance', 'project', 'evolution', 'requirements', 'REQ-CR-260011.md')),
     ).toBe(true)
   })
 })
@@ -975,7 +975,7 @@ describe('Project instructions include branding governance (REQ-CR-260011)', () 
 
   beforeAll(() => {
     instructions = fs.readFileSync(
-      path.join(ROOT, '.github', 'project', 'project-instructions.md'), 'utf-8',
+      path.join(ROOT, 'docs', 'governance', 'project', 'project-instructions.md'), 'utf-8',
     )
   })
 
@@ -991,7 +991,7 @@ describe('Project instructions include branding governance (REQ-CR-260011)', () 
 
   it('loading matrix includes branding.md as always-on', () => {
     // branding.md should appear in the always-on section
-    const alwaysOnMatch = instructions.match(/Always-on:[\s\S]*?(?=Usually|$)/i)
+    const alwaysOnMatch = instructions.match(/Always-on[^:]*:[\s\S]*?(?=Usually|$)/i)
     expect(alwaysOnMatch).not.toBeNull()
     expect(alwaysOnMatch![0]).toContain('branding.md')
   })
@@ -1000,14 +1000,14 @@ describe('Project instructions include branding governance (REQ-CR-260011)', () 
 describe('Governance traceability (BI-260019 / ADR-260022 / REQ-CR-260011)', () => {
   it('ADR-260022 references REQ-CR-260011', () => {
     const adr = fs.readFileSync(
-      path.join(ROOT, '.github', 'project', 'evolution', 'adr', 'ADR-260022.md'), 'utf-8',
+      path.join(ROOT, 'docs', 'governance', 'project', 'evolution', 'adr', 'ADR-260022.md'), 'utf-8',
     )
     expect(adr).toContain('REQ-CR-260011')
   })
 
   it('REQ-CR-260011 references ADR-260022 and BI-260019', () => {
     const req = fs.readFileSync(
-      path.join(ROOT, '.github', 'project', 'evolution', 'requirements', 'REQ-CR-260011.md'), 'utf-8',
+      path.join(ROOT, 'docs', 'governance', 'project', 'evolution', 'requirements', 'REQ-CR-260011.md'), 'utf-8',
     )
     expect(req).toContain('ADR-260022')
     expect(req).toContain('BI-260019')
@@ -1015,7 +1015,7 @@ describe('Governance traceability (BI-260019 / ADR-260022 / REQ-CR-260011)', () 
 
   it('BI-260019 references ADR-260022, REQ-CR-260011, and branding.md', () => {
     const bi = fs.readFileSync(
-      path.join(ROOT, '.github', 'project', 'evolution', 'backlog-items', 'BI-260019.md'), 'utf-8',
+      path.join(ROOT, 'docs', 'governance', 'project', 'evolution', 'epics', 'BI-260019.md'), 'utf-8',
     )
     expect(bi).toContain('ADR-260022')
     expect(bi).toContain('REQ-CR-260011')
@@ -1077,7 +1077,7 @@ describe('Branding policy content completeness', () => {
 
   beforeAll(() => {
     branding = fs.readFileSync(
-      path.join(ROOT, '.github', 'project', 'branding.md'), 'utf-8',
+      path.join(ROOT, 'docs', 'governance', 'project', 'branding.md'), 'utf-8',
     )
   })
 
