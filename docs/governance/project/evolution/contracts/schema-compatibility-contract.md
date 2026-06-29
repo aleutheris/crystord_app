@@ -1,83 +1,66 @@
-# Contract: `schema-compatibility-contract` — Frontend/Backend GraphQL Schema Compatibility
+# Schema Compatibility Contract
 
-A boundary contract — the standing agreement at the GraphQL schema interface between the backend
-and this frontend. Changes to it require an ICR (`framework.md` §3). Status values: see
-`docs/governance/generic/process/artifact-model.md`.
+Status: Active
+Owner: Engineering + Frontend
+Last Updated: 2026-04-13
 
-- Contract file: `schema-compatibility-contract.md`
-- Status: Active
-- Type: database schema (GraphQL schema contract)
-- Owner: Engineering + Frontend
+## Purpose
 
-## Interface Governed
+Define the canonical backend-to-frontend schema compatibility handshake for GraphQL consumers.
 
-The GraphQL schema served by the backend, discovered at runtime via `Query.schemaInfo`. The
-contract governs how the frontend validates compatibility with the live backend schema before
-normal API use.
+## Canonical Discovery Query
 
-## Provider and Consumers
+Backend exposes:
 
-- Provider: backend GraphQL service (`crystord_server`, `schema.graphql`).
-- Consumers: this frontend (`crystord_app`) — startup compatibility handshake and all API operations.
+- `Query.schemaInfo`
 
-## Contract Definition
+Expected fields:
 
-### Canonical discovery query
+- `schemaVersion` (string, semantic version)
+- `schemaHash` (string, deterministic hash of canonical schema representation)
+- `releasedAt` (RFC3339 timestamp string)
 
-- `Query.schemaInfo`. Authoritative fields:
-  - `schemaVersion` (semver string) — authoritative for compatibility policy.
-  - `schemaHash` (deterministic hash) — diagnostic/integrity metadata, not policy authority.
-  - `releasedAt` (RFC3339 timestamp).
+## Compatibility Rules
 
-### Frontend startup handshake
+- `schemaVersion` is authoritative for compatibility policy.
+- `schemaHash` is diagnostic/integrity metadata, not policy authority.
+- Frontend release must declare supported schema semver range.
+- Frontend startup must query `schemaInfo` before normal API calls.
 
-1. Execute the `schemaInfo` query once at startup, before normal API usage.
-2. Parse `schemaVersion` and validate it against the frontend-supported semver range.
-3. If compatible, continue normal startup.
-4. If incompatible, fail fast with a deterministic compatibility error state: block graph
-   workspace operations and present recovery guidance.
-5. Log diagnostics including `schemaVersion`, `schemaHash`, and the frontend build identifier.
+## Schema Versioning Policy
 
-### Error handling
+- The backend serves one live GraphQL schema per deployment, not multiple schema versions side-by-side.
+- `schemaVersion` versions the public contract of that one live schema over time.
+- `PATCH` version bumps are for non-breaking corrections that do not require frontend contract changes.
+- `MINOR` version bumps are for backward-compatible additions such as new optional fields, queries, or mutations.
+- `MAJOR` version bumps are for breaking contract changes such as removals, incompatible type changes, or newly required inputs.
+- Any committed change to `crystord_server/schema.graphql` must be accompanied by a deliberate review of `schemaVersion`.
+- Repository tests enforce that a changed schema file cannot keep the same recorded schema version baseline accidentally.
 
-- A missing `schemaInfo` field is treated as an incompatible backend contract.
-- Invalid semver in `schemaVersion` is treated as an incompatible backend contract.
+## Frontend Startup Validation Behavior
+
+1. Execute `schemaInfo` query.
+2. Parse `schemaVersion`.
+3. Validate against frontend-supported semver range.
+4. If compatible, continue normal startup.
+5. If incompatible, fail fast with deterministic compatibility error state.
+6. Log diagnostics including `schemaVersion`, `schemaHash`, and frontend build identifier.
+
+## Error-Handling Contract
+
+- Missing `schemaInfo` field is treated as incompatible backend contract.
+- Invalid semver in `schemaVersion` is treated as incompatible backend contract.
 - Network/authorization failures in `schemaInfo` are startup blockers with explicit diagnostics.
 
-## Compatibility and Versioning
+## Deprecation Policy Link
 
-- The backend serves one live GraphQL schema per deployment, not multiple schema versions
-  side-by-side. `schemaVersion` versions the public contract of that one live schema over time.
-- `PATCH`: non-breaking corrections that do not require frontend contract changes.
-- `MINOR`: backward-compatible additions (new optional fields, queries, or mutations).
-- `MAJOR`: breaking contract changes (removals, incompatible type changes, newly required inputs).
-- Backward-compatible changes are the default; breaking changes require explicit approval through
-  the ICR workflow. Deprecations remain compatible for at least one release cycle after
-  announcement (tracked in `deprecation-log.md`).
-- Any committed change to `crystord_server/schema.graphql` must be accompanied by a deliberate
-  review of `schemaVersion`. Repository tests enforce that a changed schema cannot silently keep
-  the same recorded baseline version.
+Deprecation and removal governance is defined by:
 
-### Current pinned range
+- `REQ-CR-260050` (Deprecation Signaling and Sunset Constraint)
+- `ADR-260013` (GraphQL Schema Compatibility and Deprecation Signaling)
 
-- `public/config.json` / `deploy_config.json` `backendSchemaRange`: **`~9.2.0`** — auto-adopt
-  `9.2.x` patches; a higher minor or major requires a new ICR.
+## Verification Artifacts
 
-> **ICR status.** `ICR-260001` authorized `8.1.0`; **`ICR-260002` (Implemented, approved 2026-06-29)**
-> ratifies the move to `~9.2.0` (shipped in commit `af96479`). The 8.1.0 → 9.2.0 schema delta was
-> reviewed and is **additive-only** (new `Category*` taxonomy grant/share/transfer ops and ownership
-> fields), entirely outside this frontend's used surface, so no operation the frontend consumes changed.
-
-## Verification
-
-- Contract/integration tests for `schemaInfo` field shape and required-field presence.
+- Contract tests for `schemaInfo` field shape and required field presence.
 - Integration tests for startup compatibility success/failure behavior.
-- Release-review checklist entry confirming the deprecation path and sunset timeline for breaking changes.
-
-## Traceability
-
-- Related requirements: REQ-OR-260002, REQ-OR-260016, REQ-OR-260017.
-- Related ADRs: ADR-260013 (schema compatibility & deprecation governance), ADR-260054 (adopt schema 8.1.0).
-- Change requests (ICRs): ICR-260001 (adopt 8.1.0, Implemented); ICR-260002 (adopt 9.2.0, Implemented).
-- Related epics (frozen): BI-260010, BI-260054.
-- Companion record: `deprecation-log.md`.
+- Release review checklist entry confirming deprecation path and sunset timeline for breaking changes.

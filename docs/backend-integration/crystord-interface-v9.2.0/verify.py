@@ -136,7 +136,7 @@ def _verify_required_public_files(bundle_root: Path) -> None:
     required = [
         Path("crystord_server/schema.graphql"),
         Path("docs/user-guide.md"),
-        Path(".github/project/evolution/contracts/schema-compatibility-contract.md"),
+        Path("docs/governance/project/evolution/contracts/schema-compatibility-contract.md"),
     ]
     missing = [path for path in required if not (bundle_root / path).exists()]
     if missing:

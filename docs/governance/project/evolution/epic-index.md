@@ -13,7 +13,16 @@ epic; full detail lives in the epic records under `epics/`. Status and lifecycle
 
 | Priority | ID | Title | Status | Record | Related | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| _(none yet — new `EPIC-YYNNNN` work is added here)_ |  |  |  |  |  |  |
+| 1 | EPIC-260066 | Foundation — App Shell, Slot Registries & Shared Widgets | Ideation | epics/EPIC-260066.md | REQ-FR-260020, REQ-FR-260021, REQ-FR-260034, ADR-260032, REQ-CR-260010, REQ-CR-260011 | Root; all leaves depend on it. Self-contains the product-backlog strategy (substrate vision, five verbs, Q1–Q3, standing constraints). |
+| 2 | EPIC-260067 | Classify Inspector — label & category chip editors | Ideation | epics/EPIC-260067.md | REQ-CR-260011 | bet #1; Inspector "Classify" tab; depends on EPIC-260066. |
+| 3 | EPIC-260068 | Categories Navigator — left-rail faceted tree | Ideation | epics/EPIC-260068.md | — | bet #2; Q2 inline taxonomy + permission seam; depends on EPIC-260066. |
+| 4 | EPIC-260069 | Compute — formula builder & Flow visualization | Ideation | epics/EPIC-260069.md | REQ-CR-260010 | bet #4; Q3 differentiator; no charts (potential future ICR on REQ-CR-260010); depends on EPIC-260066. |
+| 5 | EPIC-260070 | Account & Settings — avatar menu & settings surface | Ideation | epics/EPIC-260070.md | — | bet #7; hosts the Q3 emphasis switch; depends on EPIC-260066. |
+| 6 | EPIC-260071 | Table View — spreadsheet-style center view | Ideation | epics/EPIC-260071.md | ADR-260032 | bet #3; Q1 strong-second to graph-home; depends on EPIC-260066. |
+| 7 | EPIC-260072 | Node Visual Design — LOD & Blender-style blocks | Ideation | epics/EPIC-260072.md | REQ-CR-260011 | bet #5; uses the EPIC-260066 node-extension seam; granularity (split?) is an ideation bullet. |
+| 8 | EPIC-260073 | History Inspector tab — field-level change audit | Ideation | epics/EPIC-260073.md | — | bet #6; async audit (`shellies.changes`); depends on EPIC-260066. |
+| 9 | EPIC-260074 | Share Inspector tab — atom-level access grants | Ideation | epics/EPIC-260074.md | REQ-FR-260069 | bet #6; async sharing; future taxonomy-permission reuse (Q2); depends on EPIC-260066. |
+| 10 | EPIC-260075 | Board View — kanban bulk classify by dimension | Ideation | epics/EPIC-260075.md | — | §3; most deferrable leaf; depends on EPIC-260066. |
 
 ## Frozen legacy planning records (BI-*, governance v1)
 

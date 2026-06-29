@@ -1,8 +1,8 @@
 # Crystord User Guide
 
-> **Schema version: `8.1.0`.** This guide matches the live GraphQL schema exactly
-> (`crystord_server/schema.graphql`). Always confirm the version your deployment serves with the
-> `schemaInfo` query before relying on a contract detail.
+> **Schema version: `9.2.0`** (released 2026-06-25). This guide matches the live GraphQL schema
+> exactly (`crystord_server/schema.graphql`). Always confirm the version your deployment serves with
+> the `schemaInfo` query before relying on a contract detail.
 
 ## What Crystord Is
 
@@ -214,13 +214,16 @@ Every operation is authorized centrally. There are two outcomes a client must ha
 | `listAtomGrants` | Query | Auth | List access grants on an atom |
 | `createWorkspace` … `updateWorkspaceMemberRole` | Query/Mutation | Auth | Workspaces and membership |
 | `createCategoryDimension` / `createCategoryValue` … | Mutation | Auth | Manage the category taxonomy |
-| `retrieveCategoryDimensions` / `retrieveCategoryValues` / `retrieveCategoryBrowse` | Query | Auth | Read/browse the taxonomy |
+| `retrieveCategoryDimensions` / `retrieveCategoryValues` / `retrieveCategoryBrowse` | Query | Auth | Read/browse the taxonomy (access-scoped) |
+| `shareCategoryDimension` / `shareCategoryValue` / `revoke…Access` | Mutation | Auth | Grant/revoke access to a taxonomy node (owner-only) |
+| `transferCategoryDimensionOwnership` / `transferCategoryValueOwnership` | Mutation | Auth | Hand a taxonomy node to another user (owner-only) |
+| `listCategoryDimensionGrants` / `listCategoryValueGrants` | Query | Auth | List access grants on a taxonomy node (owner-only) |
 
 > Important: `change` is the main write operation. It is used both to **create** and to **update** data.
 
 ### Public GraphQL Contract (Complete)
 
-This section is the complete user-facing contract for schema `8.1.0`. Every operation that requires
+This section is the complete user-facing contract for schema `9.2.0`. Every operation that requires
 a token is marked **Auth required**; everything else is public.
 
 #### Queries
@@ -255,13 +258,18 @@ a token is marked **Auth required**; everything else is public.
 - `listAtomsSharedToWorkspace(workspaceUuid: ID!): [ID!]!`
   - Auth required.
 - `retrieveCategoryDimensions(selector: CategoryDimensionSelector): [CategoryDimensionOutput!]!`
-  - Auth required. `selector` optional; omit to return all dimensions.
+  - Auth required. `selector` optional; omit to return all dimensions. **Access-scoped:** returns only
+    taxonomy the caller owns or has been granted access to.
 - `retrieveCategoryValues(selector: CategoryValueSelector): [CategoryValueOutput!]!`
-  - Auth required. `selector` optional; omit to return all values.
+  - Auth required. `selector` optional; omit to return all values. **Access-scoped** (as above).
 - `retrieveCategoryBrowse(valueKey: String, dimensionKey: String, limit: Int, offset: Int, childLimit: Int, childOffset: Int): CategoryBrowseOutput!`
   - Auth required. Provide **exactly one** of `valueKey` or `dimensionKey`. Drill-down browse:
     returns the focus value (if any), its immediate children with access-scoped atom counts, and the
     atoms under the focus. See [Categories](#categories-dimensions--values-1).
+- `listCategoryDimensionGrants(key: String!): [CategoryGrantOutput!]!`
+  - Auth required. Owner-only. Lists the direct access grants on a category dimension.
+- `listCategoryValueGrants(key: String!): [CategoryGrantOutput!]!`
+  - Auth required. Owner-only. Lists the direct access grants on a category value.
 
 #### Mutations — Authentication & Account
 
@@ -362,6 +370,21 @@ a token is marked **Auth required**; everything else is public.
     schema (`CAT-VALUE-PARENT-DIMENSION-MISMATCH`). Deletion is guarded
     (`CAT-DIMENSION-HAS-VALUES`/`-HAS-CHILDREN`, `CAT-VALUE-REFERENCED`/`-HAS-CHILDREN`).
 
+#### Mutations — Taxonomy Access, Ownership & Sharing
+
+These mirror the atom sharing surface (see [Access, Ownership & Sharing](#access-ownership--sharing)).
+The `principal` is a **username** (`USER`) or **workspace key** (`WORKSPACE`); an unknown principal →
+`CR-16-PRINCIPAL-UNKNOWN`. All are **owner-only**.
+
+- `shareCategoryDimension(key: String!, principal: String!, principalType: PrincipalType!, level: AccessLevel!): Boolean!`
+- `shareCategoryValue(key: String!, principal: String!, principalType: PrincipalType!, level: AccessLevel!): Boolean!`
+  - `principalType` is `USER` or `WORKSPACE`; `level` is `EDITOR` or `VIEWER`.
+- `revokeCategoryDimensionAccess(key: String!, principal: String!, principalType: PrincipalType!): Boolean!`
+- `revokeCategoryValueAccess(key: String!, principal: String!, principalType: PrincipalType!): Boolean!`
+- `transferCategoryDimensionOwnership(key: String!, toUsername: String!): Boolean!`
+- `transferCategoryValueOwnership(key: String!, toUsername: String!): Boolean!`
+  - Atomic single-owner handoff of the taxonomy node.
+
 #### Input Types (Current)
 
 - `AtomInput`
@@ -423,6 +446,21 @@ a token is marked **Auth required**; everything else is public.
 
 - `uuid`, `name`, `direction`
 - `required` (nullable; present for relationship types that carry required/optional semantics)
+
+#### Category Output Fields (Current)
+
+`CategoryDimensionOutput` and `CategoryValueOutput` both expose:
+
+- `uuid`, `key`, `displayName`, `description`, `createdAt`, `updatedAt`
+- `ownerUsername: String!` — the owner's handle.
+- `accessLevel: EffectiveAccessLevel!` — the caller's effective level (`OWNER`/`EDITOR`/`VIEWER`).
+- `CategoryDimensionOutput` also: `parentDimensionKeys: [String!]!`.
+- `CategoryValueOutput` also: `dimensionKey: String!`, `parentValueKeys: [String!]!`.
+
+`CategoryGrantOutput` (returned by `listCategoryDimensionGrants` / `listCategoryValueGrants`) exposes:
+
+- `principalUuid: ID!`, `principalType: PrincipalType!`, `principalName: String!`
+- `level: AccessLevel!`, `grantedAt: String!`, `grantedBy: ID!`
 
 #### Behavior and Constraints (Current)
 
@@ -962,10 +1000,11 @@ mutation {
   }])
 }
 
-# 4. Read the taxonomy
+# 4. Read the taxonomy (access-scoped: only taxonomy you own or were granted)
 query {
   retrieveCategoryValues(selector: { dimensionKey: "brand" }) {
     uuid key displayName dimensionKey parentValueKeys
+    ownerUsername accessLevel
   }
 }
 
@@ -990,6 +1029,35 @@ query {
 - Deletion is guarded: `CAT-DIMENSION-HAS-VALUES` / `CAT-DIMENSION-HAS-CHILDREN`,
   `CAT-VALUE-REFERENCED` / `CAT-VALUE-HAS-CHILDREN`.
 - Pagination defaults to `limit=25`, `max limit=100`; over-limit → `OR-QUERY-LIMIT-EXCEEDED`.
+
+**Ownership and access (taxonomy is access-scoped):**
+- Every dimension and value has an **owner**, and reads are access-aware. `retrieveCategoryDimensions`,
+  `retrieveCategoryValues`, and `retrieveCategoryBrowse` return only taxonomy the caller owns or has
+  been granted access to. Each output carries `ownerUsername` and the caller's `accessLevel`.
+- **Hide-on-read for atom assignments:** an `AtomOutput.categories` entry, and the
+  `retrieve(categories: …)` filter, omit assignments to taxonomy the caller cannot read; categorizing
+  an atom (and filtering by category) is likewise limited to readable taxonomy.
+- Share, revoke, transfer, and inspect grants on a node with `shareCategoryDimension` /
+  `shareCategoryValue`, `revokeCategoryDimensionAccess` / `revokeCategoryValueAccess`,
+  `transferCategoryDimensionOwnership` / `transferCategoryValueOwnership`, and
+  `listCategoryDimensionGrants` / `listCategoryValueGrants` (all owner-only) — mirroring the atom
+  sharing surface. Example:
+
+```graphql
+# Share the "brand" dimension with a teammate as a viewer
+mutation {
+  shareCategoryDimension(
+    key: "brand"
+    principal: "demo.user"
+    principalType: USER
+    level: VIEWER
+  )
+}
+
+# List who has access to a value, then hand it off
+query  { listCategoryValueGrants(key: "mercedes") { principalName principalType level } }
+mutation { transferCategoryValueOwnership(key: "mercedes", toUsername: "other.user") }
+```
 
 ---
 
