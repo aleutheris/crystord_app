@@ -22,7 +22,6 @@ Status lifecycle used here: Proposed | Accepted | Superseded.
 | ADR-260023 | Blank-First Workspace Entry Supersedes Bootstrap Search on Load | Accepted | 2026-05-08 | ADR-260014 (C1 only) | - | Replaces implicit preload entry with explicit search activation model. |
 | ADR-260027 | Always-Fresh Search Fetching and Auto-Chip on Enter | Accepted | 2026-05-11 | - | - | Guarantees fresh backend fetch on every search and auto-converts incomplete text to chip on Enter. |
 | ADR-260028 | Dual Graph View Scope and UX Baseline | Accepted | 2026-05-12 | - | - | Defines Network/Flow view model, Network-first default, shared dataset rendering, and shell-preserving scope boundary. |
-| ADR-260029 | Network View Circle Node and Connector Interaction Baseline | Superseded | 2026-05-12 | - | ADR-260036 | Defines circle nodes, visible connector handles, and nearest-edge anchoring for Network view relationships. |
 | ADR-260030 | Dual-View Shared State and Large-Graph Degrade Behavior Baseline | Accepted | 2026-05-12 | - | - | Defines shared dataset/selection state, centralized mutation reflection, and large-result degrade thresholds. |
 | ADR-260031 | Dual-View Accessibility and Usability Baseline | Accepted | 2026-05-12 | - | - | Defines keyboard navigation, ARIA tab semantics, focus visibility, non-color state cues, and legend/tooltip guidance. |
 | ADR-260032 | Dual-View Delivery, Validation, and Rollout Baseline | Accepted | 2026-05-12 | - | - | Defines required test layers, performance targets, and feature-flag rollout/rollback policy. |
@@ -37,7 +36,6 @@ Status lifecycle used here: Proposed | Accepted | Superseded.
 | ADR-260046 | Explicit Atom Creation via Modal Sidebar | Accepted | 2026-06-05 | - | - | Replaces implicit double-click creation with a dedicated Create Atom button and modal DetailPanel creation mode. |
 | ADR-260047 | CSS Custom Property Token System and Dark Mode | Accepted | 2026-06-06 | - | - | Centralizes brand colors as CSS custom properties with light/dark theming, typed JS constants, ThemeProvider context, and ESLint hex-color guard. |
 | ADR-260048 | Token-Based Authentication and Session Management | Accepted | 2026-06-08 | - | ADR-260050 | Formalizes JWT auth with email/password, Google Sign-In, localStorage persistence, pub/sub 401 auto-signout, and env-var gateway for Google Client ID. |
-| ADR-260049 | Add Username/Password Authentication | Superseded | 2026-06-08 | - | ADR-260050 | Extends sign-in form to accept username or email via type="text" input; sends identifier as email param to backend as temporary compatibility shim. |
 | ADR-260050 | Consolidated Authentication Strategy | Accepted | 2026-06-08 | ADR-260014, ADR-260048, ADR-260049 | ADR-260055, ADR-260056 (signup/session evolution) | Unifies credential (username/email + password), Google Sign-In, and one-click demo mode into a single SignInPage; isDemoSession flag prevents demo token from persisting to localStorage. Sign-up and token-permanence aspects evolved by the schema-8.1.0 Auth & Authz epic. |
 | ADR-260051 | UI Primitives Template Library Scaffold | Accepted | 2026-06-09 | - | - | Introduces `src/ui-primitives/` as a shared template library with typed prop contracts, barrel exports, path aliases, and a dependency rule preventing primitives from importing feature modules. |
 | ADR-260052 | Platform Token Handoff via URL Parameter | Accepted | 2026-06-10 | - | - | On redirect from crystord.com, the app reads ?token= from the URL, signs the user in, and immediately strips the parameter via history.replaceState. |
@@ -49,3 +47,13 @@ Status lifecycle used here: Proposed | Accepted | Superseded.
 | ADR-260058 | Account-Management Surface, Google Re-Linking, and Password Reset | Accepted | 2026-06-23 | - | - | Password reset in S1; AUTH-GOOGLE-NOT-LINKED recovery; new account-settings module (replaces AdminPlaceholder) hosting me/setPassword/unlink/linkGoogle/email-change/revokeAllSessions/delete. |
 | ADR-260059 | Read-Side Authorization via Atom Access Level | Accepted | 2026-06-23 | - | - | Gates edit/delete/bond affordances on AtomOutput.accessLevel (OWNER/EDITOR/VIEWER); handles AU-UNAUTHORIZED and CR-16-PRINCIPAL-UNKNOWN; sharing-write out of scope. |
 | ADR-260060 | Coverage Is Measured, Not Gated | Accepted | 2026-06-24 | - | - | Adds @vitest/coverage-v8 + npm run test:coverage (measure-only); no enforced threshold; new auth/authz modules held to 100% line+branch by review per REQ-QR-260008. |
+
+## Superseded
+
+Terminal ADRs. Their record files live under `adr/superseded/`; retained for audit per
+`docs/governance/generic/process/artifact-model.md`.
+
+| ADR ID | Title | Status | Date | Supersedes | Superseded By | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| ADR-260029 | Network View Circle Node and Connector Interaction Baseline | Superseded | 2026-05-12 | - | ADR-260036 | Defines circle nodes, visible connector handles, and nearest-edge anchoring for Network view relationships. |
+| ADR-260049 | Add Username/Password Authentication | Superseded | 2026-06-08 | - | ADR-260050 | Extends sign-in form to accept username or email via type="text" input; sends identifier as email param to backend as temporary compatibility shim. |

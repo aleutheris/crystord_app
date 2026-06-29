@@ -13,7 +13,6 @@ A terminal requirement (`Superseded by <id>` / `Withdrawn`) keeps a tombstone ro
 | REQ-FR-260004 | Label Search and Graph Inspection Experience | FR | Active | ADR-260002 | BI-260002 |
 | REQ-FR-260005 | Backend Contract for Essential Atom and Bond Operations | FR | Active | ADR-260003 | BI-260003 |
 | REQ-FR-260006 | Read-Only Label Querying and Metadata Inspection | FR | Active | ADR-260003 | BI-260003 |
-| REQ-FR-260007 | Graph-First Interaction with Search Bootstrap | FR | Superseded by REQ-FR-260022 | ADR-260014 | BI-260011, BI-260020 |
 | REQ-FR-260008 | Full Workspace Navigation and Side-Panel Editing | FR | Active | ADR-260014 | BI-260011 |
 | REQ-FR-260009 | Canvas Visualization Modes and In-Workspace View Switching | FR | Active | ADR-260015 | BI-260012 |
 | REQ-FR-260010 | Direct-Manipulation Primitives and Canvas-First Creation | FR | Active | ADR-260015 | BI-260012 |
@@ -37,7 +36,6 @@ A terminal requirement (`Superseded by <id>` / `Withdrawn`) keeps a tombstone ro
 | REQ-FR-260028 | Auto-Chip Incomplete Text on Enter | FR | Active | ADR-260027 | BI-260027 |
 | REQ-FR-260029 | Always-Fresh Backend Query on Every Search Submission | FR | Active | ADR-260027 | BI-260028 |
 | REQ-FR-260030 | Dual Graph Views with Network-First Default and Shared Search Dataset | FR | Active | ADR-260028 | BI-260029 |
-| REQ-FR-260031 | Network View Circle Nodes and Connector-Based Edge Creation | FR | Superseded by REQ-FR-260038 | ADR-260029 | BI-260030 |
 | REQ-FR-260032 | Dual-View Shared Dataset and Cross-View Selection Consistency | FR | Active | ADR-260030 | BI-260031 |
 | REQ-FR-260033 | Keyboard and Discoverability Support for Dual Graph Views | FR | Active | ADR-260031 | BI-260032 |
 | REQ-FR-260034 | Dual-View Validation Coverage Must Include Unit, Integration, and E2E Paths | FR | Active | ADR-260032 | BI-260033 |
@@ -50,7 +48,6 @@ A terminal requirement (`Superseded by <id>` / `Withdrawn`) keeps a tombstone ro
 | REQ-FR-260041 | Network View Drag-Time Target Snap Must Use Nearest-Boundary Geometry | FR | Active | ADR-260038, ADR-260033 | BI-260041 |
 | REQ-FR-260042 | Network View Selected-State Must Not Force Outer Initiation Ring Visibility | FR | Active | ADR-260038 | BI-260041 |
 | REQ-FR-260043 | Bond-Name Dialog Keyboard Input Must Not Trigger Canvas Deletion Flows | FR | Active | ADR-260015, ADR-260031 | BI-260042 |
-| REQ-FR-260044 | Flow View Directional Projection and Eligible-Bond Inclusion | FR | Superseded by REQ-FR-260047 | ADR-260039, ADR-260040 | BI-260044, BI-260045 |
 | REQ-FR-260045 | Flow View Relayout Control and State Preservation | FR | Active | ADR-260039 | BI-260044 |
 | REQ-FR-260046 | Flow View Edge and Handle Visual Grammar | FR | Active | ADR-260039 | BI-260044 |
 | REQ-FR-260047 | Flow View Projection Mode Toggle and Non-Flow Atom Inclusion | FR | Active | ADR-260040 | BI-260045 |
@@ -71,7 +68,6 @@ A terminal requirement (`Superseded by <id>` / `Withdrawn`) keeps a tombstone ro
 | REQ-OR-260010 | Dual-View Mutation Reflection Must Be Centralized in Shared Graph State | OR | Active | ADR-260030 | BI-260031 |
 | REQ-OR-260011 | Dual-View Rollout Must Be Feature-Flag Controlled with Immediate Fallback | OR | Active | ADR-260032 | BI-260033 |
 | REQ-OR-260012 | Authentication Must Use JWTs Stored in localStorage | OR | Active | ADR-260048 | BI-260048 |
-| REQ-OR-260013 | Temporary Authentication Compatibility | OR | Superseded by REQ-FR-260063, REQ-OR-260016 | ADR-260049, ADR-260055 | BI-260049, BI-260055 |
 | REQ-CR-260001 | MVP Scope Exclusions for Graph Experience | CR | Active | ADR-260002 | BI-260002 |
 | REQ-CR-260002 | Backend Error Handling and Resilience Baseline | CR | Active | ADR-260003 | BI-260003 |
 | REQ-CR-260003 | Desktop-Only MVP and Minimal Placeholder Policy | CR | Active | ADR-260014 | BI-260011 |
@@ -86,7 +82,6 @@ A terminal requirement (`Superseded by <id>` / `Withdrawn`) keeps a tombstone ro
 | REQ-CR-260012 | Suggested Label Display Cap of Three (Temporary) | CR | Active | ADR-260016 | BI-260022 |
 | REQ-CR-260013 | Autocomplete and Incremental Search Behaviors Are Deferred | CR | Active | ADR-260016, ADR-260023 | BI-260025 |
 | REQ-CR-260014 | View-Switching Must Not Change Shell and Panel Contracts | CR | Active | ADR-260028 | BI-260029 |
-| REQ-CR-260015 | Network View Must Use Circle Nodes with Visible Connector Handles | CR | Superseded by REQ-FR-260038 | ADR-260029 | BI-260030 |
 | REQ-CR-260016 | Dual-View Tabs Must Follow ARIA Tab Pattern with Visible Focus | CR | Active | ADR-260031 | BI-260032 |
 | REQ-CR-260017 | Network View Ring Visual Semantics Must Use Distinct Tokenized Colors | CR | Active | ADR-260037 | BI-260039 |
 | REQ-CR-260018 | Atom Keyboard Deletion Must Be Delete-Key Only | CR | Active | ADR-260015, ADR-260031 | BI-260042 |
@@ -95,10 +90,8 @@ A terminal requirement (`Superseded by <id>` / `Withdrawn`) keeps a tombstone ro
 | REQ-QR-260003 | Large-Graph Degrade Policy for Dual-View Rendering | QR | Active | ADR-260030 | BI-260031 |
 | REQ-QR-260004 | Dual-View Visual States Must Be Contrast-Safe and Non-Color-Only | QR | Active | ADR-260031 | BI-260032 |
 | REQ-QR-260005 | Dual-View Switch Performance Targets and Large-Render Gate Timing | QR | Active | ADR-260032 | BI-260033 |
-| REQ-FR-260059 | Credential-Based Sign-Up and Sign-In | FR | Superseded by REQ-FR-260063 | ADR-260050, ADR-260055 | BI-260050, BI-260055 |
 | REQ-FR-260060 | Passwordless Google Sign-In | FR | Proposed | ADR-260050 | BI-260050 |
 | REQ-FR-260061 | One-Click Demo Mode | FR | Proposed | ADR-260050 | BI-260050 |
-| REQ-OR-260014 | Authentication Backend Contract | OR | Superseded by REQ-OR-260016 | ADR-260050, ADR-260054 | BI-260050, BI-260054 |
 | REQ-CR-260020 | Unified Authentication UI | CR | Proposed | ADR-260050 | BI-260050, BI-260055 |
 | REQ-QR-260007 | Authentication Security and Reliability | QR | Proposed | ADR-260050 | BI-260050 |
 | REQ-FR-260062 | Accept Platform Token from URL Parameter on Redirect | FR | Active | ADR-260052 | BI-260051 |
@@ -119,3 +112,19 @@ A terminal requirement (`Superseded by <id>` / `Withdrawn`) keeps a tombstone ro
 | REQ-CR-260025 | Centralized GraphQL Error-Code Interpretation | CR | Proposed | ADR-260057 | BI-260054 |
 | REQ-CR-260026 | Rate-Limit Handling and Back-Off | CR | Proposed | ADR-260057 | BI-260056 |
 | REQ-QR-260008 | Authentication & Authorization Security, Reliability, and Coverage | QR | Proposed | ADR-260054 | BI-260054, BI-260055, BI-260056, BI-260057, BI-260058, BI-260059, BI-260060, BI-260061 |
+
+## Superseded
+
+Terminal requirements (replaced by a successor). Their record files live under
+`requirements/superseded/`; retained for audit per
+`docs/governance/generic/process/artifact-model.md`.
+
+| Requirement ID | Title | Class | Status | Related ADRs | Related BIs |
+| --- | --- | --- | --- | --- | --- |
+| REQ-FR-260007 | Graph-First Interaction with Search Bootstrap | FR | Superseded by REQ-FR-260022 | ADR-260014 | BI-260011, BI-260020 |
+| REQ-FR-260031 | Network View Circle Nodes and Connector-Based Edge Creation | FR | Superseded by REQ-FR-260038 | ADR-260029 | BI-260030 |
+| REQ-FR-260044 | Flow View Directional Projection and Eligible-Bond Inclusion | FR | Superseded by REQ-FR-260047 | ADR-260039, ADR-260040 | BI-260044, BI-260045 |
+| REQ-OR-260013 | Temporary Authentication Compatibility | OR | Superseded by REQ-FR-260063, REQ-OR-260016 | ADR-260049, ADR-260055 | BI-260049, BI-260055 |
+| REQ-CR-260015 | Network View Must Use Circle Nodes with Visible Connector Handles | CR | Superseded by REQ-FR-260038 | ADR-260029 | BI-260030 |
+| REQ-FR-260059 | Credential-Based Sign-Up and Sign-In | FR | Superseded by REQ-FR-260063 | ADR-260050, ADR-260055 | BI-260050, BI-260055 |
+| REQ-OR-260014 | Authentication Backend Contract | OR | Superseded by REQ-OR-260016 | ADR-260050, ADR-260054 | BI-260050, BI-260054 |
