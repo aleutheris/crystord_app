@@ -63,12 +63,10 @@ normal API use.
 - `public/config.json` / `deploy_config.json` `backendSchemaRange`: **`~9.2.0`** — auto-adopt
   `9.2.x` patches; a higher minor or major requires a new ICR.
 
-> **Outstanding ICR (governance gap).** `ICR-260001` authorized the move to `8.1.0`. The live
-> configuration has since advanced to `~9.2.0` (code change in commit `af96479`), which crosses the
-> "higher minor/major requires a new ICR" threshold above. The successor **`ICR-260002` (adopt
-> schema 9.2.0)** is not yet recorded — see `roadmap.md`. Until it lands, this `~9.2.0` pin is
-> documented-but-not-yet-ICR-ratified, and whether 9.2.0 changes any operation shapes beyond the
-> version pin still needs confirmation.
+> **ICR status.** `ICR-260001` authorized `8.1.0`; **`ICR-260002` (Implemented, approved 2026-06-29)**
+> ratifies the move to `~9.2.0` (shipped in commit `af96479`). The 8.1.0 → 9.2.0 schema delta was
+> reviewed and is **additive-only** (new `Category*` taxonomy grant/share/transfer ops and ownership
+> fields), entirely outside this frontend's used surface, so no operation the frontend consumes changed.
 
 ## Verification
 
@@ -80,6 +78,6 @@ normal API use.
 
 - Related requirements: REQ-OR-260002, REQ-OR-260016, REQ-OR-260017.
 - Related ADRs: ADR-260013 (schema compatibility & deprecation governance), ADR-260054 (adopt schema 8.1.0).
-- Change requests (ICRs): ICR-260001 (adopt 8.1.0, Implemented); ICR-260002 (adopt 9.2.0) — pending.
+- Change requests (ICRs): ICR-260001 (adopt 8.1.0, Implemented); ICR-260002 (adopt 9.2.0, Implemented).
 - Related epics (frozen): BI-260010, BI-260054.
 - Companion record: `deprecation-log.md`.

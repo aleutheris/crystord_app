@@ -17,11 +17,7 @@ baselines (captured across `ADR-260001`–`ADR-260059` and the frozen `BI-*` epi
 
 ## Near-term direction / pending decisions
 
-- **Adopt backend schema 9.2.0 — `ICR-260002` (pending).** The live config pins
-  `backendSchemaRange: ~9.2.0` (`public/config.json`, `deploy_config.json`; code change in commit
-  `af96479`), but the move from `8.1.0` → `9.2.0` crosses the contract's "higher minor/major requires
-  a new ICR" threshold and currently has no governing ICR — `ICR-260001` only authorized `8.1.0`.
-  Author **`ICR-260002` (adopt schema 9.2.0)** to ratify the pin, and confirm whether `9.2.0` changes
-  any operation shapes beyond the version number (review the 9.2.0 schema / commit `af96479`). Until
-  then the `~9.2.0` pin in `contracts/schema-compatibility-contract.md` is
-  documented-but-not-yet-ICR-ratified.
+- **Backend schema 9.2.0 adoption — resolved.** Ratified by `ICR-260002` (approved 2026-06-29); the
+  `~9.2.0` pin in `contracts/schema-compatibility-contract.md` is now fully ICR-backed (shipped in
+  commit `af96479`). The 8.1.0 → 9.2.0 delta was additive-only (new `Category*` taxonomy ops/fields)
+  and outside this frontend's used surface. No open schema decision remains.

@@ -6,10 +6,8 @@ never moved or deleted; an approved ICR's effect lands in the contract it modifi
 
 | ID | Title | Status | Record | Related | Notes |
 | --- | --- | --- | --- | --- | --- |
+| ICR-260002 | Adopt backend schema 9.2.0 (`backendSchemaRange ~9.2.0`) | Implemented | [ICR-260002.md](icr/ICR-260002.md) | schema-compatibility-contract, ADR-260050, BI-260081 (backend) | Approved 2026-06-29; ratifies the already-shipped `~9.2.0` pin (commit `af96479`). Net 8.1.0→9.2.0 delta is additive-only and outside the frontend's used surface. |
 | ICR-260001 | Adopt backend schema 8.1.0 (`backendSchemaRange ~8.1.0`) | Implemented | [ICR-260001.md](icr/ICR-260001.md) | schema-compatibility-contract, ADR-260054, REQ-OR-260016, REQ-OR-260017 | Status asserted `Implemented` (the record carries no `Status:` field): 8.1.0 was adopted and shipped. |
-
-> Pending: `ICR-260002` (adopt schema 9.2.0) is required to ratify the live `~9.2.0` pin but is not
-> yet authored — tracked in `roadmap.md`. Add its row here when created.
 
 ## Tracking Rules
 
