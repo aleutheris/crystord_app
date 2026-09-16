@@ -37,18 +37,33 @@ export function useSearch(atoms: Atom[], onSubmitSearch?: (labels: string[]) => 
     return Array.from(all).sort()
   }, [atoms])
 
+  // Removing a label the last search ran with re-runs it without that label (EPIC-260094):
+  // later category queries reuse the submitted labels, so a removal that stayed local would
+  // keep narrowing them invisibly. Unsubmitted chips were never applied, so removing one
+  // fires nothing — adding a label still needs an explicit submit.
+  const unsubmitLabel = useCallback((label: string) => {
+    if (!submittedLabels.includes(label)) return
+    const remaining = submittedLabels.filter((l) => l !== label)
+    setSubmittedLabels(remaining)
+    void onSubmitSearch?.(remaining)
+  }, [submittedLabels, onSubmitSearch])
+
   const toggleLabel = useCallback((label: string) => {
-    setSelectedLabels((prev) =>
-      prev.includes(label) ? prev.filter((l) => l !== label) : [...prev, label],
-    )
-  }, [])
+    if (selectedLabels.includes(label)) {
+      setSelectedLabels(selectedLabels.filter((l) => l !== label))
+      unsubmitLabel(label)
+    } else {
+      setSelectedLabels([...selectedLabels, label])
+    }
+  }, [selectedLabels, unsubmitLabel])
 
   const clearFilters = useCallback(() => {
     setLabelQuery('')
     setSelectedLabels([])
     setHasSubmitted(false)
     setSubmittedLabels([])
-  }, [])
+    if (submittedLabels.length > 0) void onSubmitSearch?.([])
+  }, [submittedLabels, onSubmitSearch])
 
   const submitSearch = useCallback(() => {
     const text = labelQuery.trim()
@@ -75,10 +90,11 @@ export function useSearch(atoms: Atom[], onSubmitSearch?: (labels: string[]) => 
   }, [labelQuery, selectedLabels])
 
   const removeLastLabel = useCallback(() => {
-    if (selectedLabels.length > 0) {
-      setSelectedLabels((prev) => prev.slice(0, -1))
-    }
-  }, [selectedLabels])
+    const last = selectedLabels.at(-1)
+    if (last === undefined) return
+    setSelectedLabels(selectedLabels.slice(0, -1))
+    unsubmitLabel(last)
+  }, [selectedLabels, unsubmitLabel])
 
   const filters: SearchFilters = { labelQuery, selectedLabels }
 

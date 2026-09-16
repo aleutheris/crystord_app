@@ -312,3 +312,112 @@ describe('useSearch', () => {
     expect(result.current.filteredAtoms).toHaveLength(0)
   })
 })
+
+// EPIC-260094: later category queries reuse the submitted labels, so removing a submitted label
+// must re-run the search without it; removing an unsubmitted chip must fire nothing.
+describe('useSearch — removing a submitted label re-runs the search', () => {
+  function submitted(labels: string[]) {
+    const onSubmitSearch = vi.fn().mockResolvedValue(undefined)
+    const hook = renderHook(() => useSearch(atoms, onSubmitSearch))
+    for (const label of labels) {
+      act(() => hook.result.current.setLabelQuery(label))
+      act(() => hook.result.current.commitLabelFromInput())
+    }
+    act(() => hook.result.current.submitSearch())
+    onSubmitSearch.mockClear()
+    return { onSubmitSearch, result: hook.result }
+  }
+
+  it('chip × (toggleLabel) re-submits the remaining submitted labels', () => {
+    const { onSubmitSearch, result } = submitted(['Project', 'Task'])
+
+    act(() => result.current.toggleLabel('Project'))
+
+    expect(onSubmitSearch).toHaveBeenCalledOnce()
+    expect(onSubmitSearch).toHaveBeenCalledWith(['Task'])
+    expect(result.current.querySummary).toBe('Labels: Task')
+  })
+
+  it('Backspace (removeLastLabel) re-submits the remaining submitted labels', () => {
+    const { onSubmitSearch, result } = submitted(['Project', 'Task'])
+
+    act(() => result.current.removeLastLabel())
+
+    expect(onSubmitSearch).toHaveBeenCalledOnce()
+    expect(onSubmitSearch).toHaveBeenCalledWith(['Project'])
+    expect(result.current.querySummary).toBe('Labels: Project')
+  })
+
+  it('Clear (clearFilters) re-submits with no labels', () => {
+    const { onSubmitSearch, result } = submitted(['Project'])
+
+    act(() => result.current.clearFilters())
+
+    expect(onSubmitSearch).toHaveBeenCalledOnce()
+    expect(onSubmitSearch).toHaveBeenCalledWith([])
+  })
+
+  it('removing the last submitted label re-submits with no labels and empties the summary', () => {
+    const { onSubmitSearch, result } = submitted(['Project'])
+
+    act(() => result.current.toggleLabel('Project'))
+
+    expect(onSubmitSearch).toHaveBeenCalledWith([])
+    expect(result.current.querySummary).toBe('')
+  })
+
+  it('removing an unsubmitted chip fires nothing, on either removal path', () => {
+    const { onSubmitSearch, result } = submitted(['Project'])
+    act(() => result.current.toggleLabel('Task'))
+    act(() => result.current.setLabelQuery('Active'))
+    act(() => result.current.commitLabelFromInput())
+
+    act(() => result.current.removeLastLabel())
+    act(() => result.current.toggleLabel('Task'))
+
+    expect(onSubmitSearch).not.toHaveBeenCalled()
+    expect(result.current.filters.selectedLabels).toEqual(['Project'])
+    expect(result.current.querySummary).toBe('Labels: Project')
+  })
+
+  it('re-submits only submitted labels — an unsubmitted chip is never sent by a removal', () => {
+    const { onSubmitSearch, result } = submitted(['Project'])
+    act(() => result.current.toggleLabel('Task'))
+
+    act(() => result.current.toggleLabel('Project'))
+
+    expect(onSubmitSearch).toHaveBeenCalledWith([])
+    expect(result.current.filters.selectedLabels).toEqual(['Task'])
+    expect(result.current.querySummary).toBe('')
+  })
+
+  it('adding a label never runs the search', () => {
+    const { onSubmitSearch, result } = submitted([])
+
+    act(() => result.current.toggleLabel('Task'))
+    act(() => result.current.setLabelQuery('Project'))
+    act(() => result.current.commitLabelFromInput())
+
+    expect(onSubmitSearch).not.toHaveBeenCalled()
+  })
+
+  it('Clear fires nothing when no submitted label is applied — even after an empty submit', () => {
+    // An empty submit leaves hasSubmitted true with no submitted labels: the state that tells
+    // "a submitted label is applied" apart from "a search was ever run".
+    const { onSubmitSearch, result } = submitted([])
+    act(() => result.current.toggleLabel('Task'))
+
+    act(() => result.current.clearFilters())
+
+    expect(onSubmitSearch).not.toHaveBeenCalled()
+  })
+
+  it('removing a submitted label updates the summary even without an onSubmitSearch callback', () => {
+    const { result } = renderHook(() => useSearch(atoms))
+    act(() => result.current.setLabelQuery('Task'))
+    act(() => result.current.submitSearch())
+
+    expect(() => act(() => result.current.toggleLabel('Task'))).not.toThrow()
+    expect(result.current.querySummary).toBe('')
+  })
+})

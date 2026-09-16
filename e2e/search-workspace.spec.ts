@@ -249,10 +249,16 @@ test.describe('Search and discoverability', () => {
     await expect(page.getByText('Beta', { exact: true })).toBeVisible()
     await expect(page.getByRole('status', { name: /active query/i })).toBeVisible()
 
+    // Clear removes the active query summary and re-runs the search without the cleared labels
+    // (EPIC-260094), so no removed label keeps narrowing later queries.
+    const clearedSearch = page.waitForRequest((r) => {
+      const postData = r.postData()
+      if (!/\/(api|graphql)\b/.test(r.url()) || !postData?.includes('RetrieveAtoms')) return false
+      return JSON.parse(postData).variables?.labels === undefined
+    })
     await page.getByLabel(/clear search/i).click()
+    await clearedSearch
 
-    // Clear removes the active query summary; the graph retains the last results until the next
-    // search (the result-list representation returns with the Table view, EPIC-260071).
     await expect(page.getByRole('status', { name: /active query/i })).not.toBeVisible()
   })
 

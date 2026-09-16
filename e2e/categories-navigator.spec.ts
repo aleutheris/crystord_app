@@ -146,6 +146,19 @@ function waitForRetrieveAtoms(page: import('@playwright/test').Page) {
   )
 }
 
+// Matches a RetrieveAtoms request by its variables, so neither the initial load nor another
+// in-flight retrieve can satisfy a wait meant for a specific query.
+function waitForRetrieveWith(
+  page: import('@playwright/test').Page,
+  matches: (variables: Record<string, unknown>) => boolean,
+) {
+  return page.waitForRequest((r) => {
+    const postData = r.postData()
+    if (!/\/(api|graphql)\b/.test(r.url()) || !postData?.includes('RetrieveAtoms')) return false
+    return matches(JSON.parse(postData).variables ?? {})
+  })
+}
+
 test.describe('Categories navigator', () => {
   test('expanding a dimension browses it and shows child values with count badges', async ({ page }) => {
     await mockGraphQL(page)
@@ -201,6 +214,30 @@ test.describe('Categories navigator', () => {
     const sent = JSON.parse(retrieveResponse.request().postData()!)
     expect(sent.variables?.categories).toBeUndefined()
     await expect(page.getByRole('button', { name: 'Remove filter region ▸ europe' })).toHaveCount(0)
+  })
+
+  // EPIC-260094: a label removed from the search bar must not keep narrowing later queries.
+  test('a removed search label does not narrow a later category selection', async ({ page }) => {
+    await mockGraphQL(page)
+    await signIn(page)
+
+    const labelSearch = waitForRetrieveWith(page, (v) => Array.isArray(v.labels))
+    await page.getByLabel(/search labels/i).fill('Project')
+    await page.getByRole('button', { name: 'Run search query' }).click()
+    expect(JSON.parse((await labelSearch).postData()!).variables.labels).toEqual(['Project'])
+
+    await page.getByRole('button', { name: 'Remove Project', exact: true }).click()
+
+    await openCategoriesLens(page)
+    await expandRegion(page)
+
+    const categorySearch = waitForRetrieveWith(page, (v) => v.categories !== undefined)
+    await page.getByRole('button', { name: /^Europe/ }).click()
+    const sent = JSON.parse((await categorySearch).postData()!)
+    expect(sent.variables.categories).toEqual([
+      { dimensionKey: 'region', valueKeys: ['europe'], includeDescendants: true },
+    ])
+    expect(sent.variables.labels).toBeUndefined()
   })
 
   test('inline authoring: adding a value under an owned dimension fires createCategoryValue', async ({ page }) => {
